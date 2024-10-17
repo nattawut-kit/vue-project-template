@@ -1,0 +1,22 @@
+@import '@/@core/scss/quasar/_override';
+
+:root {
+
+  --red-color: #F93822;
+  --blue-color: #0033A0;
+  --yellow-color: #FCE300;
+
+  --black-color: #000000;
+  --white-color: #FFFFFF;
+}
+
+
+body {
+  margin: 0;
+  // font-family: 'DBHeavent' ,'san-serif';
+  background-color: #7c7c7c;
+  font-size: 20px;
+  // font-weight: 400;
+  // line-height: 22px;
+  color: var(--black-color);
+}

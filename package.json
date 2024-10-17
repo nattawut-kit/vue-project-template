@@ -16,11 +16,15 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-pro": "^6.6.0",
+    "@quasar/extras": "^1.16.12",
     "pinia": "^2.2.4",
+    "quasar": "^2.17.0",
     "vue": "^3.5.12",
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
+    "@quasar/vite-plugin": "^1.7.0",
     "@tsconfig/node20": "^20.1.4",
     "@types/node": "^20.16.11",
     "@vitejs/plugin-vue": "^5.1.4",
@@ -32,6 +36,7 @@
     "eslint-plugin-vue": "^9.29.0",
     "npm-run-all2": "^6.2.3",
     "prettier": "^3.3.3",
+    "sass": "^1.33.0",
     "typescript": "~5.5.4",
     "unplugin-auto-import": "0.17.1",
     "unplugin-vue-components": "^0.27.4",
