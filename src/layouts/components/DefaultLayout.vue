@@ -1,11 +1,11 @@
 <template>
-  <!-- <HorizontalLayout> -->
+  <HorizontalLayout>
   <RouterView v-slot="{ Component, route }">
     <component :is="Component" :key="route" />
   </RouterView>
-  <!-- </HorizontalLayout> -->
+  </HorizontalLayout>
 </template>
 
 <script setup>
-// import HorizontalLayout from './HorizontalLayout.vue'
+import HorizontalLayout from './HorizontalLayout.vue'
 </script>

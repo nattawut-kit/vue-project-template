@@ -68,3 +68,19 @@ export default {
   }
 }
 </script>
+
+<route lang="yaml">
+  meta:
+    layout: default
+    navtop:
+      back_to: ''
+      title: 'test'
+      show_point: false
+      type_point: ''
+    main:
+      image_prize: true
+    navbottom:
+      active: true
+      footer: true
+      current: 'rewards-collection'
+  </route>
