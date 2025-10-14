@@ -1,5 +1,20 @@
 import { createApp } from 'vue'
-import './style.css'
+import router from './routers/index'
 import App from './App.vue'
+import './style.css'
+import VueDOMPurifyHTML from 'vue-dompurify-html'
 
-createApp(App).mount('#app')
+const app = createApp(App)
+
+app.use(router)
+app.use(VueDOMPurifyHTML, {
+  namedConfigurations: {
+    svg: {
+      USE_PROFILES: { svg: true },
+    },
+    mathml: {
+      USE_PROFILES: { mathMl: true },
+    },
+  },
+})
+app.mount('#app')

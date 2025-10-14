@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+dist/
+.output/
+
+# Auto-generated files
+components.d.ts
+auto-imports.d.ts
+*.d.ts
+
+# Build outputs
+build/
+coverage/
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Environment files
+.env*
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Azure
+azure-pipelines.yml
+
+# Git
+.git/
+.gitignore 
