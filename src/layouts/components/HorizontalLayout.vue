@@ -1,37 +1,55 @@
 <template>
-  <NavbarTopLayout />
+  <NavbarTopLayout :metaNavtopInfo="routeInfo" />
   <div class="main-container">
     <div class="background-image-container">
       <div class="background-image-inner">
-        <img src="@/assets/images/background.png" alt="img-background" />
+        <img
+          v-if="route.meta.navtop.is_background && route.meta.main.image"
+          src="@/assets/images/background-pasaya.jpeg"
+          alt="img-background"
+          class="background-image"
+        />
+
+        <img
+          v-if="!route.meta.navtop.is_background && route.meta.main.image"
+          src="@/assets/images/background-pasaya.jpeg"
+          alt="img-background"
+          class="background-image no-top"
+        />
+
+        <img
+          v-if="
+            !route.meta.navtop.is_background &&
+            route.meta.navtop.tier_background &&
+            route.meta.main.image
+          "
+          src="@/assets/images/background-pasaya.jpeg"
+          alt="img-background"
+          class="background-image no-top"
+        />
+
+        <div v-else class="background-no-img"></div>
       </div>
     </div>
 
-    <div
-      :class="
-        route.meta.navbottom.active && !route.meta.navbottom.footer
-          ? 'content-container bottom'
-          : route.meta.navbottom.active && route.meta.navbottom.footer
-            ? 'content-container bottom footer'
-            : 'content-container '
-      "
-    >
+    <div :class="styleMainContent()">
       <div>
-        <!-- image header (special prize) -->
-        <div v-if="route.meta.main.image_prize" class="header-img">
-          <!-- <img src="@/assets/images/special-prize.png" alt="img-header" /> -->
-        </div>
-
+        <!-- <div
+          v-if="route.meta.navtop.is_background"
+          class="border-navtop-main-container"
+        > -->
+        <!-- <div class="border-navtop-main-wrapper">
+            <div class="border-navtop-main"></div>
+          </div> -->
+        <!-- </div> -->
         <slot></slot>
-      </div>
-
-      <!-- image footer -->
-      <div v-if="route.meta.navbottom.footer" class="footer-img">
-        <!-- <img :src="imageFooter" alt="img-background" /> -->
       </div>
     </div>
   </div>
-  <NavbarBottomLayout />
+  <NavbarBottomLayout
+    :activeMenuItem="currentActiveMenuItem"
+    :use-images="false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -39,10 +57,47 @@ import NavbarTopLayout from '@/layouts/components/NavbarTopLayout.vue'
 import NavbarBottomLayout from '@/layouts/components/NavbarBottomLayout.vue'
 
 const route: any = useRoute()
+const routeInfo = ref<any>(null)
+
+const currentActiveMenuItem = computed(() => {
+  const path = route.path
+  if (path === '/home') return 'home'
+  if (path === '/privilege') return 'privilege'
+  if (path === '/history') return 'history'
+  if (path === '/profile') return 'profile'
+  return 'home'
+})
+
+const styleMainContent = () => {
+  if (route.meta.navbottom.active) {
+    if (route.meta.navtop.is_background && route.meta.main.image) {
+      return 'content-container'
+    } else if (!route.meta.navtop.is_background && route.meta.main.image) {
+      return 'content-container no-top-background'
+    } else if (route.meta.navtop.is_background && !route.meta.main.image) {
+      return 'content-container no-main-background'
+    } else if (!route.meta.navtop.is_background && !route.meta.main.image) {
+      return 'content-container no-main-background no-top-background'
+    }
+  } else {
+    if (route.meta.navtop.is_background && route.meta.main.image) {
+      return 'content-container no-bottom'
+    } else if (!route.meta.navtop.is_background && route.meta.main.image) {
+      return 'content-container no-bottom no-top-background'
+    } else if (route.meta.navtop.is_background && !route.meta.main.image) {
+      return 'content-container no-bottom no-main-background'
+    } else if (!route.meta.navtop.is_background && !route.meta.main.image) {
+      return 'content-container no-bottom no-main-background no-top-bacgfround'
+    }
+  }
+}
+
+watch(route, () => {
+  setTimeout(() => {
+    routeInfo.value = route.meta.navtop
+  }, 1)
+})
 // const loading = useLoadingStore()
-
-const imageFooter = ref<string>('')
-
 </script>
 
 <style lang="scss" scoped>
@@ -59,38 +114,68 @@ const imageFooter = ref<string>('')
     display: flex;
     justify-content: center;
     z-index: -1;
+    bottom: 0;
 
     & .background-image-inner {
-      width: 100%;
       height: 100%;
       width: 600px;
 
-      & img {
+      & img.background-image {
         width: 100%;
         height: 100%;
+        object-fit: cover;
+        object-position: top;
+        padding-top: 56px;
+      }
+
+      & img.background-image.no-top {
+        padding-top: 0;
+      }
+
+      & .background-no-img {
+        width: 100%;
+        height: 100%;
+        // background-color: #f5f2eb;
+        background-color: #f3f1ea;
       }
     }
   }
 
   & .content-container {
-    padding: 84px 0 0;
+    padding: 56px 0 84px;
     width: 100%;
     max-width: 600px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-  }
 
-  & .content-container.bottom {
-    padding: 84px 0 96px;
-    width: 100%;
-    max-width: 600px;
-  }
+    &.no-top-background {
+      padding: 80px 0 84px;
+    }
 
-  & .content-container.bottom.footer {
-    padding: 84px 0 89px;
-    width: 100%;
-    max-width: 600px;
+    &.no-main-background {
+      padding: 56px 0 84px;
+    }
+
+    &.no-main-background.no-top-background {
+      padding: 80px 0 84px;
+    }
+
+    &.no-bottom {
+      padding: 56px 0 0;
+    }
+
+    &.no-bottom.no-top-background {
+      padding: 80px 0 0;
+    }
+
+    &.no-bottom.no-main-background {
+      padding: 56px 0 0;
+    }
+
+    &.content-container.no-bottom.no-main-background.no-top-bacgfround {
+      padding: 80px 0 0;
+    }
   }
 }
 
@@ -104,16 +189,6 @@ const imageFooter = ref<string>('')
     object-fit: cover;
     width: 246px;
     height: 123px;
-  }
-}
-
-.footer-img {
-  width: 100%;
-  display: flex;
-
-  img {
-    object-fit: cover;
-    width: 100%;
   }
 }
 </style>

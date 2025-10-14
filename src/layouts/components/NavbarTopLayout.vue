@@ -2,55 +2,60 @@
   <div class="navbar-container">
     <div
       class="navbar-content"
-      :class="
-        route.meta.navbottom.current == 'privilege' && scrollY > 220
-          ? 'navbar-content scroll noblur'
-          : scrollY > 23
+      :class="[
+        scrollY > 23 && route.meta.navbottom.current != 'otp'
           ? 'navbar-content scroll'
-          : ''
-      "
+          : '',
+        route.meta.navtop.is_background ? 'have-background-color' : '',
+      ]"
     >
       <!-- ปุ่มย้อนกลับ -->
-      <div class="button-back">
-        <q-btn v-if="route.meta.navtop.back_to" class="back-btn" @click="handleBackToPage()">
-          <!-- <img src="@/assets/images/icons/elements/arrow-left.png" /> -->
-        </q-btn>
+      <div class="button-back-container">
+        <div
+          v-if="route.meta.navtop.back_to"
+          class="button-back"
+          @click="handleBackToPage"
+        >
+          <i class="fa-solid fa-arrow-left"></i>
+        </div>
       </div>
 
       <!-- Title or image -->
       <div class="content">
+        <!-- <img
+          v-if="!route.meta.navtop.title"
+          class="image"
+          src="@/assets/images/logo-pasaya.png"
+          alt="img-logo"
+        /> -->
         <img
           v-if="!route.meta.navtop.title"
           class="image"
-          src="@/assets/images/logo-chuahahaseng.png"
+          :src="'https://www.internetconsultancy.pro/wp-content/uploads/2018/05/NASA_Worm_logo.svg-750x207.png'"
           alt="img-logo"
         />
         <div
           class="text"
           :class="{ 'text-two-line': route.meta.navtop.title.includes('<br>') }"
           v-if="route.meta.navtop.title"
-          v-dompurify-html="route.meta.navtop.title"
+          v-dompurify-html="
+            metaNavtopInfo?.title
+              ? metaNavtopInfo?.title
+              : route.meta.navtop.title
+          "
         ></div>
       </div>
 
       <!-- Show Point-->
       <div v-if="route.meta.navtop.show_point" class="show-point">
-        <div v-if="route.meta.navtop.type_point == 'สิทธิ์สะสม'" class="text">สิทธิ์สะสม</div>
-        <div v-if="route.meta.navtop.type_point == 'คะแนนสะสม'" class="text">คะแนนสะสม</div>
+        <div v-if="route.meta.navtop.type_point == 'สิทธิ์สะสม'" class="text">
+          สิทธิ์สะสม
+        </div>
+        <div v-if="route.meta.navtop.type_point == 'คะแนนสะสม'" class="text">
+          คะแนนสะสม
+        </div>
         <div class="point-info">
-          <!-- <img
-            v-if="route.meta.navtop.type_point == 'สิทธิ์สะสม'"
-            src="@/assets/images/icons/elements/coin.png"
-            alt="img-coin"
-          /> -->
-          <!-- <img
-            v-if="route.meta.navtop.type_point == 'คะแนนสะสม'"
-            src="@/assets/images/icons/elements/coin-border.png"
-            alt="img-coin"
-          /> -->
-          <div class="point">
-            <!-- {{ showPoint?.point_balance ? showPoint.point_balance.toLocaleString() : 0 }} -->
-          </div>
+          <div class="point"></div>
         </div>
       </div>
       <div v-else class="empty"></div>
@@ -59,40 +64,26 @@
 </template>
 
 <script setup lang="ts">
-// import type { IPoint } from '@/interface/customer/customer_info'
-
 const route: any = useRoute()
 const router: any = useRouter()
 
 const scrollY = ref<number>(0)
 
-// const customerStore = useCustomerStore()
-// const showPoint = ref<IPoint>({ point_balance: 0 })
+const props = defineProps({
+  metaNavtopInfo: Object,
+})
 
 window.addEventListener(
   'scroll',
-  (event) => {
+  event => {
     scrollY.value = window.scrollY
   },
-  { passive: true }
+  { passive: true },
 )
 
 const handleBackToPage = (): void => {
   router.push(String(route.meta.navtop.back_to))
 }
-
-// watch(
-//   () => customerStore.customerPoint?.point_balance,
-//   async () => {
-//     await customerStore.fetchCustomerPoint()
-//     showPoint.value = (await customerStore.getCustomerPoint) || { point_balance: 0 }
-//   }
-// )
-
-// onMounted(async () => {
-//   await customerStore.fetchCustomerPoint()
-//   showPoint.value = (await customerStore.getCustomerPoint) || { point_balance: 0 }
-// })
 </script>
 
 <style lang="scss" scoped>
@@ -102,30 +93,69 @@ const handleBackToPage = (): void => {
   display: flex;
   justify-content: center;
   z-index: 6000;
+  flex-direction: column;
+  align-items: center;
 
   & .navbar-content {
-    width: 600px;
-    height: 84px;
+    width: 100%;
+    max-width: 600px;
+    height: 80px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 24px;
+    border-top: 1px solid #e5e5e5;
 
-    & .button-back {
+    &.have-background-color {
+      background-color: var(--white-color);
+      height: 56px;
+    }
+
+    & .button-back-container {
       width: 50px;
+
+      & .button-back {
+        width: 32px;
+        height: 32px;
+        background-color: #6b590c;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0px 1.17px 5.83px 0px #bcbcbc57;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
+
+        & i {
+          color: white;
+          font-size: 18px;
+        }
+      }
     }
 
     & .content {
+      height: 100%;
+      display: flex;
+      align-items: center;
       & img {
-        width: 49px;
-        height: 58px;
+        width: 88px;
+        height: 34px;
       }
 
       & .text {
-        font-size: 20px;
-        font-weight: 400;
-        line-height: 22px;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 24px;
         text-align: center;
+        color: #9b8c4b;
       }
 
       & .text-two-line {
@@ -151,6 +181,7 @@ const handleBackToPage = (): void => {
         justify-content: flex-end;
 
         gap: 2px;
+
         & img {
           width: 16px;
           height: 16px;
@@ -165,11 +196,8 @@ const handleBackToPage = (): void => {
 }
 
 .navbar-content.scroll {
-  background-color: rgba(0, 51, 160, 0.8);
+  background-color: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
-}
-
-.navbar-content.scroll.noblur {
-  background-color: rgba(0, 51, 160, 1);
+  border-top: none;
 }
 </style>

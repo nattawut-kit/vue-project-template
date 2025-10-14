@@ -13,3 +13,9 @@ declare module '~pages' {
   const generatedRoutes: any
   export default generatedRoutes
 }
+
+declare module 'vue-dompurify-html' {
+  import type { Plugin } from 'vue'
+  const VueDOMPurifyHTML: Plugin
+  export default VueDOMPurifyHTML
+}

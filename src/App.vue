@@ -1,4 +1,4 @@
 <template>
-  <!-- <Loading /> -->
+  <Loading />
   <RouterView />
 </template>

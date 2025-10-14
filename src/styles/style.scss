@@ -1,22 +1,35 @@
 @import '@/@core/scss/quasar/_override';
 
+//font KANIT
+@import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
 :root {
-
-  --red-color: #F93822;
-  --blue-color: #0033A0;
-  --yellow-color: #FCE300;
-
   --black-color: #000000;
   --white-color: #FFFFFF;
 }
 
+// SukhumvitSet - thin
+// @font-face {
+//   font-family: 'SukhumvitSet';
+//   src: url('../assets/fonts/SukhumvitSet-Light.ttf') format('truetype');
+//   font-weight: 250;
+// }
+
+// SukhumvitSet - medium
+// @font-face {
+//   font-family: 'SukhumvitSet';
+//   src: url('../assets/fonts/SukhumvitSet-Medium.ttf') format('truetype');
+//   font-weight: 600;
+// }
+
+
 
 body {
   margin: 0;
-  // font-family: 'DBHeavent' ,'san-serif';
+  font-family:'Kanit','DBHeavent' ,'san-serif';
   background-color: #7c7c7c;
   font-size: 20px;
-  // font-weight: 400;
-  // line-height: 22px;
+  font-weight: 400;
+  line-height: 22px;
   color: var(--black-color);
 }
