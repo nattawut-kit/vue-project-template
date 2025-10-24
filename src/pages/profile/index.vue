@@ -1,18 +1,10 @@
 <template>
   <div class="container">
-    <div>This is Home Page</div>
-    <br />
-    <div @click="handleClick">Go to Example Page</div>
+    <div>This is Profile Page</div>
   </div>
 </template>
 
-<script setup lang="ts">
-  const router = useRouter()
-
-  const handleClick = () => {
-    router.push('/example')
-  }
-</script>
+<script setup lang="ts"></script>
 
 <style scoped lang="scss">
   .container {
@@ -31,5 +23,5 @@ meta:
     image: true
   navbottom:
     active: true
-    current: 'home'
+    current: 'profile'
 </route>

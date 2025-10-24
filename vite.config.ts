@@ -5,7 +5,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import Components from 'unplugin-vue-components/vite'
 import Pages from 'vite-plugin-pages'
-import Layouts from 'vite-plugin-vue-layouts'
+import Layouts from 'vite-plugin-vue-layouts-next'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -42,8 +42,8 @@ export default defineConfig({
       exclude: ['**/_components/**'],
     }),
     Layouts({
-      layoutsDirs: './src/layouts',
-      pagesDirs: null,
+      layoutsDirs: 'src/layouts',
+      pagesDirs: 'src/pages',
     }),
   ],
 

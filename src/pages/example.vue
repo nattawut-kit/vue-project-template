@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div>This is History Page</div>
+    <div>Exmaple Page</div>
   </div>
 </template>
 
@@ -17,11 +17,11 @@ meta:
   # is_auth_route: true
   layout: default
   navtop:
-    back_to: ''
-    title: ''
+    back_to: '/home'
+    title: 'Exmaple Page'
   main:
     image: true
   navbottom:
-    active: true
-    current: 'history'
+    active: false
+    current: 'example'
 </route>
