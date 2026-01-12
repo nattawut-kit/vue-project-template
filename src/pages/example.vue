@@ -1,10 +1,18 @@
 <template>
   <div class="container">
     <div>Exmaple Page</div>
+
+    <div @click="handleClick('DialogDemo')">DialogDemo</div>
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+  const router = useRouter()
+
+  const handleClick = (path: string) => {
+    router.push(`/${path}`)
+  }
+</script>
 
 <style scoped lang="scss">
   .container {

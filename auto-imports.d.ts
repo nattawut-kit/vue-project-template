@@ -12,6 +12,7 @@ declare global {
   const customRef: typeof import('vue')['customRef']
   const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
   const defineComponent: typeof import('vue')['defineComponent']
+  const dialogsDefault: typeof import('./src/composables/useDialog')['dialogsDefault']
   const effectScope: typeof import('vue')['effectScope']
   const formatDate: typeof import('./src/utils/dayjs')['formatDate']
   const formatDateCalendar: typeof import('./src/utils/dayjs')['formatDateCalendar']
@@ -51,6 +52,7 @@ declare global {
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
+  const showDefaultDialog: typeof import('./src/composables/useDialog')['showDefaultDialog']
   const toRaw: typeof import('vue')['toRaw']
   const toRef: typeof import('vue')['toRef']
   const toRefs: typeof import('vue')['toRefs']
@@ -60,6 +62,8 @@ declare global {
   const useAttrs: typeof import('vue')['useAttrs']
   const useCssModule: typeof import('vue')['useCssModule']
   const useCssVars: typeof import('vue')['useCssVars']
+  const useDialog: typeof import('./src/composables/useDialogs')['useDialog']
+  const useDialogDom: typeof import('./src/composables/useDialogs')['useDialogDom']
   const useId: typeof import('vue')['useId']
   const useLink: typeof import('vue-router')['useLink']
   const useModel: typeof import('vue')['useModel']
@@ -90,6 +94,7 @@ declare module 'vue' {
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
+    readonly dialogsDefault: UnwrapRef<typeof import('./src/composables/useDialog')['dialogsDefault']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly formatDate: UnwrapRef<typeof import('./src/utils/dayjs')['formatDate']>
     readonly formatDateCalendar: UnwrapRef<typeof import('./src/utils/dayjs')['formatDateCalendar']>
@@ -129,6 +134,7 @@ declare module 'vue' {
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
+    readonly showDefaultDialog: UnwrapRef<typeof import('./src/composables/useDialog')['showDefaultDialog']>
     readonly toRaw: UnwrapRef<typeof import('vue')['toRaw']>
     readonly toRef: UnwrapRef<typeof import('vue')['toRef']>
     readonly toRefs: UnwrapRef<typeof import('vue')['toRefs']>
@@ -138,6 +144,7 @@ declare module 'vue' {
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
+    readonly useDialogDom: UnwrapRef<typeof import('./src/composables/useDialogs')['useDialogDom']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>

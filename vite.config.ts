@@ -25,8 +25,8 @@ export default defineConfig({
       ],
       dirs: [
         // Auto-import from your composables directory
-        // './src/composables/**',
-        // './src/model/interfaces/**',
+        './src/composables/**',
+        './src/model/interfaces/**',
         './src/utils/**',
         // './src/stores/**',
         // './src/constants/**',

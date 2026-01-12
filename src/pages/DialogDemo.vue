@@ -1,11 +1,5 @@
 <template>
-  <div class="container">
-    <div>This is Home Page</div>
-    <br />
-    <div @click="handleClick">Go to Example Page</div>
-
-    <div @click="dialog">Dialog</div>
-  </div>
+  <div @click="test">555555</div>
 
   <!-- Dialog Logout -->
   <DefaultDialog
@@ -13,20 +7,13 @@
     :title="dialogsDefault.title"
     :content="dialogsDefault.content"
     :buttons="dialogsDefault.buttons"
-    :allowOutsideClick="true"
     @submit="dialogsDefault.submit"
     @cancel="dialogsDefault.cancel"
   />
 </template>
 
 <script setup lang="ts">
-  const router = useRouter()
-
-  const handleClick = () => {
-    router.push('/example')
-  }
-
-  const dialog = () => {
+  const test = () => {
     showDefaultDialog(
       'signout',
       'ออกจากระบบ',
@@ -40,24 +27,13 @@
       }
     )
   }
+  onMounted(() => {})
 </script>
 
-<style scoped lang="scss">
-  .container {
-    padding: 12px;
-  }
-</style>
+<style scoped></style>
 
 <route lang="yaml">
 meta:
   # is_auth_route: true
-  layout: default
-  navtop:
-    back_to: ''
-    title: ''
-  main:
-    image: true
-  navbottom:
-    active: true
-    current: 'home'
+  layout: blank
 </route>
