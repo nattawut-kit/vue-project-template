@@ -1,23 +1,11 @@
 <template>
   <div class="container">
     <div class="button-container">
-      <q-btn
-        color="secondary"
-        text-color="black"
-        label="example Page"
-        :ripple="false"
-        style="width: 100%"
-        @click="handleClik"
-      />
+      <q-btn color="secondary" text-color="black" label="example Page" :ripple="false" style="width: 100%"
+        @click="handleClik" />
 
-      <q-btn
-        color="secondary"
-        text-color="black"
-        label="Loading Test"
-        :ripple="false"
-        style="width: 100%"
-        @click="testLoading"
-      />
+      <q-btn color="secondary" text-color="black" label="Loading Test" :ripple="false" style="width: 100%"
+        @click="testLoading" />
     </div>
   </div>
 </template>
@@ -33,7 +21,7 @@ const handleClik = () => {
 const testLoading = () => {
   loading.show = true
   setTimeout(() => {
-    loading.show = false
+    loading.show = true
   }, 1500)
 }
 </script>
