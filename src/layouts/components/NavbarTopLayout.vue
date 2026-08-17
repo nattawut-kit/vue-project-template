@@ -24,19 +24,23 @@
           src="@/assets/images/logo-pasaya.png"
           alt="img-logo"
         /> -->
+          <div
+            v-if="titleLoading"
+            class="text"
+          >
+            ...
+          </div>
           <img
-            v-if="!route.meta.navtop.title"
+            v-else-if="!displayTitle"
             class="image"
             :src="'https://www.internetconsultancy.pro/wp-content/uploads/2018/05/NASA_Worm_logo.svg-750x207.png'"
             alt="img-logo"
           />
           <div
+            v-else
             class="text"
-            :class="{ 'text-two-line': route.meta.navtop.title.includes('<br>') }"
-            v-if="route.meta.navtop.title"
-            v-dompurify-html="
-              metaNavtopInfo?.title ? metaNavtopInfo?.title : route.meta.navtop.title
-            "
+            :class="{ 'text-two-line': displayTitle.includes('<br>') }"
+            v-dompurify-html="displayTitle"
           ></div>
         </div>
 
@@ -78,6 +82,12 @@
 
   const props = defineProps({
     metaNavtopInfo: Object,
+  })
+
+  const { dynamicTitle, titleLoading } = useHeaderTitle()
+
+  const displayTitle = computed<string>(() => {
+    return dynamicTitle.value || props.metaNavtopInfo?.title || route.meta.navtop.title || ''
   })
 
   window.addEventListener(

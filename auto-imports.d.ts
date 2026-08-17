@@ -14,7 +14,6 @@ declare global {
   const customRef: typeof import('vue').customRef
   const defineAsyncComponent: typeof import('vue').defineAsyncComponent
   const defineComponent: typeof import('vue').defineComponent
-  const dialogsDefault: typeof import('./src/composables/useDialog').dialogsDefault
   const effectScope: typeof import('vue').effectScope
   const formatDate: typeof import('./src/utils/dayjs').formatDate
   const formatDateCalendar: typeof import('./src/utils/dayjs').formatDateCalendar
@@ -50,11 +49,11 @@ declare global {
   const reactive: typeof import('vue').reactive
   const readonly: typeof import('vue').readonly
   const ref: typeof import('vue').ref
+  const resetHeaderTitle: typeof import('./src/composables/useHeaderTitle').resetHeaderTitle
   const resolveComponent: typeof import('vue').resolveComponent
   const shallowReactive: typeof import('vue').shallowReactive
   const shallowReadonly: typeof import('vue').shallowReadonly
   const shallowRef: typeof import('vue').shallowRef
-  const showDefaultDialog: typeof import('./src/composables/useDialog').showDefaultDialog
   const toRaw: typeof import('vue').toRaw
   const toRef: typeof import('vue').toRef
   const toRefs: typeof import('vue').toRefs
@@ -64,8 +63,7 @@ declare global {
   const useAttrs: typeof import('vue').useAttrs
   const useCssModule: typeof import('vue').useCssModule
   const useCssVars: typeof import('vue').useCssVars
-  const useDialog: typeof import('./src/composables/useDialogs')['useDialog']
-  const useDialogDom: typeof import('./src/composables/useDialogs').useDialogDom
+  const useHeaderTitle: typeof import('./src/composables/useHeaderTitle').useHeaderTitle
   const useId: typeof import('vue').useId
   const useLink: typeof import('vue-router').useLink
   const useModel: typeof import('vue').useModel
@@ -131,6 +129,7 @@ declare module 'vue' {
     readonly reactive: UnwrapRef<typeof import('vue')['reactive']>
     readonly readonly: UnwrapRef<typeof import('vue')['readonly']>
     readonly ref: UnwrapRef<typeof import('vue')['ref']>
+    readonly resetHeaderTitle: UnwrapRef<typeof import('./src/composables/useHeaderTitle')['resetHeaderTitle']>
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
@@ -144,6 +143,7 @@ declare module 'vue' {
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
+    readonly useHeaderTitle: UnwrapRef<typeof import('./src/composables/useHeaderTitle')['useHeaderTitle']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
