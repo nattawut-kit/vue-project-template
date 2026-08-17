@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import tailwindcss from '@tailwindcss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import Components from 'unplugin-vue-components/vite'
@@ -11,6 +12,7 @@ import Layouts from 'vite-plugin-vue-layouts-next'
 export default defineConfig({
   plugins: [
     vue(),
+    tailwindcss(),
     VueDevTools(),
     AutoImport({
       dts: true,

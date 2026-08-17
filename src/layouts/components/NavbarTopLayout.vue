@@ -12,7 +12,7 @@
             class="button-back"
             @click="handleBackToPage"
           >
-            <i class="fa-solid fa-arrow-left"></i>
+            <IconArrowLeft class="icon" />
           </div>
         </div>
 
@@ -152,9 +152,10 @@
               transform: scale(0.95);
             }
 
-            & i {
+            & .icon {
               color: white;
-              font-size: 18px;
+              width: 18px;
+              height: 18px;
             }
           }
         }

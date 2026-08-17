@@ -11,8 +11,11 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    DefaultDialog: typeof import('./src/components/dialogs/DefaultDialog.vue')['default']
-    Dialog: typeof import('./src/components/media/Dialog.vue')['default']
+    IconArrowLeft: typeof import('./src/components/icons/IconArrowLeft.vue')['default']
+    IconClock: typeof import('./src/components/icons/IconClock.vue')['default']
+    IconGift: typeof import('./src/components/icons/IconGift.vue')['default']
+    IconHouse: typeof import('./src/components/icons/IconHouse.vue')['default']
+    IconUser: typeof import('./src/components/icons/IconUser.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
