@@ -3,7 +3,7 @@
     <router-view v-slot="{ Component, route }">
       <component
         :is="Component"
-        :key="route"
+        :key="route.path"
       />
     </router-view>
   </HorizontalLayout>
