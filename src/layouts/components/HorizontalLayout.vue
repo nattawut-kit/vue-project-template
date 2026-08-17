@@ -13,7 +13,7 @@
   import NavbarBottomLayout from '../components/NavbarBottomLayout.vue'
 
   const route: any = useRoute()
-  const routeInfo = ref<any>(null)
+  const routeInfo = computed(() => route.meta.navtop)
 
   const currentActiveMenuItem = computed(() => {
     const path = route.path
@@ -22,12 +22,6 @@
     if (path === '/history') return 'history'
     if (path === '/profile') return 'profile'
     return 'home'
-  })
-
-  watch(route, () => {
-    setTimeout(() => {
-      routeInfo.value = route.meta.navtop
-    }, 1)
   })
 </script>
 
