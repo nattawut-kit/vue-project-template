@@ -1,0 +1,31 @@
+<template>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <rect
+      x="3"
+      y="9"
+      width="18"
+      height="4"
+    />
+    <rect
+      x="4"
+      y="13"
+      width="16"
+      height="8"
+    />
+    <line
+      x1="12"
+      y1="9"
+      x2="12"
+      y2="21"
+    />
+    <path d="M12 9c0-2.2-1.5-4-3.5-4S6 6.3 6 8c0 1 .8 1 2 1z" />
+    <path d="M12 9c0-2.2 1.5-4 3.5-4S18 6.3 18 8c0 1-.8 1-2 1z" />
+  </svg>
+</template>

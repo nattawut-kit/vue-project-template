@@ -3,20 +3,7 @@
     <div>This is Home Page</div>
     <br />
     <div @click="handleClick">Go to Example Page</div>
-
-    <div @click="dialog">Dialog</div>
   </div>
-
-  <!-- Dialog Logout -->
-  <DefaultDialog
-    v-model="dialogsDefault.isOpen"
-    :title="dialogsDefault.title"
-    :content="dialogsDefault.content"
-    :buttons="dialogsDefault.buttons"
-    :allowOutsideClick="true"
-    @submit="dialogsDefault.submit"
-    @cancel="dialogsDefault.cancel"
-  />
 </template>
 
 <script setup lang="ts">
@@ -24,21 +11,6 @@
 
   const handleClick = () => {
     router.push('/example')
-  }
-
-  const dialog = () => {
-    showDefaultDialog(
-      'signout',
-      'ออกจากระบบ',
-      'คุณต้องการออกจากระบบ<br>Bangchak GreenMiles GOLD',
-      [
-        { action: 'cancel', text: 'ยกเลิก' },
-        { action: 'submit', text: 'ยืนยัน' },
-      ],
-      async () => {
-        // apiLogout()
-      }
-    )
   }
 </script>
 

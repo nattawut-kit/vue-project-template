@@ -15,20 +15,11 @@
               :class="{ active: activeMenuItem === item.id }"
               @click="handleMenuClick(item.id)"
             >
-              <!-- Use icon by default, image if provided -->
-              <img
-                v-if="item.image"
-                :src="getIconSrc(item)"
-                :alt="item.altText"
-                width="28"
-                height="28"
+              <component
+                :is="item.icon"
+                class="icon"
                 :class="{ active: activeMenuItem === item.id }"
               />
-
-              <i
-                v-else
-                :class="[getIconClass(item), { active: activeMenuItem === item.id }]"
-              ></i>
 
               <div :class="getTextClass(item)">
                 {{ item.labelKey }}
@@ -42,20 +33,16 @@
 </template>
 
 <script setup lang="ts">
-  // import HomeInActive from '../../assets/images/navbar-bottom/menu-home.png'
-  // import HomeActive from '../../assets/images/navbar-bottom/menu-home-active.png'
-  // import PrivilegeInActive from '../../assets/images/navbar-bottom/menu-privilege.png'
-  // import PrivilegeActive from '../../assets/images/navbar-bottom/menu-privilege-active.png'
-  // import HistoryInActive from '../../assets/images/navbar-bottom/menu-history.png'
-  // import HistoryActive from '../../assets/images/navbar-bottom/menu-history-active.png'
-  // import ProfileInActive from '../../assets/images/navbar-bottom/menu-profile.png'
-  // import ProfileActive from '../../assets/images/navbar-bottom/menu-profile-active.png'
+  import IconHouse from '@/components/icons/IconHouse.vue'
+  import IconGift from '@/components/icons/IconGift.vue'
+  import IconClock from '@/components/icons/IconClock.vue'
+  import IconUser from '@/components/icons/IconUser.vue'
+
   // Define menu items type
   type MenuItem = 'home' | 'privilege' | 'history' | 'profile'
 
   interface Props {
     activeMenuItem?: MenuItem
-    useImages?: boolean // Option to use images instead of icons
   }
 
   const route: any = useRoute()
@@ -63,7 +50,6 @@
 
   const props = withDefaults(defineProps<Props>(), {
     activeMenuItem: 'home',
-    useImages: false,
   })
 
   // Active menu item state
@@ -71,72 +57,33 @@
     return (route.meta.navbottom?.current || props.activeMenuItem) as MenuItem
   })
 
-  // Icons mapping (for images if needed)
-  const iconMap: any = {
-    // home: {
-    //   inactive: HomeInActive,
-    //   active: HomeActive,
-    // },
-    // privilege: {
-    //   inactive: PrivilegeInActive,
-    //   active: PrivilegeActive,
-    // },
-    // history: {
-    //   inactive: HistoryInActive,
-    //   active: HistoryActive,
-    // },
-    // profile: {
-    //   inactive: ProfileInActive,
-    //   active: ProfileActive,
-    // },
-  }
-
   // Menu items configuration
   const menuItems = [
     {
       id: 'home' as MenuItem,
       labelKey: 'หน้าแรก',
       altText: 'home',
-      iconActive: 'fa-solid fa-house',
-      iconInactive: 'fa-regular fa-house',
-      image: props.useImages ? iconMap.home : null,
+      icon: IconHouse,
     },
     {
       id: 'privilege' as MenuItem,
       labelKey: 'แลกรางวัล',
       altText: 'privilege',
-      iconActive: 'fa-solid fa-gift',
-      iconInactive: 'fa-regular fa-gift',
-      image: props.useImages ? iconMap.privilege : null,
+      icon: IconGift,
     },
     {
       id: 'history' as MenuItem,
       labelKey: 'ประวัติ',
       altText: 'history',
-      iconActive: 'fa-solid fa-clock-rotate-left',
-      iconInactive: 'fa-regular fa-clock-rotate-left',
-      image: props.useImages ? iconMap.history : null,
+      icon: IconClock,
     },
     {
       id: 'profile' as MenuItem,
       labelKey: 'โปรไฟล์',
       altText: 'profile',
-      iconActive: 'fa-solid fa-user',
-      iconInactive: 'fa-regular fa-user',
-      image: props.useImages ? iconMap.profile : null,
+      icon: IconUser,
     },
   ]
-
-  // Computed properties for each menu item
-  const getIconClass = (item: (typeof menuItems)[0]) => {
-    const isActive = activeMenuItem.value === item.id
-    return isActive ? item.iconActive : item.iconInactive
-  }
-
-  const getIconSrc = (item: (typeof menuItems)[0]) => {
-    const isActive = activeMenuItem.value === item.id
-    return item.image ? item.image[isActive ? 'active' : 'inactive'] : ''
-  }
 
   const getTextClass = (item: (typeof menuItems)[0]) => {
     const isActive = activeMenuItem.value === item.id
@@ -195,30 +142,16 @@
             }
 
             // Icon styles
-            & i {
-              font-size: 24px;
+            & .icon {
+              width: 24px;
+              height: 24px;
               color: #888b8d;
               transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
               transform: scale(1);
 
               &.active {
-                font-size: 24px;
                 color: #9b8c4b;
                 transform: scale(1.1);
-              }
-            }
-
-            // Image styles
-            & img {
-              width: 24px;
-              height: 24px;
-              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-              transform: scale(1);
-
-              &.active {
-                width: 24px;
-                height: 24px;
-                transform: scale(1);
               }
             }
 
@@ -243,12 +176,8 @@
 
             // Hover effects
             &:hover:not(.active) {
-              & i {
+              & .icon {
                 color: #9b8c4b;
-                transform: scale(1.05) translateY(-2px);
-              }
-
-              & img {
                 transform: scale(1.05) translateY(-2px);
               }
 
@@ -260,12 +189,8 @@
 
             // Active state hover
             &.active:hover {
-              & i {
+              & .icon {
                 transform: scale(1.15);
-              }
-
-              & img {
-                transform: scale(1.05);
               }
             }
           }
