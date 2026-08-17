@@ -28,21 +28,10 @@
     } finally {
       titleLoading.value = false
     }
-
-
   }
 
   onMounted(async () => {
-    // titleLoading.value = true
-    // try {
-      // await api()
-    //   setHeaderTitle(fetchedText.value)
-    // } catch (e) {
-    //   error.value = e instanceof Error ? e.message : 'unknown error'
-    //   setHeaderTitle(null)
-    // } finally {
-    //   titleLoading.value = false
-    // }
+    await api()
   })
 </script>
 
