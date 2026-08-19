@@ -1,3 +1,6 @@
+<!-- Icon convention: no hardcoded width/height — size via the parent's `w-*`/`h-*`
+     classes (or font-size + `em`), color via `stroke`/`fill="currentColor"` so it
+     follows the parent's `text-*` class. Copy this file as the template for new icons. -->
 <template>
   <svg
     viewBox="0 0 24 24"

@@ -1,5 +1,12 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-brand-primary: #9b8c4b;
+  --color-brand-dark: #6b590c;
+  --color-brand-inactive: #888b8d;
+  --color-brand-cream: #f3f1ea;
+}
+
 /* * {
   box-sizing: border-box;
 } */
