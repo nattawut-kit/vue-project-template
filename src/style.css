@@ -67,6 +67,11 @@
   box-sizing: border-box;
 } */
 
+html {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
 body {
   font-family: var(--font-sans);
   font-size: 20px;
@@ -75,4 +80,9 @@ body {
   color: #000000;
   background-color: #f9fafb;
   margin: 0;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
