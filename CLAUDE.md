@@ -74,7 +74,7 @@ Both `App.vue` and `DefaultLayout.vue` render `<router-view>` with `:key="route.
 
 ### Pinia stores
 
-`app.use(createPinia())` in `main.ts`. Stores are **setup-style** (`defineStore('id', () => {...})`, not options stores) to match the rest of the codebase being 100% `<script setup>`. `pinia` and `./src/stores/**` are both in the auto-import config, so `defineStore` and every exported `useXxxStore` are ambient — no import line, same as `useHeaderTitle`. `src/stores/useCustomerInformationStore.ts` is the reference example (`name`, `age`, `setCustomerInformation`).
+`app.use(createPinia())` in `main.ts`. Stores are **setup-style** (`defineStore('id', () => {...})`, not options stores) to match the rest of the codebase being 100% `<script setup>`. `defineStore` itself needs an explicit `import { defineStore } from 'pinia'` in each store file — `pinia` is deliberately not in the auto-import list — but `./src/stores/**` is, so every exported `useXxxStore` is still ambient at call sites with no import line, same as `useHeaderTitle`. `src/stores/useCustomerInformationStore.ts` is the reference example (`name`, `age`, `setCustomerInformation`).
 
 ### Base UI components
 
@@ -100,7 +100,7 @@ Styling is Tailwind utility classes directly in the template (the default case);
 
 ### Auto-imports — don't write import statements for these
 
-`unplugin-auto-import` injects `vue`, `vue-router`, and `pinia` APIs, plus everything exported from `src/composables/**`, `src/model/interfaces/**`, `src/utils/**`, `src/stores/**`, and `src/api/**` (`src/constants/**` is commented out in `vite.config.ts` — uncomment there if that dir gets added). `unplugin-vue-components` auto-registers every SFC under `src/components/` and `src/views/`.
+`unplugin-auto-import` injects `vue` and `vue-router` APIs, plus everything exported from `src/composables/**`, `src/model/interfaces/**`, `src/utils/**`, `src/stores/**`, and `src/api/**` (`src/constants/**` is commented out in `vite.config.ts` — uncomment there if that dir gets added). `unplugin-vue-components` auto-registers every SFC under `src/components/` and `src/views/`.
 
 So `ref`, `computed`, `useRoute`, `useHeaderTitle`, `useDialog`, `defineStore`, `formatDate`, `apiGet`, `<Button />`, `<IconHouse />` etc. are used bare, with no import. `auto-imports.d.ts`, `components.d.ts` and `.eslintrc-auto-import.json` regenerate on dev/build and are committed, so they show up dirty in `git status` after adding new auto-imported names — that's expected, just regenerate (`yarn dev` or `yarn build`) and commit the refreshed files rather than leaving them stale (a stale commit breaks `yarn type-check` for anyone who hasn't run dev/build yet).
 

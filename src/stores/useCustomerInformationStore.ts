@@ -1,3 +1,5 @@
+import { defineStore } from 'pinia'
+
 export const useCustomerInformationStore = defineStore('customerInformation', () => {
   const name = ref('')
   const age = ref<number | null>(null)

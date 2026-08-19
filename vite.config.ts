@@ -23,7 +23,6 @@ export default defineConfig({
       imports: [
         'vue',
         'vue-router',
-        'pinia',
       ],
       dirs: [
         // Auto-import from your composables directory
