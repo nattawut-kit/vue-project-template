@@ -100,9 +100,11 @@ Styling is Tailwind utility classes directly in the template (the default case);
 
 ### Auto-imports — don't write import statements for these
 
-`unplugin-auto-import` injects `vue`, `vue-router`, `pinia`, and `@vueuse/core` APIs, plus everything exported from `src/composables/**`, `src/model/interfaces/**`, `src/utils/**`, `src/stores/**`, and `src/api/**` (`src/constants/**` is commented out in `vite.config.ts` — uncomment there if that dir gets added). `unplugin-vue-components` auto-registers every SFC under `src/components/` and `src/views/`.
+`unplugin-auto-import` injects `vue`, `vue-router`, and `pinia` APIs, plus everything exported from `src/composables/**`, `src/model/interfaces/**`, `src/utils/**`, `src/stores/**`, and `src/api/**` (`src/constants/**` is commented out in `vite.config.ts` — uncomment there if that dir gets added). `unplugin-vue-components` auto-registers every SFC under `src/components/` and `src/views/`.
 
-So `ref`, `computed`, `useRoute`, `useHeaderTitle`, `useDialog`, `defineStore`, `formatDate`, `apiGet`, `<Button />`, `<IconHouse />` etc. are used bare, with no import. `@vueuse/core` is installed and wired but not yet consumed anywhere — reach for it (`onClickOutside`, `useLocalStorage`, etc.) before hand-rolling the same thing. `auto-imports.d.ts`, `components.d.ts` and `.eslintrc-auto-import.json` regenerate on dev/build and are committed, so they show up dirty in `git status` after adding new auto-imported names — that's expected, just regenerate (`yarn dev` or `yarn build`) and commit the refreshed files rather than leaving them stale (a stale commit breaks `yarn type-check` for anyone who hasn't run dev/build yet).
+So `ref`, `computed`, `useRoute`, `useHeaderTitle`, `useDialog`, `defineStore`, `formatDate`, `apiGet`, `<Button />`, `<IconHouse />` etc. are used bare, with no import. `auto-imports.d.ts`, `components.d.ts` and `.eslintrc-auto-import.json` regenerate on dev/build and are committed, so they show up dirty in `git status` after adding new auto-imported names — that's expected, just regenerate (`yarn dev` or `yarn build`) and commit the refreshed files rather than leaving them stale (a stale commit breaks `yarn type-check` for anyone who hasn't run dev/build yet).
+
+`@vueuse/core` is installed as a regular dependency but **deliberately not** in the auto-import `imports` array — import it explicitly (`import { onClickOutside } from '@vueuse/core'`) when you reach for it.
 
 `@` aliases to `src/`.
 
