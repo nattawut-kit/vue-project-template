@@ -1,10 +1,49 @@
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'DBHeavent';
+  src: url('./assets/fonts/DBHeaventLight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DBHeavent';
+  src: url('./assets/fonts/DBHeaventRegular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DBHeavent';
+  src: url('./assets/fonts/DBHeaventBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-brand-primary: #9b8c4b;
   --color-brand-dark: #6b590c;
   --color-brand-inactive: #888b8d;
   --color-brand-cream: #f3f1ea;
+
+  --font-sans: 'DBHeavent', system-ui, sans-serif;
+
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+
+  /* Project's own scale — line-height pinned to 100% (equal to font-size) */
+  --text-12: 12px;
+  --text-14: 14px;
+  --text-16: 16px;
+  --text-18: 18px;
+  --text-20: 20px;
+  --text-24: 24px;
+  --text-28: 28px;
 }
 
 /* * {
@@ -12,11 +51,11 @@
 } */
 
 body {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   font-size: 20px;
-  line-height: 24px;
-  font-weight: 500;
-  color: #2d2926;
+  line-height: 100%;
+  font-weight: 400;
+  color: #000000;
   background-color: #f9fafb;
   margin: 0;
 }
