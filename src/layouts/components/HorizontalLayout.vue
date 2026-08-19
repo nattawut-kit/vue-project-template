@@ -37,7 +37,7 @@
 
     & .main-container-wrapper {
       width: 100%;
-      max-width: 600px;
+      max-width: 640px;
       background-color: #f3f1ea;
       overflow: scroll;
       padding: 56px 0 96px;

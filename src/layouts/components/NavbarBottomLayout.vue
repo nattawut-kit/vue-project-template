@@ -104,8 +104,8 @@
     z-index: 40;
 
     & .navbar-content {
-      width: 600px;
-      max-width: 600px;
+      width: 640px;
+      max-width: 640px;
       height: 96px;
       display: flex;
       align-items: center;

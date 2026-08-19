@@ -123,7 +123,7 @@
       position: absolute;
       width: 100%;
       height: 100%;
-      max-width: 600px;
+      max-width: 640px;
       // background-color: yellow;
       // top: 0px;
 
