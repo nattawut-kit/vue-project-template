@@ -8,7 +8,7 @@
         <!-- ปุ่มย้อนกลับ -->
         <div class="button-back-container">
           <div
-            v-if="route.meta.navtop.back_to"
+            v-if="route.meta.navtop?.back_to"
             class="button-back"
             @click="handleBackToPage"
           >
@@ -19,7 +19,7 @@
         <!-- Title or Logo -->
         <div class="content">
           <!-- <img
-          v-if="!route.meta.navtop.title"
+          v-if="!route.meta.navtop?.title"
           class="image"
           src="@/assets/images/logo-pasaya.png"
           alt="img-logo"
@@ -46,17 +46,17 @@
 
         <!-- Show Point or Empty -->
         <div
-          v-if="route.meta.navtop.show_point"
+          v-if="route.meta.navtop?.show_point"
           class="show-point"
         >
           <div
-            v-if="route.meta.navtop.type_point == 'สิทธิ์สะสม'"
+            v-if="route.meta.navtop?.type_point == 'สิทธิ์สะสม'"
             class="text"
           >
             สิทธิ์สะสม
           </div>
           <div
-            v-if="route.meta.navtop.type_point == 'คะแนนสะสม'"
+            v-if="route.meta.navtop?.type_point == 'คะแนนสะสม'"
             class="text"
           >
             คะแนนสะสม
@@ -75,19 +75,24 @@
 </template>
 
 <script setup lang="ts">
-  const route: any = useRoute()
-  const router: any = useRouter()
+  import type { NavtopMeta } from 'vue-router'
+
+  interface Props {
+    metaNavtopInfo?: NavtopMeta
+  }
+
+  const props = withDefaults(defineProps<Props>(), {
+    metaNavtopInfo: () => ({}),
+  })
+  const route = useRoute()
+  const router = useRouter()
 
   const scrollY = ref<number>(0)
-
-  const props = defineProps({
-    metaNavtopInfo: Object,
-  })
 
   const { dynamicTitle, titleLoading } = useHeaderTitle()
 
   const displayTitle = computed<string>(() => {
-    return dynamicTitle.value || props.metaNavtopInfo?.title || route.meta.navtop.title || ''
+    return dynamicTitle.value || props.metaNavtopInfo?.title || route.meta.navtop?.title || ''
   })
 
   window.addEventListener(
@@ -99,7 +104,8 @@
   )
 
   const handleBackToPage = () => {
-    router.replace(route.meta.navtop.back_to)
+    const backTo = route.meta.navtop?.back_to
+    if (backTo) router.replace(backTo)
   }
 </script>
 

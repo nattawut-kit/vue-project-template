@@ -61,8 +61,10 @@ export default defineConfigWithVueTs(
       'vue/order-in-components': 'error',
       'vue/this-in-template': 'error',
       'vue/block-tag-newline': 'error',
-      // renamed from vue/component-tags-order (deprecated in eslint-plugin-vue 9.16)
-      'vue/block-order': ['error', { order: ['script', 'template', 'style'] }],
+      // renamed from vue/component-tags-order (deprecated in eslint-plugin-vue 9.16).
+      // template-first, matching every existing SFC; the old eslintrc said
+      // script-first but was never enforced, so no file ever followed it.
+      'vue/block-order': ['error', { order: ['template', 'script', 'style'] }],
       'vue/define-macros-order': [
         'error',
         { order: ['defineOptions', 'defineProps', 'defineEmits', 'defineSlots'] },
