@@ -33,8 +33,8 @@
   const classes = computed(() => [
     'w-full rounded-lg border px-4 py-2.5 text-sm outline-none transition focus:ring-2',
     props.error
-      ? 'border-red-500 focus:ring-red-200'
-      : 'border-gray-300 focus:border-brand-primary focus:ring-brand-primary/20',
+      ? 'border-error-1 focus:ring-error-2'
+      : 'border-gray-300 focus:border-main-1 focus:ring-main-1/20',
     props.disabled && 'cursor-not-allowed bg-gray-100 opacity-60',
   ])
 

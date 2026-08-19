@@ -12,7 +12,7 @@
   >
     <h2
       v-if="options?.title"
-      class="mb-2 text-lg font-semibold text-brand-dark"
+      class="mb-2 text-lg font-semibold text-gray-900"
     >
       {{ options.title }}
     </h2>
