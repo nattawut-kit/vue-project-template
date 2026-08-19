@@ -23,14 +23,16 @@ export default defineConfig({
       imports: [
         'vue',
         'vue-router',
-        // 'pinia',
+        'pinia',
+        '@vueuse/core',
       ],
       dirs: [
         // Auto-import from your composables directory
         './src/composables/**',
         './src/model/interfaces/**',
         './src/utils/**',
-        // './src/stores/**',
+        './src/stores/**',
+        './src/api/**',
         // './src/constants/**',
       ],
       vueTemplate: true,
