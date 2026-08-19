@@ -9,8 +9,11 @@
 export {}
 declare global {
   const EffectScope: typeof import('vue').EffectScope
+  const apiDelete: typeof import('./src/api/index').apiDelete
   const apiGet: typeof import('./src/api/index').apiGet
+  const apiPatch: typeof import('./src/api/index').apiPatch
   const apiPost: typeof import('./src/api/index').apiPost
+  const apiPut: typeof import('./src/api/index').apiPut
   const computed: typeof import('vue').computed
   const createApp: typeof import('vue').createApp
   const customRef: typeof import('vue').customRef
@@ -22,13 +25,17 @@ declare global {
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
+  const getErrorDisplay: typeof import('./src/api/index').getErrorDisplay
   const h: typeof import('vue').h
   const inject: typeof import('vue').inject
+  const isApiError: typeof import('./src/api/index').isApiError
+  const isCanceledError: typeof import('./src/api/index').isCanceledError
   const isProxy: typeof import('vue').isProxy
   const isReactive: typeof import('vue').isReactive
   const isReadonly: typeof import('vue').isReadonly
   const isRef: typeof import('vue').isRef
   const isShallow: typeof import('vue').isShallow
+  const isTimeoutError: typeof import('./src/api/index').isTimeoutError
   const markRaw: typeof import('vue').markRaw
   const nextTick: typeof import('vue').nextTick
   const onActivated: typeof import('vue').onActivated
@@ -89,7 +96,7 @@ declare global {
   export type { DialogOptions } from './src/composables/useDialog'
   import('./src/composables/useDialog')
   // @ts-ignore
-  export type { ApiError } from './src/api/index'
+  export type { ApiErrorLocale, ApiErrorResponse, ApiEnvelope } from './src/api/index'
   import('./src/api/index')
 }
 
@@ -99,8 +106,11 @@ declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly apiDelete: UnwrapRef<typeof import('./src/api/index')['apiDelete']>
     readonly apiGet: UnwrapRef<typeof import('./src/api/index')['apiGet']>
+    readonly apiPatch: UnwrapRef<typeof import('./src/api/index')['apiPatch']>
     readonly apiPost: UnwrapRef<typeof import('./src/api/index')['apiPost']>
+    readonly apiPut: UnwrapRef<typeof import('./src/api/index')['apiPut']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
@@ -112,13 +122,17 @@ declare module 'vue' {
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
+    readonly getErrorDisplay: UnwrapRef<typeof import('./src/api/index')['getErrorDisplay']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
+    readonly isApiError: UnwrapRef<typeof import('./src/api/index')['isApiError']>
+    readonly isCanceledError: UnwrapRef<typeof import('./src/api/index')['isCanceledError']>
     readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>
     readonly isReactive: UnwrapRef<typeof import('vue')['isReactive']>
     readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
     readonly isRef: UnwrapRef<typeof import('vue')['isRef']>
     readonly isShallow: UnwrapRef<typeof import('vue')['isShallow']>
+    readonly isTimeoutError: UnwrapRef<typeof import('./src/api/index')['isTimeoutError']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
