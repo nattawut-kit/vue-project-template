@@ -1,4 +1,4 @@
-<!-- โครงกลางของทุก modal: backdrop / กล่องกลางจอ / transition / ESC / focus
+<!-- โครงกลางของทุก modal: backdrop / กล่องกลางจอ / transition / ESC / focus / ล็อก scroll
      ไม่มี padding และไม่รู้เรื่อง dialog logic — เนื้อหาทั้งหมดมาจาก slot
      อยาก custom UI ใหม่ ให้ครอบ BaseModal แล้วเขียนข้างในเอง (ดู DefaultModal.vue) -->
 <template>
@@ -44,6 +44,23 @@
   const isShaking = ref(false)
   let previouslyFocused: HTMLElement | null = null
 
+  // ถือ lock ได้ทีละ 1 ต่อ instance — ทั้ง watch และ onUnmounted เรียกได้โดยไม่นับเกิน
+  let hasScrollLock = false
+
+  const acquireScrollLock = () => {
+    if (hasScrollLock) return
+
+    hasScrollLock = true
+    lockScroll()
+  }
+
+  const releaseScrollLock = () => {
+    if (!hasScrollLock) return
+
+    hasScrollLock = false
+    unlockScroll()
+  }
+
   const close = () => {
     emit('update:modelValue', false)
   }
@@ -78,18 +95,23 @@
     () => props.modelValue,
     async isOpen => {
       if (isOpen) {
+        acquireScrollLock()
         previouslyFocused = document.activeElement as HTMLElement | null
         document.addEventListener('keydown', handleKeydown)
         await nextTick()
         panelRef.value?.focus()
       } else {
+        releaseScrollLock()
         document.removeEventListener('keydown', handleKeydown)
-        previouslyFocused?.focus()
+        // preventScroll: คืนโฟกัสให้ปุ่มเดิมได้ แต่ห้าม browser เลื่อน scroll container ไปหามันเอง
+        previouslyFocused?.focus({ preventScroll: true })
       }
     }
   )
 
   onUnmounted(() => {
+    // ถูก unmount ทั้งที่ยังเปิดอยู่ (เช่น closeAllDialogs ตอนเปลี่ยนหน้า) ต้องคืน lock ด้วย
+    releaseScrollLock()
     document.removeEventListener('keydown', handleKeydown)
   })
 </script>

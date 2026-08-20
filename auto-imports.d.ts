@@ -38,8 +38,10 @@ declare global {
   const isReactive: typeof import('vue').isReactive
   const isReadonly: typeof import('vue').isReadonly
   const isRef: typeof import('vue').isRef
+  const isScrollLocked: typeof import('./src/utils/scrollLock').isScrollLocked
   const isShallow: typeof import('vue').isShallow
   const isTimeoutError: typeof import('./src/api/index').isTimeoutError
+  const lockScroll: typeof import('./src/utils/scrollLock').lockScroll
   const markRaw: typeof import('vue').markRaw
   const nextTick: typeof import('vue').nextTick
   const onActivated: typeof import('vue').onActivated
@@ -74,6 +76,7 @@ declare global {
   const toRefs: typeof import('vue').toRefs
   const toValue: typeof import('vue').toValue
   const triggerRef: typeof import('vue').triggerRef
+  const unlockScroll: typeof import('./src/utils/scrollLock').unlockScroll
   const unref: typeof import('vue').unref
   const useAttrs: typeof import('vue').useAttrs
   const useCssModule: typeof import('vue').useCssModule
@@ -147,8 +150,10 @@ declare module 'vue' {
     readonly isReactive: UnwrapRef<typeof import('vue')['isReactive']>
     readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
     readonly isRef: UnwrapRef<typeof import('vue')['isRef']>
+    readonly isScrollLocked: UnwrapRef<typeof import('./src/utils/scrollLock')['isScrollLocked']>
     readonly isShallow: UnwrapRef<typeof import('vue')['isShallow']>
     readonly isTimeoutError: UnwrapRef<typeof import('./src/api/index')['isTimeoutError']>
+    readonly lockScroll: UnwrapRef<typeof import('./src/utils/scrollLock')['lockScroll']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
@@ -183,6 +188,7 @@ declare module 'vue' {
     readonly toRefs: UnwrapRef<typeof import('vue')['toRefs']>
     readonly toValue: UnwrapRef<typeof import('vue')['toValue']>
     readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
+    readonly unlockScroll: UnwrapRef<typeof import('./src/utils/scrollLock')['unlockScroll']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>

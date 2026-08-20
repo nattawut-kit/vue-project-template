@@ -64,6 +64,8 @@ meta:
 
 `src/layouts/default.vue` → `layouts/components/DefaultLayout.vue` → `HorizontalLayout.vue` (renders `NavbarTopLayout` + scrollable slot + `NavbarBottomLayout`, reading `route.meta` directly — layout behavior comes from the page's `<route>` block, not from props). The 640px `max-width` lives in those three layout components — keep them in sync. `src/layouts/_blank.vue` is a bare `<RouterView>` (used by `src/pages/index.vue`, which redirects to `/home`).
 
+`.main-container-wrapper` inside `HorizontalLayout` is the **scroll container** (`overflow: scroll` under a `height: 100dvh` parent), so on default-layout pages the document itself never scrolls — worth knowing before touching anything scroll-related. Blank-layout pages scroll the document normally.
+
 Two deliberate things not to undo: `<router-view :key="route.path">` in both `App.vue` and `DefaultLayout.vue` (commit f2852fb, fixes an `insertBefore` remount race), and the absence of page transitions (fade and slide were both prototyped and rejected).
 
 ### Dynamic header title
@@ -136,7 +138,7 @@ The `emit` hand-off is why every dialog component declares `defineEmits<{ ok: [p
 
 **Navigation closes everything.** `DialogHost` watches `route.path` and calls `closeAllDialogs()` — dialogs live outside `RouterView`, so without it a modal left open would sit on top of the next page (browser back on a coupon popup, for one). That teardown fires **no** callbacks: not `onCancel`, not `onDismiss` — it isn't a user outcome. Consequence to know: opening a dialog and navigating in the same tick kills the dialog. (Quasar behaves differently here — `Dialog.create` renders outside the app tree and survives route changes; what it hooks instead is the browser history, so back closes the top overlay rather than leaving the page. Worth revisiting if that's the UX you want.)
 
-UI side, `src/components/modal/BaseModal.vue` is the shared shell — backdrop, centered 327px panel (`max-w-81.75`), `Teleport to="body"`, ESC/backdrop close (a shake animation instead when both are off), focus handling — with **no padding and no dialog logic**; everything visible comes from the slot. `DefaultModal.vue` is the standard popup (icon band per `type`, title, content, 1–2 buttons) built on it, and any custom modal (`SelectAddressModal`, …) is the same shape:
+UI side, `src/components/modal/BaseModal.vue` is the shared shell — backdrop, centered 327px panel (`max-w-81.75`), `Teleport to="body"`, ESC/backdrop close (a shake animation instead when both are off), focus handling, and scroll locking — with **no padding and no dialog logic**; everything visible comes from the slot. `DefaultModal.vue` is the standard popup (icon band per `type`, title, content, 1–2 buttons) built on it, and any custom modal (`SelectAddressModal`, …) is the same shape:
 
 ```vue
 <template>
@@ -154,6 +156,8 @@ UI side, `src/components/modal/BaseModal.vue` is the shared shell — backdrop, 
   const { visible, onDialogOk, onDialogCancel } = useDialogComponent(emit)
 </script>
 ```
+
+**Scroll locking** is `src/utils/scrollLock.ts`, called from `BaseModal` (open → `lockScroll`, close *or* unmount → `unlockScroll`), so every modal gets it whether it came from `Dialog.create` or is used directly. Ported from the mk-one project with three changes: it **counts** locks instead of keeping a boolean (stacked dialogs would otherwise unlock as soon as the first one closed), it restores the styles it captured instead of blanking them, and it drops the scrollbar-width padding compensation — `html` already reserves the gutter via `scrollbar-gutter: stable`, so adding padding would shift the page sideways. It keeps the `position: fixed` + `top: -scrollY` technique on purpose: plain `overflow: hidden` doesn't hold on iOS Safari. On default-layout pages its real job is killing the iOS viewport bounce, since the document doesn't scroll there and a teleported overlay can't scroll-chain into `.main-container-wrapper`; on blank-layout pages it does the actual scroll lock. `BaseModal` releases in `onUnmounted` too, which is what keeps `closeAllDialogs()` on navigation from leaking a lock.
 
 Two `DefaultModal` decisions worth keeping: backdrop/ESC close are **off** (a `success` popup whose `onOk` navigates must not be dismissable in a way that skips the callback — so `buttons: []` makes it unclosable), and `type: 'cancel'` defaults its copy to `เกิดข้อผิดพลาด` / `กรุณาลองใหม่อีกครั้ง` so error popups can pass none. Shared UI types (`DialogType`, `DialogButtonAction`, `IDialogButton`) live in `src/model/interfaces/dialog.ts`, engine types stay in `src/utils/dialog.ts`; both are auto-imported.
 
