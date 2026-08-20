@@ -1,18 +1,18 @@
 <template>
-  <NavbarTopLayout :metaNavtopInfo="routeInfo" />
+  <NavbarTopLayout :meta-navtop-info="routeInfo" />
   <div class="main-container">
     <div class="main-container-wrapper">
       <slot></slot>
     </div>
   </div>
-  <NavbarBottomLayout :activeMenuItem="currentActiveMenuItem" />
+  <NavbarBottomLayout :active-menu-item="currentActiveMenuItem" />
 </template>
 
 <script setup lang="ts">
   import NavbarTopLayout from '../components/NavbarTopLayout.vue'
   import NavbarBottomLayout from '../components/NavbarBottomLayout.vue'
 
-  const route: any = useRoute()
+  const route = useRoute()
   const routeInfo = computed(() => route.meta.navtop)
 
   const currentActiveMenuItem = computed(() => {
@@ -37,7 +37,7 @@
 
     & .main-container-wrapper {
       width: 100%;
-      max-width: 600px;
+      max-width: 640px;
       background-color: #f3f1ea;
       overflow: scroll;
       padding: 56px 0 96px;

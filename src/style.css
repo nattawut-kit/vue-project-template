@@ -1,15 +1,112 @@
 @import 'tailwindcss';
 
-/* * {
-  box-sizing: border-box;
-} */
+@font-face {
+  font-family: 'DBHeavent';
+  src: url('./assets/fonts/DBHeaventLight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DBHeavent';
+  src: url('./assets/fonts/DBHeaventRegular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DBHeavent';
+  src: url('./assets/fonts/DBHeaventBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  /* Color Main */
+  --color-main-1: #f61414;
+  --color-main-2: #f9a51a;
+  --color-main-3: #f78d0f;
+  --color-main-4: #0d6efd;
+
+  /* Color Error */
+  --color-error-1: #cc1122;
+  --color-error-2: #fff2f2;
+
+  /* Color Gray — overrides Tailwind's default gray-50..900 scale project-wide */
+  --color-gray-50: #ffffff;
+  --color-gray-100: #e6e7e8;
+  --color-gray-200: #e6e6e6;
+  --color-gray-300: #bbbdc0;
+  --color-gray-400: #a7a9ac;
+  --color-gray-500: #808285;
+  --color-gray-600: #6d6e70;
+  --color-gray-700: #58595b;
+  --color-gray-800: #404041;
+  --color-gray-900: #000000;
+
+  --font-sans: 'DBHeavent', system-ui, sans-serif;
+
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+
+  /* Project's own scale — line-height pinned to 100% (equal to font-size) */
+  --text-12: 12px;
+  --text-14: 14px;
+  --text-16: 16px;
+  --text-18: 18px;
+  --text-20: 20px;
+  --text-24: 24px;
+  --text-28: 28px;
+}
+
+html {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
 
 body {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   font-size: 20px;
-  line-height: 24px;
-  font-weight: 500;
-  color: #2d2926;
+  line-height: 100%;
+  font-weight: 400;
+  color: #000000;
   background-color: #f9fafb;
   margin: 0;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ordered list items */
+li[data-list='ordered'] {
+  list-style-type: decimal;
+  margin-left: 18px;
+}
+
+/* Bullet list items */
+li[data-list='bullet'] {
+  list-style-type: disc;
+  margin-left: 18px;
+}
+
+/* Unchecked (square) list items */
+li[data-list='unchecked'] {
+  list-style-type: square;
+  margin-left: 18px;
+}
+
+.ql-align-center {
+  text-align: center;
+}
+.ql-align-right {
+  text-align: right;
+}
+.ql-align-justify {
+  text-align: justify;
 }

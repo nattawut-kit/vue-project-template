@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="route.meta.navbottom.active"
+    v-if="route.meta.navbottom?.active"
     class="navbar-container"
   >
     <div class="navbar-content">
@@ -45,12 +45,11 @@
     activeMenuItem?: MenuItem
   }
 
-  const route: any = useRoute()
-  const router: any = useRouter()
-
   const props = withDefaults(defineProps<Props>(), {
     activeMenuItem: 'home',
   })
+  const route = useRoute()
+  const router = useRouter()
 
   // Active menu item state
   const activeMenuItem = computed<MenuItem>(() => {
@@ -105,8 +104,8 @@
     z-index: 40;
 
     & .navbar-content {
-      width: 600px;
-      max-width: 600px;
+      width: 640px;
+      max-width: 640px;
       height: 96px;
       display: flex;
       align-items: center;

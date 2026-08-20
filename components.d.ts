@@ -11,11 +11,14 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    Button: typeof import('./src/components/common/Button.vue')['default']
     IconArrowLeft: typeof import('./src/components/icons/IconArrowLeft.vue')['default']
     IconClock: typeof import('./src/components/icons/IconClock.vue')['default']
     IconGift: typeof import('./src/components/icons/IconGift.vue')['default']
     IconHouse: typeof import('./src/components/icons/IconHouse.vue')['default']
     IconUser: typeof import('./src/components/icons/IconUser.vue')['default']
+    Input: typeof import('./src/components/form/Input.vue')['default']
+    Modal: typeof import('./src/components/modal/Modal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

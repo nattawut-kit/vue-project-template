@@ -9,6 +9,6 @@
   </HorizontalLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import HorizontalLayout from './HorizontalLayout.vue'
 </script>
