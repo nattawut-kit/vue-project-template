@@ -211,7 +211,7 @@
       console.log(getRawResult.value.yearsAired)
     } catch (e) {
       const { title, message } = getErrorDisplay(e)
-      await useDialog().confirm({ title, message })
+      showDialogError(title, message)
     } finally {
       getRawLoading.value = false
     }
@@ -233,7 +233,7 @@
       })
     } catch (e) {
       const { title, message } = getErrorDisplay(e)
-      await useDialog().confirm({ title, message })
+      showDialogError(title, message)
     } finally {
       postRawLoading.value = false
     }
@@ -255,7 +255,7 @@
       })
     } catch (e) {
       const { title, message } = getErrorDisplay(e)
-      await useDialog().confirm({ title, message })
+      showDialogError(title, message)
     } finally {
       postQueryLoading.value = false
     }
@@ -271,7 +271,7 @@
       getEnvelopeResult.value = await apiGet<IStoreListResult>('/api/v1/Customer/GetCustomerInfo')
     } catch (e) {
       const { title, message } = getErrorDisplay(e)
-      await useDialog().confirm({ title, message })
+      showDialogError(title, message)
     } finally {
       getEnvelopeLoading.value = false
 
@@ -294,7 +294,7 @@
       )
     } catch (e) {
       const { title, message } = getErrorDisplay(e)
-      await useDialog().confirm({ title, message })
+      showDialogError(title, message)
     } finally {
       customTimeoutLoading.value = false
     }
@@ -313,7 +313,7 @@
     } catch (e) {
       // เคสปกติ: ใช้ข้อความจาก backend/interceptor ตรง ๆ ผ่าน getErrorDisplay
       const { title, message } = getErrorDisplay(e)
-      await useDialog().confirm({ title, message })
+      showDialogError(title, message)
     } finally {
       normalErrorLoading.value = false
     }
@@ -332,13 +332,10 @@
     } catch (e) {
       // custom text เฉพาะ error code ที่รู้จัก ส่วน error อื่น ๆ fallback ไปใช้ getErrorDisplay ตามปกติ
       if (isApiError(e) && e.code === 1000400) {
-        await useDialog().confirm({
-          title: 'ไม่พบข้อมูล',
-          message: 'ไม่พบข้อมูลลูกค้ารายนี้ในระบบ',
-        })
+        showDialogError('ไม่พบข้อมูล', 'ไม่พบข้อมูลลูกค้ารายนี้ในระบบ')
       } else {
         const { title, message } = getErrorDisplay(e)
-        await useDialog().confirm({ title, message })
+        showDialogError(title, message)
       }
     } finally {
       customErrorLoading.value = false

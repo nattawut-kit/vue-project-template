@@ -11,14 +11,20 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BaseModal: typeof import('./src/components/modal/BaseModal.vue')['default']
     Button: typeof import('./src/components/common/Button.vue')['default']
+    DefaultModal: typeof import('./src/components/modal/DefaultModal.vue')['default']
+    DialogHost: typeof import('./src/components/modal/DialogHost.vue')['default']
     IconArrowLeft: typeof import('./src/components/icons/IconArrowLeft.vue')['default']
+    IconCheck: typeof import('./src/components/icons/IconCheck.vue')['default']
     IconClock: typeof import('./src/components/icons/IconClock.vue')['default']
+    IconCross: typeof import('./src/components/icons/IconCross.vue')['default']
+    IconExclamation: typeof import('./src/components/icons/IconExclamation.vue')['default']
     IconGift: typeof import('./src/components/icons/IconGift.vue')['default']
     IconHouse: typeof import('./src/components/icons/IconHouse.vue')['default']
+    IconQuestion: typeof import('./src/components/icons/IconQuestion.vue')['default']
     IconUser: typeof import('./src/components/icons/IconUser.vue')['default']
     Input: typeof import('./src/components/form/Input.vue')['default']
-    Modal: typeof import('./src/components/modal/Modal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

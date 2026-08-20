@@ -70,13 +70,94 @@ Two deliberate things not to undo: `<router-view :key="route.path">` in both `Ap
 
 `src/composables/useHeaderTitle.ts` keeps `dynamicTitle` / `titleLoading` as **module-level refs** — an app-wide singleton, not per-component state. A page calls `setHeaderTitle(...)` after its fetch; `NavbarTopLayout` resolves `dynamicTitle || metaNavtopInfo?.title || route.meta.navtop?.title`. `router.afterEach` calls `resetHeaderTitle()` on every navigation, so set the title in `onMounted`/after the fetch, never before navigation settles. Reference: `src/pages/header-demo.vue`.
 
-### Global dialog (`useDialog`) + Modal — UNSETTLED, pending redesign
+### Global dialog (`Dialog.create`)
 
-> Provisional placeholder, not settled API. Don't build features on it or extend it (extra buttons, variants, options) — raise the redesign instead. The *split* below is what a rework must preserve.
+Programmatic modals — nothing to mount per page. `src/utils/dialog.ts` is the engine: `Dialog.create({ component, componentProps? })` pushes an entry onto a module-level stack and returns a chainable handle.
 
-`useDialog.ts` is the same module-level singleton pattern as `useHeaderTitle` (ephemeral UI trigger state, not app data — hence not Pinia). `await useDialog().confirm({ title?, message, confirmText?, cancelText? })` works anywhere and resolves `true`/`false`. One `<Modal>` mounted globally in `App.vue` renders it — always two buttons, a known gap (error popups want one).
+```ts
+import DefaultModal from '@/components/modal/DefaultModal.vue'
 
-`src/components/modal/Modal.vue` is a separate presentational shell (`v-model`, `Teleport to="body"`, ESC/backdrop close, focus handling) with no dialog logic — use it directly with slot content for custom modals. The previous Dialog feature was ripped out unfinished (commit 144a121) partly for baking too much into one component; a replacement must not become a global `showDialog()` that renders arbitrary content.
+Dialog.create({
+  component: DefaultModal,
+  componentProps: {
+    type: 'question', // success | question | alert | cancel
+    title: 'ยืนยันการทำรายการ',
+    content: 'ต้องการบันทึกข้อมูลนี้หรือไม่', // ผ่าน v-dompurify-html — ใส่ <br> ได้
+    buttons: [
+      { action: 'cancel', text: 'ยกเลิก' },
+      { action: 'submit', text: 'ยืนยัน' },
+    ],
+  },
+})
+  .onOk(() => {})
+  .onCancel(() => {})
+```
+
+Three hooks, all chainable and all optional: `onOk`, `onCancel`, and `onDismiss((result, payload) => …)` which fires on *every* close (cleanup that must run either way). Both outcomes carry an optional payload, and `Dialog.create<TCancel, TOk>()` types it so call sites don't cast — **`TCancel` comes first** because the cancel path is the one that usually needs a reason, so one type argument is normally enough:
+
+```ts
+Dialog.create<{ reason: 'expired' | 'close' }>({ component: CouponModal })
+  .onCancel(payload => payload?.reason === 'expired')
+```
+
+Skipping the generics is fine too: `payload` is then `unknown` and you narrow at the point of use, the same way `validate` is handled in the api layer. Often you need neither — the data the caller wants is already in its own scope (see `handleOpenCoupon` in `src/pages/example.vue`, whose `onOk` reads the page's own `couponDataList`).
+
+**Closing without user interaction** needs nothing extra from the engine — a modal calls `onDialogOk()`/`onDialogCancel()` whenever it likes (countdown expiry, a websocket event, a watcher) and puts the reason in the payload so the caller can tell it apart from a button press. `src/pages/_components/ExampleCouponModal.vue` is that case end to end: a coupon code with a countdown that closes itself with `{ reason: 'expired' }`. Clear your own timers in `onUnmounted` — the component stays alive for `LEAVE_DURATION` after closing.
+
+The dialog component is imported **explicitly** — auto-registration only covers templates, and `componentProps` is `Record<string, unknown>` (typed by the component itself).
+
+**Shortcut for the standard popup.** `showDialog` / `showDialogError` (same file) hardwire `DefaultModal`, so a page needs no component import and no `componentProps` nesting. Positional args are deliberate — they match the signature used in the chua-hah-seng project so pages port over unchanged:
+
+```ts
+showDialog(
+  'success',
+  'อัปเดตข้อมูลสำเร็จ',
+  'คุณได้ทำการอัปเดตข้อมูลเรียบร้อยแล้ว',
+  [{ action: 'submit', text: 'ปิด' }],
+  async () => {
+    await customerStore.fetchCustomerInfo()
+    router.push({ name: 'profile' })
+  }
+)
+
+const { title, message } = getErrorDisplay(e)
+showDialogError(title, message) // type 'cancel', one button — or call it with no args at all
+```
+
+Both return the `Dialog.create` handle, so `.onDismiss()` still chains. Two things to know: passing `submit` while leaving `buttons` out needs an `undefined` hole (the cost of positional args), and these only ever render `DefaultModal` — a custom modal always goes through `Dialog.create` directly. Because of them `src/utils/dialog.ts` imports `DefaultModal.vue`, which is why the dialog UI now sits in the main chunk instead of a lazy one.
+
+Three pieces:
+
+- `src/utils/dialog.ts` — `Dialog.create`, `closeAllDialogs`, the `activeDialogs` stack (`shallowRef` + array reassignment, so component definitions never get proxied), and `LEAVE_DURATION` (250ms — must stay above `BaseModal`'s 0.2s close transition; the entry leaves the stack that long after closing).
+- `src/components/modal/DialogHost.vue` — mounted once in `App.vue`, renders the stack and listens for each dialog's `ok`/`cancel` emit. Multiple dialogs may be open at once; later ones paint on top by DOM order.
+- `src/composables/useDialogComponent.ts` — what a dialog component calls, passing its own `emit` in: `useDialogComponent(emit)` returns `{ visible, onDialogOk, onDialogCancel }` (both handlers take an optional payload). `visible` starts `false` and flips `true` on mount so the enter transition plays; closing settles once (later calls are ignored), emits immediately, then unmounts after the transition. `visible` going `false` on its own (backdrop/ESC) counts as **cancel**.
+
+The `emit` hand-off is why every dialog component declares `defineEmits<{ ok: [payload?: unknown]; cancel: [payload?: unknown] }>()` — three lines of boilerplate that buy a single host component (`provide`/`inject` would need a wrapper component per dialog, since `provide` runs once per instance and can't vary across a `v-for`). `DialogComponentEmit` is written as overloads to match what `defineEmits` generates; a plain union signature won't assign.
+
+**Navigation closes everything.** `DialogHost` watches `route.path` and calls `closeAllDialogs()` — dialogs live outside `RouterView`, so without it a modal left open would sit on top of the next page (browser back on a coupon popup, for one). That teardown fires **no** callbacks: not `onCancel`, not `onDismiss` — it isn't a user outcome. Consequence to know: opening a dialog and navigating in the same tick kills the dialog. (Quasar behaves differently here — `Dialog.create` renders outside the app tree and survives route changes; what it hooks instead is the browser history, so back closes the top overlay rather than leaving the page. Worth revisiting if that's the UX you want.)
+
+UI side, `src/components/modal/BaseModal.vue` is the shared shell — backdrop, centered 327px panel (`max-w-81.75`), `Teleport to="body"`, ESC/backdrop close (a shake animation instead when both are off), focus handling — with **no padding and no dialog logic**; everything visible comes from the slot. `DefaultModal.vue` is the standard popup (icon band per `type`, title, content, 1–2 buttons) built on it, and any custom modal (`SelectAddressModal`, …) is the same shape:
+
+```vue
+<template>
+  <BaseModal v-model="visible">
+    <!-- custom UI -->
+  </BaseModal>
+</template>
+
+<script setup lang="ts">
+  const emit = defineEmits<{
+    ok: [payload?: unknown]
+    cancel: [payload?: unknown]
+  }>()
+
+  const { visible, onDialogOk, onDialogCancel } = useDialogComponent(emit)
+</script>
+```
+
+Two `DefaultModal` decisions worth keeping: backdrop/ESC close are **off** (a `success` popup whose `onOk` navigates must not be dismissable in a way that skips the callback — so `buttons: []` makes it unclosable), and `type: 'cancel'` defaults its copy to `เกิดข้อผิดพลาด` / `กรุณาลองใหม่อีกครั้ง` so error popups can pass none. Shared UI types (`DialogType`, `DialogButtonAction`, `IDialogButton`) live in `src/model/interfaces/dialog.ts`, engine types stay in `src/utils/dialog.ts`; both are auto-imported.
+
+The old `useDialog().confirm()` singleton (two buttons, one global `<Modal>`) is gone — this replaced it.
 
 ### Pinia stores
 
@@ -88,13 +169,13 @@ Category folders under `src/components/` (chosen by usage, not component type, a
 
 - `common/` — general-purpose (`Button.vue`)
 - `form/` — user input (`Input.vue`; future `Checkbox`/`Radio`/`Select`)
-- `modal/` — `Modal.vue` (see caveat above)
+- `modal/` — the dialog system: `BaseModal.vue`, `DefaultModal.vue`, `DialogHost.vue` (see above)
 - `media/`, `content/` — reserved (images/SVGs; banners/cards); create when the first real component lands
 - `icons/` — see the convention comment atop `IconHouse.vue`: no hardcoded size (size via parent `w-*`/`h-*`), `currentColor` for fill/stroke
 
 Nested folders register flatly, so `common/Button.vue` is `<Button>` — no `vite.config.ts` change when adding to an existing folder.
 
-Style with Tailwind utilities in the template; a scoped `<style lang="scss">` block is only an escape hatch for what utilities can't express (see `Modal.vue`'s transition classes). Variants are conditional class arrays in a local `computed` (see `Button.vue`) — no `cva`-style library until there's a real case.
+Style with Tailwind utilities in the template; a scoped `<style lang="scss">` block is only an escape hatch for what utilities can't express (see `BaseModal.vue`'s transition classes). Variants are conditional class arrays in a local `computed` (see `Button.vue`) — no `cva`-style library until there's a real case.
 
 ### HTTP client
 
