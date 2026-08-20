@@ -84,6 +84,7 @@
   const props = withDefaults(defineProps<Props>(), {
     metaNavtopInfo: () => ({}),
   })
+
   const route = useRoute()
   const router = useRouter()
 
@@ -95,13 +96,22 @@
     return dynamicTitle.value || props.metaNavtopInfo?.title || route.meta.navtop?.title || ''
   })
 
-  window.addEventListener(
-    'scroll',
-    () => {
-      scrollY.value = window.scrollY
-    },
-    { passive: true }
-  )
+  // scroll เกิดที่ .main-container-wrapper (overflow: scroll ใน HorizontalLayout.vue)
+  // ไม่ใช่ window/document เลย window.scrollY เดิมค้างที่ 0 ตลอด ไม่มีทาง trigger คลาส .scroll
+  let scrollContainer: Element | null = null
+
+  const handleScroll = () => {
+    scrollY.value = scrollContainer?.scrollTop ?? 0
+  }
+
+  onMounted(() => {
+    scrollContainer = document.querySelector('.main-container-wrapper')
+    scrollContainer?.addEventListener('scroll', handleScroll, { passive: true })
+  })
+
+  onUnmounted(() => {
+    scrollContainer?.removeEventListener('scroll', handleScroll)
+  })
 
   const handleBackToPage = () => {
     const backTo = route.meta.navtop?.back_to
