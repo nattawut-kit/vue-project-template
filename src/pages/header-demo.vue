@@ -17,13 +17,16 @@
   const api = async () => {
     titleLoading.value = true
 
-    const res = await fetch('https://random-word-api.herokuapp.com/word')
-    const data = await res.json()
-    fetchedText.value = data[0] as string
     try {
+      const words = await apiRaw<string[]>({
+        method: 'GET',
+        url: 'https://random-word-api.herokuapp.com/word',
+        skipAuth: true,
+      })
+      fetchedText.value = words[0]
       setHeaderTitle(fetchedText.value)
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'unknown error'
+      error.value = getErrorDisplay(e).message
       setHeaderTitle(null)
     } finally {
       titleLoading.value = false
