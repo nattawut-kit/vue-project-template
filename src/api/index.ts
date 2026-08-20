@@ -97,10 +97,19 @@ const toApiError = (error: AxiosError<ApiEnvelope<unknown>>): ApiErrorResponse =
   }
 
   if (!error.response) {
+    if (!navigator.onLine) {
+      return clientError(
+        'ERR_NETWORK',
+        0,
+        { title: 'เชื่อมต่อไม่สำเร็จ', message: 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต' },
+        { title: 'No internet connection', message: error.message }
+      )
+    }
+
     return clientError(
       'ERR_NETWORK',
       0,
-      { title: 'เชื่อมต่อไม่สำเร็จ', message: 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต' },
+      { title: 'เกิดข้อผิดพลาด', message: 'ระบบขัดข้อง กรุณาลองใหม่ภายหลัง' },
       { title: 'Network error', message: error.message }
     )
   }
