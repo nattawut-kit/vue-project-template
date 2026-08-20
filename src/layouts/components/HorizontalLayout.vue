@@ -1,7 +1,10 @@
 <template>
   <NavbarTopLayout :meta-navtop-info="routeInfo" />
   <div class="main-container">
-    <div class="main-container-wrapper">
+    <div
+      class="main-container-wrapper"
+      :class="{ 'has-navbottom': route.meta.navbottom?.active }"
+    >
       <slot></slot>
     </div>
   </div>
@@ -40,7 +43,11 @@
       max-width: 640px;
       background-color: #f3f1ea;
       overflow: scroll;
-      padding: 56px 0 96px;
+      padding: 56px 0 0;
+
+      &.has-navbottom {
+        padding-bottom: 96px;
+      }
     }
   }
 </style>
