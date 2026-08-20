@@ -1,5 +1,12 @@
 import axios, { type AxiosError, type AxiosRequestConfig } from 'axios'
 
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    /** Skip attaching the `app_token` Authorization header — for calls to third-party/external APIs. */
+    skipAuth?: boolean
+  }
+}
+
 export interface ApiErrorLocale {
   title: string
   message: string
@@ -35,6 +42,16 @@ const httpClient = axios.create({
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
+})
+
+httpClient.interceptors.request.use(config => {
+  if (config.skipAuth) return config
+
+  const token = sessionStorage.getItem('app_token')
+  if (token) {
+    config.headers.set('Authorization', `Bearer ${token}`)
+  }
+  return config
 })
 
 /**
@@ -151,6 +168,17 @@ const request = async <T>(config: AxiosRequestConfig): Promise<T> => {
   }
 
   return envelope.data
+}
+
+/**
+ * Escape hatch for endpoints that don't reply in the ChocoCRM envelope
+ * (external APIs, absolute URLs). Skips the `{status, data, error}` unwrap
+ * but still goes through the shared instance, so timeout/network/HTTP
+ * failures still normalize to `ApiErrorResponse` via the response interceptor.
+ */
+export const apiRaw = async <T>(config: AxiosRequestConfig): Promise<T> => {
+  const response = await httpClient.request<T>(config)
+  return response.data
 }
 
 export const apiGet = <T>(url: string, config?: AxiosRequestConfig) =>

@@ -14,6 +14,7 @@ declare global {
   const apiPatch: typeof import('./src/api/index').apiPatch
   const apiPost: typeof import('./src/api/index').apiPost
   const apiPut: typeof import('./src/api/index').apiPut
+  const apiRaw: typeof import('./src/api/index').apiRaw
   const computed: typeof import('vue').computed
   const createApp: typeof import('vue').createApp
   const customRef: typeof import('vue').customRef
@@ -96,7 +97,7 @@ declare global {
   export type { DialogOptions } from './src/composables/useDialog'
   import('./src/composables/useDialog')
   // @ts-ignore
-  export type { ApiErrorLocale, ApiErrorResponse, ApiEnvelope } from './src/api/index'
+  export type { AxiosRequestConfig, ApiErrorLocale, ApiErrorResponse, ApiEnvelope } from './src/api/index'
   import('./src/api/index')
 }
 
@@ -111,6 +112,7 @@ declare module 'vue' {
     readonly apiPatch: UnwrapRef<typeof import('./src/api/index')['apiPatch']>
     readonly apiPost: UnwrapRef<typeof import('./src/api/index')['apiPost']>
     readonly apiPut: UnwrapRef<typeof import('./src/api/index')['apiPut']>
+    readonly apiRaw: UnwrapRef<typeof import('./src/api/index')['apiRaw']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
