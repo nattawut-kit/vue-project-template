@@ -13,7 +13,11 @@ dist-ssr
 *.local
 
 # Local environment variables
+.env.development
+.env.production
 .env
+.env*
+.yarn/*
 
 # Editor directories and files
 .vscode/*
