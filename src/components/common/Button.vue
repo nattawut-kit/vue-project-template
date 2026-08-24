@@ -40,7 +40,9 @@
 <script setup lang="ts">
   type ButtonVariant = 'primary' | 'secondary' | 'outline'
   type ButtonSize = 'sm' | 'md' | 'lg'
-  type ButtonRound = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
+  // 'circle' = rounded-full + บังคับ 1:1 (ตัด padding แนวนอนออก) ไว้ทำปุ่มไอคอนล้วนเป็นวงกลมจริง
+  // เพราะ 'full' เฉยๆ ยังมี padding แนวนอนอยู่ กลายเป็นทรงแคปซูลถ้าเนื้อหาไม่ใช่สี่เหลี่ยมจัตุรัส
+  type ButtonRound = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'circle'
   type ButtonWidth = 'full' | 'fit'
   type ButtonType = 'button' | 'submit' | 'reset'
 
@@ -59,6 +61,10 @@
     round?: ButtonRound | string
     // 'full' | 'fit' ใช้ Tailwind class ให้, ค่าอื่น (เช่น '120px', '50%') ไปเป็น inline style width ตรงๆ
     width?: ButtonWidth | string | null
+    // ทับ padding ของ size ทั้งหมด (เช่น '0 12px', '4px') ไปเป็น inline style padding ตรงๆ
+    padding?: string | null
+    // ทับความสูงคงที่ของ size (เช่น '56px') ไปเป็น inline style height ตรงๆ
+    height?: string | null
     disabled?: boolean
     loading?: boolean
     type?: ButtonType
@@ -73,6 +79,8 @@
     size: 'lg',
     round: 'lg',
     width: null,
+    padding: null,
+    height: null,
     disabled: false,
     loading: false,
     type: 'button',
@@ -86,11 +94,25 @@
     click: [event: MouseEvent]
   }>()
 
-  // px/text ต่อ size — h ตรึงเป็นค่าคงที่ (28/34/48px) ให้ touch target สม่ำเสมอ ไม่ผันตามความสูงบรรทัดของฟอนต์
-  const sizeClasses: Record<ButtonSize, string> = {
-    sm: 'h-7 px-3 text-12',
-    md: 'h-8.5 px-4 text-12',
-    lg: 'h-12 px-5 text-14',
+  // text ต่อ size — แยกออกจากความสูงเพราะ height prop ต้องทับได้เฉพาะความสูง ไม่กระทบขนาดตัวอักษร
+  const sizeTextClasses: Record<ButtonSize, string> = {
+    sm: 'text-12',
+    md: 'text-12',
+    lg: 'text-14',
+  }
+
+  // h ตรึงเป็นค่าคงที่ (28/34/48px) ให้ touch target สม่ำเสมอ ไม่ผันตามความสูงบรรทัดของฟอนต์
+  const sizeHeightClasses: Record<ButtonSize, string> = {
+    sm: 'h-7',
+    md: 'h-8.5',
+    lg: 'h-12',
+  }
+
+  // px แยกออกมาจาก sizeClasses เพราะ round="circle" ต้องตัดออก ไม่งั้นความกว้าง != ความสูง
+  const sizePaddingClasses: Record<ButtonSize, string> = {
+    sm: 'px-3',
+    md: 'px-4',
+    lg: 'px-5',
   }
 
   const roundClasses: Record<ButtonRound, string> = {
@@ -100,6 +122,7 @@
     lg: 'rounded-lg',
     xl: 'rounded-xl',
     full: 'rounded-full',
+    circle: 'rounded-full',
   }
 
   const widthClasses: Record<ButtonWidth, string> = {
@@ -141,7 +164,10 @@
 
   const classes = computed(() => [
     'relative inline-flex items-center justify-center overflow-hidden font-bold transition',
-    sizeClasses[props.size],
+    sizeTextClasses[props.size],
+    !props.height && sizeHeightClasses[props.size],
+    props.round === 'circle' && 'aspect-square',
+    !props.padding && props.round !== 'circle' && sizePaddingClasses[props.size],
     isRoundKeyword(props.round) && roundClasses[props.round],
     props.width && isWidthKeyword(props.width) && widthClasses[props.width],
     props.disabled
@@ -165,6 +191,14 @@
 
     if (props.width && !isWidthKeyword(props.width)) {
       style.width = props.width
+    }
+
+    if (props.padding) {
+      style.padding = props.padding
+    }
+
+    if (props.height) {
+      style.height = props.height
     }
 
     if (props.disabled || (!props.color && !props.textColor)) return style

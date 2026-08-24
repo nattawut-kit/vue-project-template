@@ -30,6 +30,12 @@
           <Button round="lg">lg</Button>
           <Button round="xl">xl</Button>
           <Button round="full">full</Button>
+          <Button round="circle">
+            <Svg
+              src="common/arrow-left"
+              class="size-4"
+            />
+          </Button>
           <Button round="10px">10px</Button>
         </div>
       </div>
@@ -41,6 +47,36 @@
           <Button width="full">full</Button>
           <Button width="fit">fit</Button>
           <Button width="120px">120px</Button>
+        </div>
+      </div>
+
+      <div>
+        <div class="mb-2 text-14 font-bold">height</div>
+        <div class="flex flex-wrap items-center gap-3">
+          <Button>default</Button>
+          <Button height="32px">32px</Button>
+          <Button height="64px">64px</Button>
+        </div>
+      </div>
+
+      <div>
+        <div class="mb-2 text-14 font-bold">height + width + padding</div>
+        <div class="flex flex-wrap items-center gap-3">
+          <Button
+            height="28px"
+            width="109px"
+            padding="4px 8px"
+            >32px</Button
+          >
+        </div>
+      </div>
+
+      <div>
+        <div class="mb-2 text-14 font-bold">padding</div>
+        <div class="flex flex-wrap items-center gap-3">
+          <Button>default</Button>
+          <Button padding="0 12px">0 12px</Button>
+          <Button padding="4px">4px</Button>
         </div>
       </div>
 
@@ -96,7 +132,7 @@
             :disabled="loading"
             @click="handleToggleLoading"
           >
-            กดเพื่อลอง loading + Disabled
+            กดเพื่อลอง loading + disabled
           </Button>
         </div>
       </div>
