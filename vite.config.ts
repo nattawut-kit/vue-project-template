@@ -32,6 +32,7 @@ export default defineConfig({
         './src/stores/**',
         './src/api/**',
         // './src/constants/**',
+        './src/components/modal/**',
       ],
       vueTemplate: true,
     }),

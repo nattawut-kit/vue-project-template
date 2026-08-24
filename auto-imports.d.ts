@@ -8,16 +8,16 @@
 // biome-ignore lint: disable
 export {}
 declare global {
-  const Dialog: typeof import('./src/utils/dialog').Dialog
+  const Dialog: typeof import('./src/components/modal/dialog').Dialog
   const EffectScope: typeof import('vue').EffectScope
-  const activeDialogs: typeof import('./src/utils/dialog').activeDialogs
+  const activeDialogs: typeof import('./src/components/modal/dialog').activeDialogs
   const apiDelete: typeof import('./src/api/index').apiDelete
   const apiGet: typeof import('./src/api/index').apiGet
   const apiPatch: typeof import('./src/api/index').apiPatch
   const apiPost: typeof import('./src/api/index').apiPost
   const apiPut: typeof import('./src/api/index').apiPut
   const apiRaw: typeof import('./src/api/index').apiRaw
-  const closeAllDialogs: typeof import('./src/utils/dialog').closeAllDialogs
+  const closeAllDialogs: typeof import('./src/components/modal/dialog').closeAllDialogs
   const computed: typeof import('vue').computed
   const createApp: typeof import('vue').createApp
   const customRef: typeof import('vue').customRef
@@ -82,7 +82,7 @@ declare global {
   const useCssModule: typeof import('vue').useCssModule
   const useCssVars: typeof import('vue').useCssVars
   const useCustomerInformationStore: typeof import('./src/stores/useCustomerInformationStore').useCustomerInformationStore
-  const useDialogComponent: typeof import('./src/composables/useDialogComponent').useDialogComponent
+  const useDialogComponent: typeof import('./src/components/modal/useDialogComponent').useDialogComponent
   const useHeaderTitle: typeof import('./src/composables/useHeaderTitle').useHeaderTitle
   const useId: typeof import('vue').useId
   const useLink: typeof import('vue-router').useLink
@@ -102,17 +102,17 @@ declare global {
   export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
-  export type { DialogComponentEmit } from './src/composables/useDialogComponent'
-  import('./src/composables/useDialogComponent')
-  // @ts-ignore
-  export type { DialogType, DialogButtonAction, IDialogButton } from './src/model/interfaces/dialog'
-  import('./src/model/interfaces/dialog')
-  // @ts-ignore
-  export type { DialogResult, DialogOkCallback, DialogCancelCallback, DialogDismissCallback, DialogCreateOptions, DialogHandle, DialogInstance } from './src/utils/dialog'
-  import('./src/utils/dialog')
-  // @ts-ignore
   export type { AxiosRequestConfig, ApiErrorLocale, ApiErrorResponse, ApiEnvelope } from './src/api/index'
   import('./src/api/index')
+  // @ts-ignore
+  export type { DialogResult, DialogOkCallback, DialogCancelCallback, DialogDismissCallback, DialogCreateOptions, DialogHandle, DialogInstance } from './src/components/modal/dialog'
+  import('./src/components/modal/dialog')
+  // @ts-ignore
+  export type { DialogType, DialogButtonAction, IDialogButton } from './src/components/modal/dialog.types'
+  import('./src/components/modal/dialog.types')
+  // @ts-ignore
+  export type { DialogComponentEmit } from './src/components/modal/useDialogComponent'
+  import('./src/components/modal/useDialogComponent')
 }
 
 // for vue template auto import
@@ -120,16 +120,16 @@ import { UnwrapRef } from 'vue'
 declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
-    readonly Dialog: UnwrapRef<typeof import('./src/utils/dialog')['Dialog']>
+    readonly Dialog: UnwrapRef<typeof import('./src/components/modal/dialog')['Dialog']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
-    readonly activeDialogs: UnwrapRef<typeof import('./src/utils/dialog')['activeDialogs']>
+    readonly activeDialogs: UnwrapRef<typeof import('./src/components/modal/dialog')['activeDialogs']>
     readonly apiDelete: UnwrapRef<typeof import('./src/api/index')['apiDelete']>
     readonly apiGet: UnwrapRef<typeof import('./src/api/index')['apiGet']>
     readonly apiPatch: UnwrapRef<typeof import('./src/api/index')['apiPatch']>
     readonly apiPost: UnwrapRef<typeof import('./src/api/index')['apiPost']>
     readonly apiPut: UnwrapRef<typeof import('./src/api/index')['apiPut']>
     readonly apiRaw: UnwrapRef<typeof import('./src/api/index')['apiRaw']>
-    readonly closeAllDialogs: UnwrapRef<typeof import('./src/utils/dialog')['closeAllDialogs']>
+    readonly closeAllDialogs: UnwrapRef<typeof import('./src/components/modal/dialog')['closeAllDialogs']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
@@ -194,7 +194,7 @@ declare module 'vue' {
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
     readonly useCustomerInformationStore: UnwrapRef<typeof import('./src/stores/useCustomerInformationStore')['useCustomerInformationStore']>
-    readonly useDialogComponent: UnwrapRef<typeof import('./src/composables/useDialogComponent')['useDialogComponent']>
+    readonly useDialogComponent: UnwrapRef<typeof import('./src/components/modal/useDialogComponent')['useDialogComponent']>
     readonly useHeaderTitle: UnwrapRef<typeof import('./src/composables/useHeaderTitle')['useHeaderTitle']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>

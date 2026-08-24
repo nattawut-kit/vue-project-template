@@ -1,3 +1,5 @@
+import type { DialogResult } from './dialog'
+
 /**
  * emit ที่ component ของ dialog ต้องประกาศไว้ แล้วส่งเข้า useDialogComponent():
  * defineEmits<{ ok: [payload?: unknown]; cancel: [payload?: unknown] }>()

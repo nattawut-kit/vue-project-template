@@ -74,7 +74,7 @@ Two deliberate things not to undo: `<router-view :key="route.path">` in both `Ap
 
 ### Global dialog (`Dialog.create`)
 
-Programmatic modals — nothing to mount per page. `src/utils/dialog.ts` is the engine: `Dialog.create({ component, componentProps? })` pushes an entry onto a module-level stack and returns a chainable handle.
+Programmatic modals — nothing to mount per page. `src/components/modal/dialog.ts` is the engine: `Dialog.create({ component, componentProps? })` pushes an entry onto a module-level stack and returns a chainable handle. The whole modal system (engine, host, base/default components, the dialog composable, shared types) lives under `src/components/modal/` on purpose — the folder is meant to be copy-pasted whole into another project forked from this template. `vite.config.ts`'s `AutoImport({ dirs })` includes `./src/components/modal/**` alongside the usual roots — safe because `unplugin-auto-import`'s default dir scan only matches `.ts`/`.js` extensions, never `.vue`, so it can't collide with `unplugin-vue-components`' registration of the `.vue` files in the same folder. That's why `Dialog`, `activeDialogs`, `closeAllDialogs`, `useDialogComponent`, and the shared types are still ambient at call sites — `Dialog.create` needs no import of its own below — while `DefaultModal` (a `.vue` file, only auto-registered for templates) still does when referenced as a plain value:
 
 ```ts
 import DefaultModal from '@/components/modal/DefaultModal.vue'
@@ -130,9 +130,9 @@ Both return the `Dialog.create` handle, so `.onDismiss()` still chains. Two thin
 
 Three pieces:
 
-- `src/utils/dialog.ts` — `Dialog.create`, `closeAllDialogs`, the `activeDialogs` stack (`shallowRef` + array reassignment, so component definitions never get proxied), and `LEAVE_DURATION` (250ms — must stay above `BaseModal`'s 0.2s close transition; the entry leaves the stack that long after closing).
+- `src/components/modal/dialog.ts` — `Dialog.create`, `closeAllDialogs`, the `activeDialogs` stack (`shallowRef` + array reassignment, so component definitions never get proxied), and `LEAVE_DURATION` (250ms — must stay above `BaseModal`'s 0.2s close transition; the entry leaves the stack that long after closing).
 - `src/components/modal/DialogHost.vue` — mounted once in `App.vue`, renders the stack and listens for each dialog's `ok`/`cancel` emit. Multiple dialogs may be open at once; later ones paint on top by DOM order.
-- `src/composables/useDialogComponent.ts` — what a dialog component calls, passing its own `emit` in: `useDialogComponent(emit)` returns `{ visible, onDialogOk, onDialogCancel }` (both handlers take an optional payload). `visible` starts `false` and flips `true` on mount so the enter transition plays; closing settles once (later calls are ignored), emits immediately, then unmounts after the transition. `visible` going `false` on its own (backdrop/ESC) counts as **cancel**.
+- `src/components/modal/useDialogComponent.ts` — what a dialog component calls, passing its own `emit` in: `useDialogComponent(emit)` returns `{ visible, onDialogOk, onDialogCancel }` (both handlers take an optional payload). `visible` starts `false` and flips `true` on mount so the enter transition plays; closing settles once (later calls are ignored), emits immediately, then unmounts after the transition. `visible` going `false` on its own (backdrop/ESC) counts as **cancel**.
 
 The `emit` hand-off is why every dialog component declares `defineEmits<{ ok: [payload?: unknown]; cancel: [payload?: unknown] }>()` — three lines of boilerplate that buy a single host component (`provide`/`inject` would need a wrapper component per dialog, since `provide` runs once per instance and can't vary across a `v-for`). `DialogComponentEmit` is written as overloads to match what `defineEmits` generates; a plain union signature won't assign.
 
@@ -159,7 +159,7 @@ UI side, `src/components/modal/BaseModal.vue` is the shared shell — backdrop, 
 
 **Scroll locking** is `src/utils/scrollLock.ts`, called from `BaseModal` (open → `lockScroll`, close *or* unmount → `unlockScroll`), so every modal gets it whether it came from `Dialog.create` or is used directly. Ported from the mk-one project with three changes: it **counts** locks instead of keeping a boolean (stacked dialogs would otherwise unlock as soon as the first one closed), it restores the styles it captured instead of blanking them, and it drops the scrollbar-width padding compensation — `html` already reserves the gutter via `scrollbar-gutter: stable`, so adding padding would shift the page sideways. It keeps the `position: fixed` + `top: -scrollY` technique on purpose: plain `overflow: hidden` doesn't hold on iOS Safari. On default-layout pages its real job is killing the iOS viewport bounce, since the document doesn't scroll there and a teleported overlay can't scroll-chain into `.main-container-wrapper`; on blank-layout pages it does the actual scroll lock. `BaseModal` releases in `onUnmounted` too, which is what keeps `closeAllDialogs()` on navigation from leaking a lock.
 
-Two `DefaultModal` decisions worth keeping: backdrop/ESC close are **off** (a `success` popup whose `onOk` navigates must not be dismissable in a way that skips the callback — so `buttons: []` makes it unclosable), and `type: 'cancel'` defaults its copy to `เกิดข้อผิดพลาด` / `กรุณาลองใหม่อีกครั้ง` so error popups can pass none. Shared UI types (`DialogType`, `DialogButtonAction`, `IDialogButton`) live in `src/model/interfaces/dialog.ts`, engine types stay in `src/utils/dialog.ts`; both are auto-imported.
+Two `DefaultModal` decisions worth keeping: backdrop/ESC close are **off** (a `success` popup whose `onOk` navigates must not be dismissable in a way that skips the callback — so `buttons: []` makes it unclosable), and `type: 'cancel'` defaults its copy to `เกิดข้อผิดพลาด` / `กรุณาลองใหม่อีกครั้ง` so error popups can pass none. Shared UI types (`DialogType`, `DialogButtonAction`, `IDialogButton`) live in `src/components/modal/dialog.types.ts`, engine types stay in `src/components/modal/dialog.ts` — both auto-imported via the scoped `dirs` entries mentioned above. `showDialog`/`showDialogError` are the one part of this system that stays in `src/utils/dialog.ts` rather than `components/modal/` — they're an opinionated calling convention (positional args matching another project), not core mechanism, so a forked project is free to keep, rewrite, or drop them independently of the portable `modal/` folder.
 
 The old `useDialog().confirm()` singleton (two buttons, one global `<Modal>`) is gone — this replaced it.
 
@@ -173,7 +173,7 @@ Category folders under `src/components/` (chosen by usage, not component type, a
 
 - `common/` — general-purpose (`Button.vue`)
 - `form/` — user input (`Input.vue`; future `Checkbox`/`Radio`/`Select`)
-- `modal/` — the dialog system: `BaseModal.vue`, `DefaultModal.vue`, `DialogHost.vue` (see above)
+- `modal/` — the dialog system, kept self-contained so the folder can be copied whole into a forked project: `BaseModal.vue`, `DefaultModal.vue`, `DialogHost.vue`, `dialog.ts` (engine), `dialog.types.ts`, `useDialogComponent.ts` (see above)
 - `media/`, `content/` — reserved (images/SVGs; banners/cards); create when the first real component lands
 - `icons/` — see the convention comment atop `IconHouse.vue`: no hardcoded size (size via parent `w-*`/`h-*`), `currentColor` for fill/stroke
 
@@ -223,7 +223,11 @@ FormData works as-is (the `Content-Type` default is stripped so the browser sets
 
 `unplugin-auto-import` injects `vue` + `vue-router` APIs and everything exported from `src/composables/**`, `src/model/interfaces/**`, `src/utils/**`, `src/stores/**`, `src/api/**` — exported **types** included (`src/constants/**` is commented out in `vite.config.ts`; uncomment if that dir appears). `unplugin-vue-components` registers every SFC under `src/components/` and `src/views/`. So `ref`, `useRoute`, `useHeaderTitle`, `formatDate`, `apiGet`, `ApiErrorResponse`, `<Button />` etc. are used bare.
 
+One exception to the dir list above: `./src/components/modal/**` is also in `AutoImport({ dirs })`, even though `src/components/` isn't one of the auto-imported roots — the portable dialog system living there (see below) keeps its auto-imported ergonomics this way, without needing to add the rest of `src/components/**`.
+
 `@vueuse/core` and `pinia` are installed but **deliberately not** auto-imported — import them explicitly. `@` aliases to `src/`.
+
+**`@` only reliably type-checks for `.vue` imports.** No tsconfig in the chain (`tsconfig.app.json`, `@vue/tsconfig`) declares a `paths` mapping for `@/*` — Vite's `resolve.alias` (`vite.config.ts`) is a bundler-only concept. `import Foo from '@/components/modal/Foo.vue'` still "resolves" under `vue-tsc` only because `shims.d.ts` declares an ambient `declare module "*.vue"` that matches any path ending in `.vue`, real or not. An explicit `@/...` import of a plain `.ts` module (one that isn't covered by auto-import) has no such fallback and fails with `TS2307` even though `vite build` happily bundles it. When a file outside the auto-imported dirs needs another `.ts` module explicitly, import it by relative path instead.
 
 ## Styling and design tokens
 
