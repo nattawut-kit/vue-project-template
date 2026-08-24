@@ -90,6 +90,14 @@
           >
             outline
           </Button>
+          <Button
+            variant="primary"
+            :loading="loading"
+            :disabled="loading"
+            @click="handleToggleLoading"
+          >
+            กดเพื่อลอง loading + Disabled
+          </Button>
         </div>
       </div>
 

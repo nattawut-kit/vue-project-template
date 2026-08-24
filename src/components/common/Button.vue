@@ -31,7 +31,7 @@
       aria-hidden="true"
     >
       <span
-        class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70"
+        class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
       ></span>
     </span>
   </button>
@@ -130,8 +130,9 @@
   const isRoundKeyword = (value: string): value is ButtonRound => value in roundClasses
   const isWidthKeyword = (value: string): value is ButtonWidth => value in widthClasses
 
-  // disabled โชว์เป็นปุ่มเทาไปเลย ส่วน loading ยังคงสี variant เดิม (แค่หรี่ด้วย opacity-50) —
-  // ทั้งสองสถานะกดไม่ได้จริง (native disabled attribute) เลยไม่ควรมี hover effect ไหนติดมาด้วย
+  // disabled โชว์เป็นปุ่มเทาไปเลย ส่วน loading ยังคงสี variant เดิมเต็ม opacity (มี spinner
+  // ทับ + ซ่อน label แทน) — ทั้งสองสถานะกดไม่ได้จริง (native disabled attribute) เลยไม่ควรมี
+  // hover effect ไหนติดมาด้วย
   const isInteractive = computed(() => !props.disabled && !props.loading)
 
   // มี custom color + ไม่ใช่ primary (primary เกาะสีผ่าน hover:opacity อยู่แล้ว) ค่อยสลับไปทาง
@@ -152,7 +153,6 @@
         ],
     props.scaleOnPress && 'active:scale-95',
     isInteractive.value ? 'cursor-pointer' : 'cursor-not-allowed',
-    props.loading && 'opacity-50',
   ])
 
   // color/textColor คือทางลัดสีเฉพาะจุด ไม่ต้องเพิ่ม variant ใหม่ทุกครั้งที่มีปุ่มสีพิเศษหนึ่งจุด
