@@ -1,89 +1,43 @@
 <template>
   <div class="container">
-    <div>Exmaple Page</div>
+    <div>Dialog Demo (Dialog.create)</div>
 
-    <div class="mt-6 flex flex-col gap-2">
-      <div class="text-12 font-light">text-12 / font-light — สวัสดีครับ</div>
-      <div class="text-14 font-regular">text-14 / font-regular — สวัสดีครับ</div>
-      <div class="text-16 font-regular">text-16 / font-regular — สวัสดีครับ</div>
-      <div class="text-18 font-regular">text-18 / font-regular — สวัสดีครับ</div>
-      <div class="text-20 font-bold">text-20 / font-bold — สวัสดีครับ</div>
-      <div class="text-24 font-bold">text-24 / font-bold — สวัสดีครับ</div>
-      <div class="text-28 font-bold">text-28 / font-bold — สวัสดีครับ</div>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <Button @click="handleOpenConfirm">ยืนยัน</Button>
+      <Button @click="handleOpenSuccess">สำเร็จ</Button>
+      <Button
+        variant="secondary"
+        @click="handleOpenAlert"
+      >
+        เตือน
+      </Button>
+      <Button
+        variant="secondary"
+        @click="handleOpenError"
+      >
+        ผิดพลาด
+      </Button>
+      <Button
+        variant="secondary"
+        @click="handleOpenCoupon"
+        :disabled="!!getRawResult"
+      >
+        คูปองนับถอยหลัง
+      </Button>
     </div>
-
-    <div class="mt-8 flex flex-col gap-6">
-      <div>
-        <div class="mb-2 text-14 font-bold">Button</div>
-        <div class="flex flex-wrap gap-3">
-          <Button>Primary</Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button disabled>Disabled</Button>
-        </div>
-      </div>
-
-      <div>
-        <div class="mb-2 text-14 font-bold">Input</div>
-        <div class="flex max-w-xs flex-col gap-3">
-          <Input
-            v-model="exampleValue"
-            placeholder="ปกติ"
-          />
-          <Input
-            v-model="exampleErrorValue"
-            placeholder="error state"
-            error
-          />
-          <Input
-            placeholder="disabled"
-            disabled
-          />
-        </div>
-      </div>
-
-      <div>
-        <div class="mb-2 text-14 font-bold">Dialog (Dialog.create)</div>
-        <div class="flex flex-wrap gap-3">
-          <Button @click="handleOpenConfirm">ยืนยัน</Button>
-          <Button @click="handleOpenSuccess">สำเร็จ</Button>
-          <Button
-            variant="secondary"
-            @click="handleOpenAlert"
-          >
-            เตือน
-          </Button>
-          <Button
-            variant="secondary"
-            @click="handleOpenError"
-          >
-            ผิดพลาด
-          </Button>
-          <Button
-            variant="secondary"
-            @click="handleOpenCoupon"
-            :disabled="!!getRawResult"
-          >
-            คูปองนับถอยหลัง
-          </Button>
-        </div>
-        <div
-          v-if="dialogResult"
-          class="mt-3 text-14 text-gray-600"
-        >
-          ผลล่าสุด: {{ dialogResult }}
-        </div>
-      </div>
+    <div
+      v-if="dialogResult"
+      class="mt-3 text-14 text-gray-600"
+    >
+      ผลล่าสุด: {{ dialogResult }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-  import ExampleCouponModal from './_components/ExampleCouponModal.vue'
+  import ExampleCouponModal from '../_components/ExampleCouponModal.vue'
 
-  const exampleValue = ref('')
-  const exampleErrorValue = ref('')
   const dialogResult = ref('')
-
   const getRawResult = ref<string>()
 
   const couponDataList = ref({
@@ -99,8 +53,6 @@
       })
 
       getRawResult.value = shows[0].yearsAired
-
-      // console.log(getRawResult.value.yearsAired)
     } catch (e) {
       const { title, message } = getErrorDisplay(e)
       showDialogError(title, message)
@@ -156,15 +108,11 @@
       component: ExampleCouponModal,
       componentProps: { couponDataList: couponDataList.value },
     })
-
       .onOk(payload => {
         console.log(payload)
         // เปิด dialog ต่อจาก onOk ได้เลย — ตัวเก่าถูกถอดออกจาก stack หลัง transition ปิดจบ
         showDialog('alert', 'สิทธิ์ใกล้หมดอายุ', `ใช้โค้ด ${couponDataList.value.code}`)
       })
-      // .onOk(() => {
-
-      // })
       // ใช้ onCancel + reason ไม่ใช่ onDismiss เพราะ onDismiss ยิงทุกทางปิด (รวมกด 'ใช้โค้ดนี้')
       // payload เป็น optional เสมอ (ปิดโดยไม่ส่ง payload ก็ได้) เลยต้อง ?.
       .onCancel(payload => {
@@ -187,11 +135,10 @@
 
 <route lang="yaml">
 meta:
-  # is_auth_route: true
   layout: default
   navtop:
-    back_to: '/home'
-    title: 'Exmaple Page'
+    back_to: '/example'
+    title: 'Dialog Demo'
   main:
     image: true
   navbottom:

@@ -353,7 +353,7 @@
 meta:
   layout: default
   navtop:
-    back_to: '/home'
+    back_to: '/example'
     title: 'API Call Examples'
   main:
     image: true

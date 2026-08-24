@@ -6,7 +6,6 @@
     />
   </RouterView>
 
-  <!-- ที่เดียวที่ต้อง mount — dialog ทุกตัวที่เปิดด้วย Dialog.create() ขึ้นที่นี่ -->
   <DialogHost />
 </template>
 
