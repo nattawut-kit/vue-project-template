@@ -16,16 +16,16 @@
 
     <div class="relative w-full">
       <input
-        v-if="!isTextarea"
         :type="type === 'number' || type === 'currency' ? 'text' : type"
         :inputmode="
           type === 'number' || type === 'currency' ? 'decimal' : type === 'tel' ? 'tel' : undefined
         "
         :value="displayValue"
         :maxlength="maxLength"
-        :placeholder="label && !isFocused && !displayValue ? '' : placeholder"
+        :placeholder="label && !isLabelActive ? '' : placeholder"
         :disabled="disabled"
         :readonly="readonly"
+        :autocomplete="autocompleteAttr"
         class="text-field-control box-border w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border outline-none transition-colors duration-150"
         :class="[
           sizeConfig.height,
@@ -33,8 +33,6 @@
           sizeConfig.text,
           inputStateClasses,
           {
-            'pr-10': hasEndIcon,
-            'pl-10': hasStartIcon,
             [sizeConfig.labelPadding]: label,
           },
         ]"
@@ -43,59 +41,31 @@
         @keypress="onKeypress"
         @focus="isFocused = true"
         @blur="validate"
+        @animationstart="onAnimationStart"
       />
-
-      <textarea
-        v-else
-        :value="displayValue"
-        :maxlength="maxLength"
-        :placeholder="label && !isFocused && !displayValue ? '' : placeholder"
-        :disabled="disabled"
-        :readonly="readonly"
-        :rows="rows"
-        class="text-field-control box-border w-full min-w-[20%] max-w-full min-h-12.5 rounded-lg border py-3 outline-none transition-colors duration-150"
-        :class="[
-          sizeConfig.padding,
-          sizeConfig.text,
-          inputStateClasses,
-          textareaHeightClass,
-          textareaResizeClass,
-          {
-            'pr-10': hasEndIcon,
-            'pl-10': hasStartIcon,
-            'min-h-20': !rows,
-            [sizeConfig.labelPadding]: label,
-          },
-        ]"
-        v-bind="$attrs"
-        @input="onInput"
-        @focus="isFocused = true"
-        @blur="validate"
-      ></textarea>
 
       <label
         v-if="label"
-        class="pointer-events-none absolute left-4 transform duration-150"
-        :class="
-          isFocused || displayValue
+        class="pointer-events-none absolute transform duration-150"
+        :class="[
+          hasStartIcon ? 'left-10' : 'left-4',
+          isLabelActive
             ? 'top-1 text-14 font-bold text-gray-900'
-            : isTextarea
-              ? 'top-4 text-18 font-regular text-gray-900'
-              : 'top-1/2 -translate-y-1/2 text-18 font-regular text-gray-900'
-        "
+            : 'top-1/2 -translate-y-1/2 text-18 font-regular text-gray-900',
+        ]"
       >
         <span>{{ label }}</span>
         <span
           v-if="required && !title"
           class="ml-0.5 text-error-1"
-          :class="isFocused || displayValue ? 'text-16' : 'text-20'"
+          :class="isLabelActive ? 'text-16' : 'text-20'"
           >*</span
         >
       </label>
 
       <div
-        v-if="hasEndIcon && !isTextarea"
-        class="absolute inset-y-0 right-0 flex items-center pr-3.25"
+        v-if="hasEndIcon"
+        class="absolute inset-y-0 right-0 flex items-center pr-4"
       >
         <slot
           v-if="!hasError || !slots['end-icon-error']"
@@ -108,7 +78,7 @@
       </div>
 
       <div
-        v-if="hasStartIcon && !isTextarea"
+        v-if="hasStartIcon"
         class="absolute inset-y-0 left-0 flex items-center pl-4"
       >
         <slot
@@ -132,7 +102,7 @@
 
     <div
       v-else-if="helperText"
-      class="mt-1 text-12 font-regular text-gray-500 duration-150 animate-[fadeIn_0.1s_ease-out_forwards]"
+      class="mt-1 text-14 font-regular text-gray-500 duration-150 animate-[fadeIn_0.1s_ease-out_forwards]"
     >
       {{ helperText }}
     </div>
@@ -140,12 +110,11 @@
 </template>
 
 <script setup lang="ts">
-  type TextFieldType = 'text' | 'email' | 'number' | 'tel' | 'password' | 'currency' | 'textarea'
-  type TextFieldResizable = boolean | 'vertical' | 'horizontal' | 'both'
+  type TextFieldType = 'text' | 'email' | 'number' | 'tel' | 'password' | 'currency'
 
   interface Props {
     label?: string
-    // ข้อความหัวข้อแบบนิ่ง แสดงเหนือกล่อง input — ใช้แทน label ตอนไม่ต้องการ label ลอยด้านใน
+    // ข้อความหัวข้อแบบนิ่ง แสดงเหนือกล่อง input — ใช้แทน label ตอนไม่ต้องการ label ลอย
     title?: string
     placeholder?: string
     helperText?: string
@@ -156,9 +125,6 @@
     disabled?: boolean
     readonly?: boolean
     required?: boolean
-    rows?: number
-    autoResize?: boolean
-    resizable?: TextFieldResizable
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -173,9 +139,6 @@
     disabled: false,
     readonly: false,
     required: false,
-    rows: undefined,
-    autoResize: false,
-    resizable: false,
   })
 
   const emit = defineEmits<{
@@ -183,12 +146,15 @@
     blur: [event: FocusEvent]
   }>()
 
-  const isTextarea = computed(() => props.type === 'textarea')
-
   const model = defineModel<string | number>({ required: true })
 
   const displayValue = ref('')
   const isFocused = ref(false)
+  // เบราว์เซอร์ autofill เซ็ตค่า input โดยตรงโดยไม่ยิง 'input' event เสมอไป ทำให้ displayValue ไม่อัปเดตและ label ไม่ลอยขึ้น — ตรวจจับผ่าน CSS animation trick แทน (ดู :-webkit-autofill ด้านล่าง)
+  const isAutofilled = ref(false)
+  const isLabelActive = computed(
+    () => isFocused.value || !!displayValue.value || isAutofilled.value
+  )
 
   watchEffect(() => {
     if (model.value !== undefined) {
@@ -203,40 +169,44 @@
   const hasError = ref(false)
   const errorMessage = ref('')
 
-  const sizeConfigBase = { height: 'h-12', padding: 'pl-[15px] pr-4' }
+  const sizeConfigBase = { height: 'h-12' }
 
   // มี placeholder = ช่องแสดงผลเดี่ยว ใช้ตัวอักษรใหญ่ 20px, ไม่มี placeholder (เช่น label ลอย) = ตาม default เดิมของ mk-one ที่ 14px
+  // ป้องกัน Chrome ตีความ tel/email ที่วางอยู่ก่อนช่อง password ผิดเป็นช่อง username แล้วเสนอ autofill บัญชีที่บันทึกไว้
+  const autocompleteAttr = computed(() => {
+    if (props.type === 'email') return 'email'
+    if (props.type === 'tel') return 'tel'
+    if (props.type === 'password') return 'current-password'
+    return undefined
+  })
+
   const hasPlaceholder = computed(() => !!props.placeholder)
-  const textClass = computed(() => (hasPlaceholder.value ? 'text-20' : 'text-17'))
+  const textClass = computed(() =>
+    props.label ? 'text-16' : hasPlaceholder.value ? 'text-20' : 'text-17'
+  )
   const errorTextClass = computed(() => (hasPlaceholder.value ? 'text-18' : 'text-16'))
   const titleTextClass = computed(() => (hasPlaceholder.value ? 'text-18' : 'text-14'))
   const titleRequiredClass = computed(() => (hasPlaceholder.value ? 'text-16' : 'text-14'))
   const labelPaddingClass = computed(() =>
-    props.readonly || props.disabled || props.type !== 'textarea' ? 'pt-3' : 'pt-5'
+    props.readonly || props.disabled ? 'pt-3' : 'pt-[13px]'
   )
+
+  // ห้ามใช้ 'pl-[15px] pr-4' คู่กับ 'pl-10'/'pr-10' พร้อมกัน (ตอนมี icon) — utility ที่ padding เดียวกันชนกัน ผลลัพธ์ขึ้นกับลำดับใน generated CSS ไม่ใช่ลำดับ class ในเทมเพลต จึงต้องเลือกใช้อันเดียวต่อด้าน
+  const paddingClass = computed(() => [
+    hasStartIcon ? (props.label ? 'pl-[39px]' : 'pl-[42px]') : 'pl-[15px]',
+    hasEndIcon ? 'pr-10' : 'pr-4',
+  ])
 
   const sizeConfig = computed(() => ({
     ...sizeConfigBase,
+    padding: paddingClass.value,
     text: textClass.value,
     labelPadding: labelPaddingClass.value,
   }))
 
-  const textareaHeightClass = computed(() => {
-    if (isTextarea.value && props.autoResize) return 'overflow-hidden'
-    return 'overflow-auto'
-  })
-
-  const textareaResizeClass = computed(() => {
-    if (!isTextarea.value) return ''
-    if (props.resizable === true || props.resizable === 'both') return 'resize'
-    if (props.resizable === 'vertical') return 'resize-y'
-    if (props.resizable === 'horizontal') return 'resize-x'
-    return 'resize-none'
-  })
-
   const inputStateClasses = computed(() => {
     if (props.disabled) {
-      return ['border-gray-300', 'bg-gray-100', 'text-gray-400', 'cursor-not-allowed']
+      return ['border-gray-300', 'bg-gray-100', 'cursor-not-allowed']
     }
 
     if (hasError.value) {
@@ -263,13 +233,8 @@
   })
 
   const onInput = (event: Event): void => {
-    const input = event.target as HTMLInputElement | HTMLTextAreaElement
+    const input = event.target as HTMLInputElement
     let value = input.value
-
-    if (isTextarea.value && props.autoResize) {
-      input.style.height = 'auto'
-      input.style.height = `${input.scrollHeight}px`
-    }
 
     const cursorPos = input.selectionStart || 0
 
@@ -290,10 +255,7 @@
       if (isContentChar(value[i], i, value)) contentCharsBeforeCursor++
     }
 
-    if (
-      !isTextarea.value &&
-      (props.type === 'number' || props.type === 'currency' || props.type === 'tel')
-    ) {
+    if (props.type === 'number' || props.type === 'currency' || props.type === 'tel') {
       let filteredValue = ''
       let hasDecimal = false
 
@@ -372,8 +334,17 @@
     }
   }
 
+  const onAnimationStart = (event: AnimationEvent): void => {
+    if (event.animationName === 'onAutoFillStart') {
+      isAutofilled.value = true
+      onInput({ target: event.target } as unknown as Event)
+    } else if (event.animationName === 'onAutoFillCancel') {
+      isAutofilled.value = false
+    }
+  }
+
   const onKeypress = (event: KeyboardEvent): void => {
-    if (isTextarea.value || (props.type !== 'number' && props.type !== 'tel')) return
+    if (props.type !== 'number' && props.type !== 'tel') return
 
     const input = event.target as HTMLInputElement
     const key = event.key
@@ -417,10 +388,7 @@
 
     let valueToValidate = displayValue.value || ''
 
-    if (
-      !isTextarea.value &&
-      (props.type === 'number' || props.type === 'currency' || props.type === 'tel')
-    ) {
+    if (props.type === 'number' || props.type === 'currency' || props.type === 'tel') {
       if (props.type === 'currency') {
         valueToValidate = valueToValidate.replace(/,/g, '')
       }
@@ -535,5 +503,42 @@
 
   .text-field-control::-webkit-scrollbar-thumb:hover {
     background: var(--color-gray-400);
+  }
+</style>
+
+<!-- ไม่ scoped โดยตั้งใจ: Vue จะเติม hash ต่อท้ายชื่อ @keyframes ในบล็อก scoped ทำให้ event.animationName ที่เช็คใน onAnimationStart ไม่ตรงกับชื่อที่ตั้งไว้ -->
+<style lang="scss">
+  @keyframes onAutoFillStart {
+    from {
+    }
+    to {
+    }
+  }
+
+  @keyframes onAutoFillCancel {
+    from {
+    }
+    to {
+    }
+  }
+
+  .text-field-control:-webkit-autofill {
+    animation-name: onAutoFillStart;
+  }
+
+  .text-field-control:not(:-webkit-autofill) {
+    animation-name: onAutoFillCancel;
+  }
+
+  .text-field-control:-webkit-autofill,
+  .text-field-control:-webkit-autofill:hover,
+  .text-field-control:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-gray-900);
+    -webkit-box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-main-4) 12%, white) inset;
+    box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-main-4) 12%, white) inset;
+    caret-color: var(--color-gray-900);
+    transition:
+      background-color 9999s ease-in-out 0s,
+      color 9999s ease-in-out 0s;
   }
 </style>
