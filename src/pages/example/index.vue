@@ -18,6 +18,11 @@
           />
           <Button
             variant="secondary"
+            label="TextField Demo"
+            @click="router.push('/example/text-field-demo')"
+          />
+          <Button
+            variant="secondary"
             label="Dialog Demo"
             @click="router.push('/example/dialog-demo')"
           />

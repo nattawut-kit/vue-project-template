@@ -24,6 +24,7 @@
     "ExtractPropTypes": true,
     "ExtractPublicPropTypes": true,
     "IDialogButton": true,
+    "IValidationRule": true,
     "InjectionKey": true,
     "MaybeRef": true,
     "MaybeRefOrGetter": true,

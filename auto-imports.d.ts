@@ -102,6 +102,9 @@ declare global {
   export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, ShallowRef, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
   // @ts-ignore
+  export type { IValidationRule } from './src/model/interfaces/validation'
+  import('./src/model/interfaces/validation')
+  // @ts-ignore
   export type { AxiosRequestConfig, ApiErrorLocale, ApiErrorResponse, ApiEnvelope } from './src/api/index'
   import('./src/api/index')
   // @ts-ignore
