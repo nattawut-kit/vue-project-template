@@ -7,26 +7,10 @@
     :close-on-esc="false"
   >
     <div class="flex justify-center py-6">
-      <div
-        :class="['flex size-18.5 items-center justify-center rounded-full text-white', tone.circle]"
-      >
-        <IconCheck
-          v-if="type === 'success'"
-          class="size-9"
-        />
-        <IconQuestion
-          v-else-if="type === 'question'"
-          class="size-9"
-        />
-        <IconExclamation
-          v-else-if="type === 'alert'"
-          class="size-9"
-        />
-        <IconCross
-          v-else
-          class="size-9"
-        />
-      </div>
+      <Svg
+        :src="`modal/${type}`"
+        class="size-27"
+      />
     </div>
 
     <div class="px-4 pb-4">
@@ -94,19 +78,6 @@
     if (props.content) return props.content
 
     return props.type === 'cancel' ? 'กรุณาลองใหม่อีกครั้ง' : ''
-  })
-
-  const tone = computed(() => {
-    switch (props.type) {
-      case 'question':
-        return { band: 'bg-main-4/10', circle: 'bg-main-4' }
-      case 'alert':
-        return { band: 'bg-main-2/10', circle: 'bg-main-2' }
-      case 'cancel':
-        return { band: 'bg-error-2', circle: 'bg-error-1' }
-      default:
-        return { band: 'bg-main-1/10', circle: 'bg-main-1' }
-    }
   })
 
   const handleAction = (action: DialogButtonAction) => {

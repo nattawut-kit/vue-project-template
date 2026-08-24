@@ -15,8 +15,8 @@
               :class="{ active: activeMenuItem === item.id }"
               @click="handleMenuClick(item.id)"
             >
-              <component
-                :is="item.icon"
+              <Svg
+                :src="item.icon"
                 class="icon"
                 :class="{ active: activeMenuItem === item.id }"
               />
@@ -33,11 +33,6 @@
 </template>
 
 <script setup lang="ts">
-  import IconHouse from '@/components/icons/IconHouse.vue'
-  import IconGift from '@/components/icons/IconGift.vue'
-  import IconClock from '@/components/icons/IconClock.vue'
-  import IconUser from '@/components/icons/IconUser.vue'
-
   // Define menu items type
   type MenuItem = 'home' | 'privilege' | 'history' | 'profile'
 
@@ -62,25 +57,25 @@
       id: 'home' as MenuItem,
       labelKey: 'หน้าแรก',
       altText: 'home',
-      icon: IconHouse,
+      icon: 'navbar/house',
     },
     {
       id: 'privilege' as MenuItem,
       labelKey: 'แลกรางวัล',
       altText: 'privilege',
-      icon: IconGift,
+      icon: 'navbar/gift',
     },
     {
       id: 'history' as MenuItem,
       labelKey: 'ประวัติ',
       altText: 'history',
-      icon: IconClock,
+      icon: 'navbar/clock',
     },
     {
       id: 'profile' as MenuItem,
       labelKey: 'โปรไฟล์',
       altText: 'profile',
-      icon: IconUser,
+      icon: 'navbar/user',
     },
   ]
 

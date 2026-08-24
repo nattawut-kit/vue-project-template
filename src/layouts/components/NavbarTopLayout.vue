@@ -12,7 +12,10 @@
             class="button-back"
             @click="handleBackToPage"
           >
-            <IconArrowLeft class="icon" />
+            <Svg
+              src="common/arrow-left"
+              class="icon"
+            />
           </div>
         </div>
 
