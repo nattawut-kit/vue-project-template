@@ -6,56 +6,137 @@
       <div>
         <div class="mb-2 text-14 font-bold">variant</div>
         <div class="flex flex-wrap gap-3">
-          <Button variant="primary">primary</Button>
-          <Button variant="secondary">secondary</Button>
-          <Button variant="outline">outline</Button>
+          <Button
+            variant="primary"
+            label="primary"
+          />
+          <Button
+            variant="secondary"
+            label="secondary"
+          />
+          <Button
+            variant="outline"
+            label="outline"
+          />
+        </div>
+      </div>
+
+      <div>
+        <div class="mb-2 text-14 font-bold">label (แทนการใส่ slot)</div>
+        <div class="flex flex-wrap gap-3">
+          <Button label="กดฉัน" />
+          <Button
+            variant="secondary"
+            label="secondary label"
+          />
+          <Button label="มี slot ทับ label">มี slot ทับ label</Button>
         </div>
       </div>
 
       <div>
         <div class="mb-2 text-14 font-bold">size</div>
         <div class="flex flex-wrap items-center gap-3">
-          <Button size="sm">sm</Button>
-          <Button size="md">md</Button>
-          <Button size="lg">lg</Button>
+          <Button
+            size="sm"
+            label="sm"
+          />
+          <Button
+            size="md"
+            label="md"
+          />
+          <Button
+            size="lg"
+            label="lg"
+          />
         </div>
       </div>
 
       <div>
         <div class="mb-2 text-14 font-bold">round</div>
         <div class="flex flex-wrap gap-3">
-          <Button round="none">none</Button>
-          <Button round="sm">sm</Button>
-          <Button round="md">md</Button>
-          <Button round="lg">lg</Button>
-          <Button round="xl">xl</Button>
-          <Button round="full">full</Button>
+          <Button
+            round="none"
+            label="none"
+          />
+          <Button
+            round="sm"
+            label="sm"
+          />
+          <Button
+            round="md"
+            label="md"
+          />
+          <Button
+            round="lg"
+            label="lg"
+          />
+          <Button
+            round="xl"
+            label="xl"
+          />
+          <Button
+            round="full"
+            label="full"
+          />
           <Button round="circle">
             <Svg
               src="common/arrow-left"
               class="size-4"
             />
           </Button>
-          <Button round="10px">10px</Button>
+          <Button
+            round="10px"
+            label="10px"
+          />
         </div>
       </div>
 
       <div>
         <div class="mb-2 text-14 font-bold">width</div>
         <div class="flex max-w-xs flex-col gap-3 rounded-lg bg-gray-100 p-3">
-          <Button>default (เนื้อหากำหนดความกว้าง)</Button>
-          <Button width="full">full</Button>
-          <Button width="fit">fit</Button>
-          <Button width="120px">120px</Button>
+          <Button label="default (เนื้อหากำหนดความกว้าง)" />
+          <Button
+            :custom-size="{ width: 'full' }"
+            label="full"
+          />
+          <Button
+            :custom-size="{ width: 'fit' }"
+            label="fit"
+          />
+          <Button
+            :custom-size="{ width: '120px' }"
+            label="120px"
+          />
         </div>
       </div>
 
       <div>
         <div class="mb-2 text-14 font-bold">height</div>
         <div class="flex flex-wrap items-center gap-3">
-          <Button>default</Button>
-          <Button height="32px">32px</Button>
-          <Button height="64px">64px</Button>
+          <Button label="default" />
+          <Button
+            :custom-size="{ height: '32px' }"
+            label="32px"
+          />
+          <Button
+            :custom-size="{ height: '64px' }"
+            label="64px"
+          />
+        </div>
+      </div>
+
+      <div>
+        <div class="mb-2 text-14 font-bold">fontSize</div>
+        <div class="flex flex-wrap items-center gap-3">
+          <Button label="default" />
+          <Button
+            :custom-size="{ fontSize: '10px' }"
+            label="10px"
+          />
+          <Button
+            :custom-size="{ fontSize: '20px' }"
+            label="20px"
+          />
         </div>
       </div>
 
@@ -63,20 +144,38 @@
         <div class="mb-2 text-14 font-bold">height + width + padding</div>
         <div class="flex flex-wrap items-center gap-3">
           <Button
-            height="28px"
-            width="109px"
-            padding="4px 8px"
-            >32px</Button
+            :custom-size="{ height: '28px', width: '109px', fontSize: '18px', padding: '4px 8px' }"
+            label="32px"
           >
+            <template #start-icon>
+              <Svg
+                src="common/arrow-left"
+                class="size-5"
+              />
+            </template>
+
+            <template #end-icon>
+              <Svg
+                src="common/arrow-right"
+                class="size-5"
+              />
+            </template>
+          </Button>
         </div>
       </div>
 
       <div>
         <div class="mb-2 text-14 font-bold">padding</div>
         <div class="flex flex-wrap items-center gap-3">
-          <Button>default</Button>
-          <Button padding="0 12px">0 12px</Button>
-          <Button padding="4px">4px</Button>
+          <Button label="default" />
+          <Button
+            :custom-size="{ padding: '0 12px' }"
+            label="0 12px"
+          />
+          <Button
+            :custom-size="{ padding: '4px' }"
+            label="4px"
+          />
         </div>
       </div>
 
@@ -86,21 +185,18 @@
           <Button
             variant="primary"
             disabled
-          >
-            primary
-          </Button>
+            label="primary"
+          />
           <Button
             variant="secondary"
             disabled
-          >
-            secondary
-          </Button>
+            label="secondary"
+          />
           <Button
             variant="outline"
             disabled
-          >
-            outline
-          </Button>
+            label="outline"
+          />
         </div>
       </div>
 
@@ -110,66 +206,64 @@
           <Button
             variant="primary"
             :loading="loading"
+            label="กดเพื่อลอง loading"
             @click="handleToggleLoading"
-          >
-            กดเพื่อลอง loading
-          </Button>
+          />
           <Button
             variant="secondary"
             loading
-          >
-            secondary
-          </Button>
+            label="secondary"
+          />
           <Button
             variant="outline"
             loading
-          >
-            outline
-          </Button>
+            label="outline"
+          />
           <Button
             variant="primary"
             :loading="loading"
             :disabled="loading"
+            label="กดเพื่อลอง loading + disabled"
             @click="handleToggleLoading"
-          >
-            กดเพื่อลอง loading + disabled
-          </Button>
+          />
         </div>
       </div>
 
       <div>
         <div class="mb-2 text-14 font-bold">color / textColor (ทับสีเฉพาะจุด)</div>
         <div class="flex flex-wrap gap-3">
-          <Button color="#0d6efd">color (primary bg)</Button>
+          <Button
+            color="#0d6efd"
+            label="color (primary bg)"
+          />
           <Button
             variant="secondary"
             color="#0d6efd"
-          >
-            color (secondary border/text)
-          </Button>
+            label="color (secondary border/text)"
+          />
           <Button
             color="#0d6efd"
             text-color="#111827"
-          >
-            color + textColor
-          </Button>
+            label="color + textColor"
+          />
         </div>
       </div>
 
       <div>
         <div class="mb-2 text-14 font-bold">start-icon / end-icon slot</div>
         <div class="flex flex-wrap gap-3">
-          <Button>
+          <Button label="ย้อนกลับ">
             <template #start-icon>
               <Svg
                 src="common/arrow-left"
                 class="size-4"
               />
             </template>
-            ย้อนกลับ
           </Button>
-          <Button variant="secondary">
-            แลกเลย
+          <Button
+            variant="secondary"
+            label="แลกเลย"
+          >
             <template #end-icon>
               <Svg
                 src="navbar/gift"
@@ -177,14 +271,16 @@
               />
             </template>
           </Button>
-          <Button variant="outline">
+          <Button
+            variant="outline"
+            label="ประวัติ"
+          >
             <template #start-icon>
               <Svg
                 src="navbar/clock"
                 class="size-4"
               />
             </template>
-            ประวัติ
             <template #end-icon>
               <Svg
                 src="navbar/user"
@@ -198,28 +294,35 @@
       <div>
         <div class="mb-2 text-14 font-bold">ripple (Boolean | Object เหมือน Quasar)</div>
         <div class="flex flex-wrap gap-3">
-          <Button ripple>ripple: true (default, ตำแหน่งนิ้ว/เมาส์)</Button>
-          <Button :ripple="{ center: true }">ripple: { center: true }</Button>
-          <Button :ripple="{ color: '#00c2a8' }">ripple: { color: '#00c2a8' }</Button>
+          <Button
+            ripple
+            label="ripple: true (default, ตำแหน่งนิ้ว/เมาส์)"
+          />
+          <Button
+            :ripple="{ center: true }"
+            label="ripple: { center: true }"
+          />
+          <Button
+            :ripple="{ color: '#00c2a8' }"
+            label="ripple: { color: '#00c2a8' }"
+          />
           <Button
             variant="secondary"
             :ripple="false"
-          >
-            ripple: false
-          </Button>
+            label="ripple: false"
+          />
         </div>
       </div>
 
       <div>
         <div class="mb-2 text-14 font-bold">scaleOnPress (ลองกดค้างแล้วสังเกตขนาดปุ่ม)</div>
         <div class="flex flex-wrap gap-3">
-          <Button>default (ไม่ย่อ)</Button>
+          <Button label="default (ไม่ย่อ)" />
           <Button
             variant="secondary"
             scale-on-press
-          >
-            scaleOnPress
-          </Button>
+            label="scaleOnPress"
+          />
         </div>
       </div>
 
@@ -232,16 +335,23 @@
         >
           <Input
             v-model="formValue"
-            placeholder="พิมพ์อะไรก็ได้แล้วลอง submit/reset"
+            placeholder="input ที่ 1"
+          />
+
+          <Input
+            v-model="formValue2"
+            placeholder="input ที่ 2"
           />
           <div class="flex flex-wrap gap-3">
-            <Button type="submit">submit</Button>
+            <Button
+              type="submit"
+              label="submit"
+            />
             <Button
               variant="secondary"
               type="reset"
-            >
-              reset
-            </Button>
+              label="reset"
+            />
           </div>
           <div
             v-if="submitResult"
@@ -258,6 +368,7 @@
 <script setup lang="ts">
   const loading = ref(false)
   const formValue = ref('')
+  const formValue2 = ref('')
   const submitResult = ref('')
 
   const handleToggleLoading = () => {
@@ -268,11 +379,12 @@
   }
 
   const handleSubmit = () => {
-    submitResult.value = `submit แล้ว: "${formValue.value}"`
+    submitResult.value = `submit แล้ว: "${formValue.value}", "${formValue2.value}"`
   }
 
   const handleReset = () => {
     formValue.value = ''
+    formValue2.value = ''
     submitResult.value = 'reset แล้ว'
   }
 </script>

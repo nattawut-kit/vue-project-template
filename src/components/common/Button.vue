@@ -15,7 +15,7 @@
         <slot name="start-icon"></slot>
       </span>
 
-      <slot></slot>
+      <slot>{{ label }}</slot>
 
       <span
         v-if="$slots['end-icon']"
@@ -40,31 +40,34 @@
 <script setup lang="ts">
   type ButtonVariant = 'primary' | 'secondary' | 'outline'
   type ButtonSize = 'sm' | 'md' | 'lg'
-  // 'circle' = rounded-full + บังคับ 1:1 (ตัด padding แนวนอนออก) ไว้ทำปุ่มไอคอนล้วนเป็นวงกลมจริง
-  // เพราะ 'full' เฉยๆ ยังมี padding แนวนอนอยู่ กลายเป็นทรงแคปซูลถ้าเนื้อหาไม่ใช่สี่เหลี่ยมจัตุรัส
+  // circle = วงกลม บังคับสัดส่วน 1:1 ไม่มี padding แนวนอน
   type ButtonRound = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'circle'
   type ButtonWidth = 'full' | 'fit'
   type ButtonType = 'button' | 'submit' | 'reset'
 
-  // เลียนแบบ shape ของ Quasar's ripple prop (Boolean | Object) — ใส่ true เอาค่า default,
-  // หรือใส่ object มาทับเฉพาะบาง field ก็ได้
+  // true = ค่า default, object = ทับเฉพาะ field ที่ระบุ
   interface ButtonRippleOptions {
     center?: boolean
     color?: string
   }
   type ButtonRipple = boolean | ButtonRippleOptions
 
+  // ทับเฉพาะ field ที่ระบุ, field ที่ไม่ใส่ใช้ค่าเดิมของ size — width รับ keyword ('full'/'fit') ได้เหมือน width prop เดิม
+  interface ButtonCustomSize {
+    width?: ButtonWidth | string
+    height?: string
+    padding?: string
+    fontSize?: string
+  }
+
   interface Props {
+    // ข้อความปุ่ม, slot จะทับถ้ามีเนื้อหาส่งมา
+    label?: string
     variant?: ButtonVariant
     size?: ButtonSize
-    // keyword ที่มีให้ใช้ Tailwind class, ค่าอื่น (เช่น '10px') ไปเป็น inline style border-radius ตรงๆ
+    // keyword ใช้ Tailwind class, ค่าอื่นใช้เป็น border-radius ตรงๆ
     round?: ButtonRound | string
-    // 'full' | 'fit' ใช้ Tailwind class ให้, ค่าอื่น (เช่น '120px', '50%') ไปเป็น inline style width ตรงๆ
-    width?: ButtonWidth | string | null
-    // ทับ padding ของ size ทั้งหมด (เช่น '0 12px', '4px') ไปเป็น inline style padding ตรงๆ
-    padding?: string | null
-    // ทับความสูงคงที่ของ size (เช่น '56px') ไปเป็น inline style height ตรงๆ
-    height?: string | null
+    customSize?: ButtonCustomSize | null
     disabled?: boolean
     loading?: boolean
     type?: ButtonType
@@ -75,12 +78,11 @@
   }
 
   const props = withDefaults(defineProps<Props>(), {
+    label: '',
     variant: 'primary',
     size: 'lg',
     round: 'lg',
-    width: null,
-    padding: null,
-    height: null,
+    customSize: null,
     disabled: false,
     loading: false,
     type: 'button',
@@ -94,21 +96,20 @@
     click: [event: MouseEvent]
   }>()
 
-  // text ต่อ size — แยกออกจากความสูงเพราะ height prop ต้องทับได้เฉพาะความสูง ไม่กระทบขนาดตัวอักษร
   const sizeTextClasses: Record<ButtonSize, string> = {
     sm: 'text-12',
     md: 'text-12',
     lg: 'text-14',
   }
 
-  // h ตรึงเป็นค่าคงที่ (28/34/48px) ให้ touch target สม่ำเสมอ ไม่ผันตามความสูงบรรทัดของฟอนต์
+  // สูงคงที่เพื่อ touch target สม่ำเสมอ
   const sizeHeightClasses: Record<ButtonSize, string> = {
     sm: 'h-7',
     md: 'h-8.5',
     lg: 'h-12',
   }
 
-  // px แยกออกมาจาก sizeClasses เพราะ round="circle" ต้องตัดออก ไม่งั้นความกว้าง != ความสูง
+  // ตัดออกตอน round="circle" ให้กว้าง = สูง
   const sizePaddingClasses: Record<ButtonSize, string> = {
     sm: 'px-3',
     md: 'px-4',
@@ -130,8 +131,6 @@
     fit: 'w-fit',
   }
 
-  // ไม่ผูก hover ไว้กับ base เพราะตอน loading ปุ่มยังโชว์สีเดิม (ไม่ได้สลับไป disabledClasses)
-  // แต่ต้องไม่มี hover effect ใดๆ เลย — เลยแยก hover ออกมาเป็นอีกก้อน ใส่เฉพาะตอน isInteractive
   const variantBaseClasses: Record<ButtonVariant, string> = {
     primary: 'bg-main-1 text-white',
     secondary: 'border border-main-1 bg-white text-main-1',
@@ -153,23 +152,21 @@
   const isRoundKeyword = (value: string): value is ButtonRound => value in roundClasses
   const isWidthKeyword = (value: string): value is ButtonWidth => value in widthClasses
 
-  // disabled โชว์เป็นปุ่มเทาไปเลย ส่วน loading ยังคงสี variant เดิมเต็ม opacity (มี spinner
-  // ทับ + ซ่อน label แทน) — ทั้งสองสถานะกดไม่ได้จริง (native disabled attribute) เลยไม่ควรมี
-  // hover effect ไหนติดมาด้วย
   const isInteractive = computed(() => !props.disabled && !props.loading)
 
-  // มี custom color + ไม่ใช่ primary (primary เกาะสีผ่าน hover:opacity อยู่แล้ว) ค่อยสลับไปทาง
-  // hover-tint แบบ color-mix แทน hover:bg-* ที่ hardcode สีของ variant ไว้
+  // custom color บน variant ที่ไม่ใช่ primary hover เป็น color-mix tint แทน
   const hasCustomHoverTint = computed(() => !!props.color && props.variant !== 'primary')
 
   const classes = computed(() => [
     'relative inline-flex items-center justify-center overflow-hidden font-bold transition',
-    sizeTextClasses[props.size],
-    !props.height && sizeHeightClasses[props.size],
+    !props.customSize?.fontSize && sizeTextClasses[props.size],
+    !props.customSize?.height && sizeHeightClasses[props.size],
     props.round === 'circle' && 'aspect-square',
-    !props.padding && props.round !== 'circle' && sizePaddingClasses[props.size],
+    !props.customSize?.padding && props.round !== 'circle' && sizePaddingClasses[props.size],
     isRoundKeyword(props.round) && roundClasses[props.round],
-    props.width && isWidthKeyword(props.width) && widthClasses[props.width],
+    props.customSize?.width &&
+      isWidthKeyword(props.customSize.width) &&
+      widthClasses[props.customSize.width],
     props.disabled
       ? disabledClasses[props.variant]
       : [
@@ -181,7 +178,6 @@
     isInteractive.value ? 'cursor-pointer' : 'cursor-not-allowed',
   ])
 
-  // color/textColor คือทางลัดสีเฉพาะจุด ไม่ต้องเพิ่ม variant ใหม่ทุกครั้งที่มีปุ่มสีพิเศษหนึ่งจุด
   const customStyle = computed(() => {
     const style: Record<string, string> = {}
 
@@ -189,16 +185,20 @@
       style.borderRadius = props.round
     }
 
-    if (props.width && !isWidthKeyword(props.width)) {
-      style.width = props.width
+    if (props.customSize?.width && !isWidthKeyword(props.customSize.width)) {
+      style.width = props.customSize.width
     }
 
-    if (props.padding) {
-      style.padding = props.padding
+    if (props.customSize?.padding) {
+      style.padding = props.customSize.padding
     }
 
-    if (props.height) {
-      style.height = props.height
+    if (props.customSize?.height) {
+      style.height = props.customSize.height
+    }
+
+    if (props.customSize?.fontSize) {
+      style.fontSize = props.customSize.fontSize
     }
 
     if (props.disabled || (!props.color && !props.textColor)) return style
@@ -221,7 +221,6 @@
     return style
   })
 
-  // false ปิด ripple ไปเลย, true ใช้ค่า default, object ทับเฉพาะ field ที่ส่งมา
   const DEFAULT_RIPPLE_OPTIONS: Required<ButtonRippleOptions> = {
     center: false,
     color: '',
@@ -275,8 +274,7 @@
 </script>
 
 <style lang="scss">
-  // ripple span ถูกสร้างด้วย document.createElement นอก render tree ของ Vue เลยไม่มี
-  // scoped data attribute ให้ชน — ต้องเป็น global style ไม่ใช่ scoped
+  // ripple span สร้างนอก Vue render tree เลยไม่มี scoped attribute ต้องเป็น global style
   .ripple-effect {
     position: absolute;
     border-radius: 50%;
