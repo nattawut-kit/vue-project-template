@@ -18,22 +18,11 @@
       <textarea
         :value="displayValue"
         :maxlength="maxLength"
-        :placeholder="label && !isFocused && !displayValue ? '' : placeholder"
+        :placeholder="label && !isLabelActive ? '' : placeholder"
         :disabled="disabled"
         :readonly="readonly"
         :rows="rows"
-        class="text-field-control box-border w-full min-w-[20%] max-w-full min-h-12.5 rounded-lg border py-3 outline-none transition-colors duration-150"
-        :class="[
-          sizeConfig.padding,
-          sizeConfig.text,
-          inputStateClasses,
-          textareaHeightClass,
-          textareaResizeClass,
-          {
-            'min-h-20': !rows,
-            [sizeConfig.labelPadding]: label,
-          },
-        ]"
+        :class="textareaClasses"
         v-bind="$attrs"
         @input="onInput"
         @focus="isFocused = true"
@@ -42,19 +31,13 @@
 
       <label
         v-if="label"
-        class="pointer-events-none absolute transform duration-150"
-        :class="[
-          hasStartIcon ? 'left-10' : 'left-4',
-          isFocused || displayValue
-            ? 'top-1 text-14 font-bold text-gray-900'
-            : 'top-4 text-18 font-regular text-gray-900',
-        ]"
+        :class="labelClasses"
       >
         <span>{{ label }}</span>
         <span
           v-if="required && !title"
           class="ml-0.5 text-error-1"
-          :class="isFocused || displayValue ? 'text-16' : 'text-20'"
+          :class="isLabelActive ? 'text-16' : 'text-20'"
           >*</span
         >
       </label>
@@ -151,18 +134,34 @@
   const displayValue = ref('')
   const isFocused = ref(false)
 
-  watchEffect(() => {
-    if (model.value !== undefined) {
-      displayValue.value = String(model.value)
-    }
-  })
-
   const slots = useSlots()
   const hasEndIcon = !!slots['end-icon'] || !!slots['end-icon-error']
   const hasStartIcon = !!slots['start-icon'] || !!slots['start-icon-error']
 
   const hasError = ref(false)
   const errorMessage = ref('')
+
+  const DEFAULT_STATE_CLASSES = [
+    'border-gray-300',
+    'bg-white',
+    'text-gray-900',
+    'hover:border-gray-400',
+    'focus:border-main-1',
+  ]
+
+  const ERROR_STATE_CLASSES = [
+    'border-error-1',
+    'bg-error-2',
+    'text-error-1',
+    'focus:border-error-1',
+    'focus:ring-2',
+    'focus:ring-error-1/20',
+    'animate-[shake_0.2s_cubic-bezier(.36,.07,.19,.97)]',
+  ]
+
+  const DISABLED_STATE_CLASSES = ['border-gray-300', 'bg-gray-100', 'text-gray-400', 'cursor-not-allowed']
+
+  const isLabelActive = computed(() => isFocused.value || !!displayValue.value)
 
   // มี placeholder = ช่องแสดงผลเดี่ยว ใช้ตัวอักษรใหญ่ 20px, ไม่มี placeholder (เช่น label ลอย) = ตาม default เดิมของ mk-one ที่ 14px
   const hasPlaceholder = computed(() => !!props.placeholder)
@@ -178,12 +177,6 @@
     hasEndIcon ? 'pr-10' : 'pr-4',
   ])
 
-  const sizeConfig = computed(() => ({
-    padding: paddingClass.value,
-    text: textClass.value,
-    labelPadding: labelPaddingClass.value,
-  }))
-
   const textareaHeightClass = computed(() => (props.autoResize ? 'overflow-hidden' : 'overflow-auto'))
 
   const textareaResizeClass = computed(() => {
@@ -194,30 +187,29 @@
   })
 
   const inputStateClasses = computed(() => {
-    if (props.disabled) {
-      return ['border-gray-300', 'bg-gray-100', 'text-gray-400', 'cursor-not-allowed']
-    }
-
-    if (hasError.value) {
-      return [
-        'border-error-1',
-        'bg-error-2',
-        'text-error-1',
-        'focus:border-error-1',
-        'focus:ring-2',
-        'focus:ring-error-1/20',
-        'animate-[shake_0.2s_cubic-bezier(.36,.07,.19,.97)]',
-      ]
-    }
-
-    return [
-      'border-gray-300',
-      'bg-white',
-      'text-gray-900',
-      'hover:border-gray-400',
-      'focus:border-main-1',
-    ]
+    if (props.disabled) return DISABLED_STATE_CLASSES
+    if (hasError.value) return ERROR_STATE_CLASSES
+    return DEFAULT_STATE_CLASSES
   })
+
+  const textareaClasses = computed(() => [
+    'text-field-control box-border w-full min-w-[20%] max-w-full min-h-12.5 rounded-lg border py-3 outline-none transition-colors duration-150',
+    textClass.value,
+    paddingClass.value,
+    inputStateClasses.value,
+    textareaHeightClass.value,
+    textareaResizeClass.value,
+    !props.rows && 'min-h-20',
+    props.label && labelPaddingClass.value,
+  ])
+
+  const labelClasses = computed(() => [
+    'pointer-events-none absolute transform duration-150',
+    hasStartIcon ? 'left-10' : 'left-4',
+    isLabelActive.value
+      ? 'top-1 text-14 font-bold text-gray-900'
+      : 'top-4 text-18 font-regular text-gray-900',
+  ])
 
   const onInput = (event: Event): void => {
     const textarea = event.target as HTMLTextAreaElement
@@ -277,6 +269,12 @@
     hasError,
     errorMessage,
     validate,
+  })
+
+  watchEffect(() => {
+    if (model.value !== undefined) {
+      displayValue.value = String(model.value)
+    }
   })
 
   watch(

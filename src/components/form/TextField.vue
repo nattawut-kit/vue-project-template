@@ -26,16 +26,7 @@
         :disabled="disabled"
         :readonly="readonly"
         :autocomplete="autocompleteAttr"
-        class="text-field-control box-border w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border outline-none transition-colors duration-150"
-        :class="[
-          sizeConfig.height,
-          sizeConfig.padding,
-          sizeConfig.text,
-          inputStateClasses,
-          {
-            [sizeConfig.labelPadding]: label,
-          },
-        ]"
+        :class="inputClasses"
         v-bind="$attrs"
         @input="onInput"
         @keypress="onKeypress"
@@ -46,13 +37,7 @@
 
       <label
         v-if="label"
-        class="pointer-events-none absolute transform duration-150"
-        :class="[
-          hasStartIcon ? 'left-10' : 'left-4',
-          isLabelActive
-            ? 'top-1 text-14 font-bold text-gray-900'
-            : 'top-1/2 -translate-y-1/2 text-18 font-regular text-gray-900',
-        ]"
+        :class="labelClasses"
       >
         <span>{{ label }}</span>
         <span
@@ -152,15 +137,6 @@
   const isFocused = ref(false)
   // เบราว์เซอร์ autofill เซ็ตค่า input โดยตรงโดยไม่ยิง 'input' event เสมอไป ทำให้ displayValue ไม่อัปเดตและ label ไม่ลอยขึ้น — ตรวจจับผ่าน CSS animation trick แทน (ดู :-webkit-autofill ด้านล่าง)
   const isAutofilled = ref(false)
-  const isLabelActive = computed(
-    () => isFocused.value || !!displayValue.value || isAutofilled.value
-  )
-
-  watchEffect(() => {
-    if (model.value !== undefined) {
-      displayValue.value = String(model.value)
-    }
-  })
 
   const slots = useSlots()
   const hasEndIcon = !!slots['end-icon'] || !!slots['end-icon-error']
@@ -169,9 +145,28 @@
   const hasError = ref(false)
   const errorMessage = ref('')
 
-  const sizeConfigBase = { height: 'h-12' }
+  const DEFAULT_STATE_CLASSES = [
+    'border-gray-300',
+    'bg-white',
+    'text-gray-900',
+    'hover:border-gray-400',
+    'focus:border-main-1',
+  ]
 
-  // มี placeholder = ช่องแสดงผลเดี่ยว ใช้ตัวอักษรใหญ่ 20px, ไม่มี placeholder (เช่น label ลอย) = ตาม default เดิมของ mk-one ที่ 14px
+  const ERROR_STATE_CLASSES = [
+    'border-error-1',
+    'bg-error-2',
+    'text-error-1',
+    'focus:border-error-1',
+    'focus:ring-2',
+    'focus:ring-error-1/20',
+    'animate-[shake_0.2s_cubic-bezier(.36,.07,.19,.97)]',
+  ]
+
+  const DISABLED_STATE_CLASSES = ['border-gray-300', 'bg-gray-100', 'cursor-not-allowed']
+
+  const isLabelActive = computed(() => isFocused.value || !!displayValue.value || isAutofilled.value)
+
   // ป้องกัน Chrome ตีความ tel/email ที่วางอยู่ก่อนช่อง password ผิดเป็นช่อง username แล้วเสนอ autofill บัญชีที่บันทึกไว้
   const autocompleteAttr = computed(() => {
     if (props.type === 'email') return 'email'
@@ -180,6 +175,7 @@
     return undefined
   })
 
+  // มี placeholder = ช่องแสดงผลเดี่ยว ใช้ตัวอักษรใหญ่ 20px, ไม่มี placeholder (เช่น label ลอย) = ตาม default เดิมของ mk-one ที่ 14px
   const hasPlaceholder = computed(() => !!props.placeholder)
   const textClass = computed(() =>
     props.label ? 'text-16' : hasPlaceholder.value ? 'text-20' : 'text-17'
@@ -187,9 +183,7 @@
   const errorTextClass = computed(() => (hasPlaceholder.value ? 'text-18' : 'text-16'))
   const titleTextClass = computed(() => (hasPlaceholder.value ? 'text-18' : 'text-14'))
   const titleRequiredClass = computed(() => (hasPlaceholder.value ? 'text-16' : 'text-14'))
-  const labelPaddingClass = computed(() =>
-    props.readonly || props.disabled ? 'pt-3' : 'pt-[13px]'
-  )
+  const labelPaddingClass = computed(() => (props.readonly || props.disabled ? 'pt-3' : 'pt-[13px]'))
 
   // ห้ามใช้ 'pl-[15px] pr-4' คู่กับ 'pl-10'/'pr-10' พร้อมกัน (ตอนมี icon) — utility ที่ padding เดียวกันชนกัน ผลลัพธ์ขึ้นกับลำดับใน generated CSS ไม่ใช่ลำดับ class ในเทมเพลต จึงต้องเลือกใช้อันเดียวต่อด้าน
   const paddingClass = computed(() => [
@@ -197,40 +191,27 @@
     hasEndIcon ? 'pr-10' : 'pr-4',
   ])
 
-  const sizeConfig = computed(() => ({
-    ...sizeConfigBase,
-    padding: paddingClass.value,
-    text: textClass.value,
-    labelPadding: labelPaddingClass.value,
-  }))
-
   const inputStateClasses = computed(() => {
-    if (props.disabled) {
-      return ['border-gray-300', 'bg-gray-100', 'cursor-not-allowed']
-    }
-
-    if (hasError.value) {
-      return [
-        'border-error-1',
-        'bg-error-2',
-        'text-error-1',
-        'focus:border-error-1',
-        'focus:ring-2',
-        'focus:ring-error-1/20',
-        'animate-[shake_0.2s_cubic-bezier(.36,.07,.19,.97)]',
-      ]
-    }
-
-    return [
-      'border-gray-300',
-      'bg-white',
-      'text-gray-900',
-      'hover:border-gray-400',
-      'focus:border-main-1',
-      // 'focus:ring-2',
-      // 'focus:ring-main-1/20',
-    ]
+    if (props.disabled) return DISABLED_STATE_CLASSES
+    if (hasError.value) return ERROR_STATE_CLASSES
+    return DEFAULT_STATE_CLASSES
   })
+
+  const inputClasses = computed(() => [
+    'text-field-control box-border h-12 w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border outline-none transition-colors duration-150',
+    textClass.value,
+    paddingClass.value,
+    inputStateClasses.value,
+    props.label && labelPaddingClass.value,
+  ])
+
+  const labelClasses = computed(() => [
+    'pointer-events-none absolute transform duration-150',
+    hasStartIcon ? 'left-10' : 'left-4',
+    isLabelActive.value
+      ? 'top-1 text-14 font-bold text-gray-900'
+      : 'top-1/2 -translate-y-1/2 text-18 font-regular text-gray-900',
+  ])
 
   const onInput = (event: Event): void => {
     const input = event.target as HTMLInputElement
@@ -442,6 +423,12 @@
     hasError,
     errorMessage,
     validate,
+  })
+
+  watchEffect(() => {
+    if (model.value !== undefined) {
+      displayValue.value = String(model.value)
+    }
   })
 
   watch(
