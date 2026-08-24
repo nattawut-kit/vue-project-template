@@ -55,8 +55,10 @@
   interface Props {
     variant?: ButtonVariant
     size?: ButtonSize
-    round?: ButtonRound
-    width?: ButtonWidth | null
+    // keyword ที่มีให้ใช้ Tailwind class, ค่าอื่น (เช่น '10px') ไปเป็น inline style border-radius ตรงๆ
+    round?: ButtonRound | string
+    // 'full' | 'fit' ใช้ Tailwind class ให้, ค่าอื่น (เช่น '120px', '50%') ไปเป็น inline style width ตรงๆ
+    width?: ButtonWidth | string | null
     disabled?: boolean
     loading?: boolean
     type?: ButtonType
@@ -105,10 +107,18 @@
     fit: 'w-fit',
   }
 
-  const variantClasses: Record<ButtonVariant, string> = {
-    primary: 'bg-main-1 text-white hover:opacity-90',
-    secondary: 'border border-main-1 bg-white text-main-1 hover:bg-main-1/5',
-    outline: 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-100',
+  // ไม่ผูก hover ไว้กับ base เพราะตอน loading ปุ่มยังโชว์สีเดิม (ไม่ได้สลับไป disabledClasses)
+  // แต่ต้องไม่มี hover effect ใดๆ เลย — เลยแยก hover ออกมาเป็นอีกก้อน ใส่เฉพาะตอน isInteractive
+  const variantBaseClasses: Record<ButtonVariant, string> = {
+    primary: 'bg-main-1 text-white',
+    secondary: 'border border-main-1 bg-white text-main-1',
+    outline: 'border border-gray-300 bg-white text-gray-900',
+  }
+
+  const variantHoverClasses: Record<ButtonVariant, string> = {
+    primary: 'hover:opacity-80',
+    secondary: 'hover:bg-main-1/5',
+    outline: 'hover:bg-gray-100',
   }
 
   const disabledClasses: Record<ButtonVariant, string> = {
@@ -117,28 +127,54 @@
     outline: 'border border-gray-300 bg-gray-100 text-gray-400',
   }
 
+  const isRoundKeyword = (value: string): value is ButtonRound => value in roundClasses
+  const isWidthKeyword = (value: string): value is ButtonWidth => value in widthClasses
+
+  // disabled โชว์เป็นปุ่มเทาไปเลย ส่วน loading ยังคงสี variant เดิม (แค่หรี่ด้วย opacity-50) —
+  // ทั้งสองสถานะกดไม่ได้จริง (native disabled attribute) เลยไม่ควรมี hover effect ไหนติดมาด้วย
+  const isInteractive = computed(() => !props.disabled && !props.loading)
+
+  // มี custom color + ไม่ใช่ primary (primary เกาะสีผ่าน hover:opacity อยู่แล้ว) ค่อยสลับไปทาง
+  // hover-tint แบบ color-mix แทน hover:bg-* ที่ hardcode สีของ variant ไว้
+  const hasCustomHoverTint = computed(() => !!props.color && props.variant !== 'primary')
+
   const classes = computed(() => [
     'relative inline-flex items-center justify-center overflow-hidden font-bold transition',
     sizeClasses[props.size],
-    roundClasses[props.round],
-    props.width && widthClasses[props.width],
-    props.disabled ? disabledClasses[props.variant] : variantClasses[props.variant],
+    isRoundKeyword(props.round) && roundClasses[props.round],
+    props.width && isWidthKeyword(props.width) && widthClasses[props.width],
+    props.disabled
+      ? disabledClasses[props.variant]
+      : [
+          variantBaseClasses[props.variant],
+          isInteractive.value &&
+            (hasCustomHoverTint.value ? 'btn-hover-tint' : variantHoverClasses[props.variant]),
+        ],
     props.scaleOnPress && 'active:scale-95',
-    props.disabled && 'pointer-events-none',
-    props.loading && 'pointer-events-none opacity-50',
+    isInteractive.value ? 'cursor-pointer' : 'cursor-not-allowed',
+    props.loading && 'opacity-50',
   ])
 
   // color/textColor คือทางลัดสีเฉพาะจุด ไม่ต้องเพิ่ม variant ใหม่ทุกครั้งที่มีปุ่มสีพิเศษหนึ่งจุด
   const customStyle = computed(() => {
-    if (props.disabled || (!props.color && !props.textColor)) return {}
-
     const style: Record<string, string> = {}
+
+    if (!isRoundKeyword(props.round)) {
+      style.borderRadius = props.round
+    }
+
+    if (props.width && !isWidthKeyword(props.width)) {
+      style.width = props.width
+    }
+
+    if (props.disabled || (!props.color && !props.textColor)) return style
 
     if (props.color) {
       if (props.variant === 'primary') {
         style.backgroundColor = props.color
       } else {
         style.borderColor = props.color
+        style['--btn-hover-tint'] = props.color
       }
     }
 
@@ -219,6 +255,12 @@
     to {
       transform: scale(4);
       opacity: 0;
+    }
+  }
+
+  @media (hover: hover) {
+    .btn-hover-tint:hover {
+      background-color: color-mix(in srgb, var(--btn-hover-tint) 8%, transparent);
     }
   }
 </style>

@@ -30,6 +30,7 @@
           <Button round="lg">lg</Button>
           <Button round="xl">xl</Button>
           <Button round="full">full</Button>
+          <Button round="10px">10px</Button>
         </div>
       </div>
 
@@ -39,6 +40,7 @@
           <Button>default (เนื้อหากำหนดความกว้าง)</Button>
           <Button width="full">full</Button>
           <Button width="fit">fit</Button>
+          <Button width="120px">120px</Button>
         </div>
       </div>
 
