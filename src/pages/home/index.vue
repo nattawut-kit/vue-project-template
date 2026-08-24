@@ -5,6 +5,7 @@
     <div @click="handleClick">Go to Example Page</div>
     <div @click="handleClickHeaderDemo">Go to Dynamic Header Demo</div>
     <div @click="handleClickApiExample">Go to API Call Examples</div>
+    <div @click="handleClickButtonDemo">Go to Button Demo</div>
   </div>
 </template>
 
@@ -21,6 +22,10 @@
 
   const handleClickApiExample = () => {
     router.push('/api-example')
+  }
+
+  const handleClickButtonDemo = () => {
+    router.push('/button-demo')
   }
 </script>
 
