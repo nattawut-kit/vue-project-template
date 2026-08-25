@@ -16,71 +16,13 @@
           <code class="rounded bg-gray-100 px-1">float-label</code> เปล่าๆ ไว้ได้เลย ไม่ต้องมีค่า
           label ก็ได้ — จะได้ไม่กินพื้นที่เพิ่ม
         </li>
-        <li>
-          props อื่นที่ใช้ได้: <code class="rounded bg-gray-100 px-1">placeholder</code>,
-          <code class="rounded bg-gray-100 px-1">helper-text</code>,
-          <code class="rounded bg-gray-100 px-1">type</code> ('text' | 'email' | 'number' | 'tel' |
-          'password' | 'currency'), <code class="rounded bg-gray-100 px-1">rules</code>,
-          <code class="rounded bg-gray-100 px-1">max-length</code>,
-          <code class="rounded bg-gray-100 px-1">format-func</code>,
-          <code class="rounded bg-gray-100 px-1">disabled</code>,
-          <code class="rounded bg-gray-100 px-1">readonly</code>,
-          <code class="rounded bg-gray-100 px-1">required</code>,
-          <code class="rounded bg-gray-100 px-1">clearable</code>,
-          <code class="rounded bg-gray-100 px-1">prefix</code>,
-          <code class="rounded bg-gray-100 px-1">suffix</code> (ข้อความสั้นๆ ชิดขอบ เช่น '$'/'บาท' —
-          ใส่คู่กับ start-icon/end-icon slot ได้เลย จะเรียง icon ริมขอบแล้วต่อด้วยข้อความให้)
-        </li>
-        <li>
-          <code class="rounded bg-gray-100 px-1">mask</code> แบบ QInput ของ Quasar:
-          <code class="rounded bg-gray-100 px-1">#</code> ตัวเลข,
-          <code class="rounded bg-gray-100 px-1">S</code> ตัวอักษร,
-          <code class="rounded bg-gray-100 px-1">N</code> ตัวอักษร+ตัวเลข,
-          <code class="rounded bg-gray-100 px-1">A</code>/<code class="rounded bg-gray-100 px-1"
-            >a</code
-          >
-          ตัวอักษรบังคับพิมพ์ใหญ่/เล็ก,
-          <code class="rounded bg-gray-100 px-1">X</code>/<code class="rounded bg-gray-100 px-1"
-            >x</code
-          >
-          ตัวอักษร+ตัวเลขบังคับพิมพ์ใหญ่/เล็ก ตัวอื่นเป็นตัวคั่นคงที่ —
-          <code class="rounded bg-gray-100 px-1">fill-mask</code> เติมตำแหน่งที่ยังไม่ถึงด้วย '_'
-          (หรือกำหนดอักขระเองผ่าน string),
-          <code class="rounded bg-gray-100 px-1">reverse-fill-mask</code>
-          เติมจากขวาไปซ้าย (ใช้คู่กับ fill-mask เหมาะกับตัวเลขที่พิมพ์ไล่จากหลักท้าย),
-          <code class="rounded bg-gray-100 px-1">unmasked-value</code> ให้ v-model
-          เป็นเนื้อหาล้วนไม่มีตัวคั่น
-        </li>
-        <li>
-          <code class="rounded bg-gray-100 px-1">custom-style</code> ปรับหน้าตาผ่าน object เดียว:
-          <code class="rounded bg-gray-100 px-1">rounded</code> ('none'|'sm'|'md'|'lg'|'full'
-          เท่ากันทุกมุม, ใส่ CSS value ดิบเองก็ได้เช่น '12px' หรือใส่ object
-          <code class="rounded bg-gray-100 px-1">{'{'} tl, tr, br, bl {'}'}</code>
-          คุมทีละมุมได้ (แต่ละมุมรับทั้ง preset และ CSS value ดิบ) — มุมที่ไม่ได้ระบุใน object
-          จะเป็น 'none'), <code class="rounded bg-gray-100 px-1">bgColor</code>,
-          <code class="rounded bg-gray-100 px-1">labelColor</code>,
-          <code class="rounded bg-gray-100 px-1">textColor</code>,
-          <code class="rounded bg-gray-100 px-1">borderColor</code>,
-          <code class="rounded bg-gray-100 px-1">focusColor</code> (ใส่ CSS color อะไรก็ได้) —
-          ไม่มีผลตอน disabled/error เพื่อให้ signal สถานะยังชัดเจนเสมอ
-        </li>
-        <li>
-          <code class="rounded bg-gray-100 px-1">outlined</code> (พื้นหลังโปร่งใส) และ
-          <code class="rounded bg-gray-100 px-1">borderless</code>
-          (ไม่มีกรอบและไม่มีพื้นหลังเลย) แยกเป็น prop ตรงๆ เรียกใช้ได้เลยไม่ต้องผ่าน custom-style —
-          ไม่มีผลตอน disabled/error เหมือนกัน
-        </li>
-        <li>
-          slot: <code class="rounded bg-gray-100 px-1">start-icon</code>,
-          <code class="rounded bg-gray-100 px-1">end-icon</code> (และ
-          <code class="rounded bg-gray-100 px-1">start-icon-error</code> /
-          <code class="rounded bg-gray-100 px-1">end-icon-error</code> ตอน error)
-        </li>
       </ul>
     </div>
 
+    <TextFieldDocs />
+
     <div class="mt-6 flex flex-col gap-6">
-      <div>
+      <div id="demo-basic">
         <div class="mb-2 text-14 font-bold">label / placeholder</div>
         <div class="flex flex-col gap-3">
           <TextField
@@ -99,7 +41,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-type">
         <div class="mb-2 text-14 font-bold">type</div>
         <div class="flex flex-col gap-3">
           <TextField
@@ -151,7 +93,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-rules">
         <div class="mb-2 text-14 font-bold">required + rules (blur เพื่อ validate)</div>
         <TextField
           v-model="ruleValue"
@@ -164,7 +106,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-helper-text">
         <div class="mb-2 text-14 font-bold">helperText</div>
         <TextField
           v-model="helperValue"
@@ -176,7 +118,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-max-length">
         <div class="mb-2 text-14 font-bold">maxLength</div>
         <TextField
           v-model="maxLengthValue"
@@ -188,7 +130,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-format-func">
         <div class="mb-2 text-14 font-bold">formatFunc (ตัวพิมพ์ใหญ่ทั้งหมด)</div>
         <TextField
           v-model="formatValue"
@@ -200,7 +142,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-disabled-readonly">
         <div class="mb-2 text-14 font-bold">disabled / readonly</div>
         <div class="flex flex-col gap-3">
           <TextField
@@ -220,7 +162,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-clearable">
         <div class="mb-2 text-14 font-bold">clearable</div>
         <TextField
           v-model="clearableValue"
@@ -232,7 +174,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-prefix-suffix">
         <div class="mb-2 text-14 font-bold">prefix / suffix</div>
         <div class="flex flex-col gap-3">
           <TextField
@@ -268,7 +210,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-mask">
         <div class="mb-2 text-14 font-bold">mask</div>
         <div class="flex flex-col gap-3">
           <TextField
@@ -309,7 +251,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-custom-style">
         <div class="mb-2 text-14 font-bold">customStyle</div>
         <div class="flex flex-col gap-3">
           <TextField
@@ -370,7 +312,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-icon-slot">
         <div class="mb-2 text-14 font-bold">start-icon / end-icon slot</div>
         <TextField
           v-model="iconValue"
@@ -452,7 +394,7 @@
 
       <hr />
 
-      <div>
+      <div id="demo-form">
         <div class="mb-2 text-14 font-bold">form (validate ทุก field ตอนกด submit)</div>
         <form
           class="flex flex-col gap-3"
@@ -490,6 +432,8 @@
 </template>
 
 <script setup lang="ts">
+  import TextFieldDocs from './_components/TextFieldDocs.vue'
+
   const basic = ref('')
   const noLabel = ref('')
   const typeEmail = ref('')
