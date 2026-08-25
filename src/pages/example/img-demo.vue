@@ -405,6 +405,10 @@
   .container {
     padding: 12px;
   }
+
+  [id^='demo-'] {
+    scroll-margin-top: 72px;
+  }
 </style>
 
 <route lang="yaml">
