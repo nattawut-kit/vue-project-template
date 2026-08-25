@@ -1,0 +1,688 @@
+<template>
+  <div class="w-full">
+    <div
+      v-if="label || labelSpace"
+      class="mb-1.5 min-h-[1.5em] text-14 font-bold text-gray-900"
+      :style="labelStyle"
+    >
+      <span>{{ label }}</span>
+      <span
+        v-if="required"
+        class="ml-1 text-error-1"
+        >*</span
+      >
+    </div>
+
+    <div
+      ref="wrapperRef"
+      class="relative w-full"
+    >
+      <div
+        ref="triggerRef"
+        :tabindex="disabled ? -1 : 0"
+        role="combobox"
+        aria-haspopup="listbox"
+        :aria-expanded="isOpen"
+        :aria-controls="panelId"
+        :class="triggerClasses"
+        :style="triggerCustomStyle"
+        @click="toggleOpen"
+        @blur="handleTriggerBlur"
+        @keydown.down.prevent="moveHighlight(1)"
+        @keydown.up.prevent="moveHighlight(-1)"
+        @keydown.enter.prevent="selectHighlighted"
+        @keydown.space.prevent="toggleOpen"
+      >
+        <span
+          class="flex-1 truncate text-17"
+          :class="!resolvedDisplayText && 'text-gray-500'"
+          >{{ resolvedDisplayText || placeholder }}</span
+        >
+
+        <span class="flex shrink-0 items-center gap-1">
+          <button
+            v-if="showClearButton"
+            type="button"
+            tabindex="-1"
+            class="flex items-center"
+            @mousedown.prevent
+            @click.stop="clearValue"
+          >
+            <Svg
+              src="common/x-close"
+              class="size-4"
+              color="black"
+            />
+          </button>
+          <span
+            v-if="loading"
+            class="size-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"
+            aria-hidden="true"
+          ></span>
+          <Svg
+            v-else
+            src="common/chevron-down"
+            class="size-4 transition-transform duration-150"
+            :class="isOpen && 'rotate-180'"
+            color="black"
+          />
+        </span>
+      </div>
+
+      <Transition name="select-panel">
+        <div
+          v-if="isOpen"
+          :id="panelId"
+          ref="panelRef"
+          class="select-panel-shadow absolute z-45 w-full rounded-lg border border-gray-300 bg-white"
+          :class="openUpward ? 'bottom-full mb-1' : 'top-full mt-1'"
+          @mousedown.prevent
+        >
+          <div
+            v-if="searchable"
+            class="border-b border-gray-100 p-2"
+            @mousedown.stop
+          >
+            <input
+              ref="searchInputRef"
+              v-model="searchQuery"
+              type="text"
+              :placeholder="searchPlaceholder"
+              class="h-9 w-full rounded-md border border-gray-300 px-3 text-16 outline-none focus:border-main-1"
+              @keydown.down.prevent="moveHighlight(1)"
+              @keydown.up.prevent="moveHighlight(-1)"
+              @keydown.enter.prevent="selectHighlighted"
+            />
+          </div>
+
+          <div
+            v-if="filteredOptions.length === 0"
+            class="p-3 text-center text-16 text-gray-500"
+          >
+            {{ noOptionsText }}
+          </div>
+
+          <div
+            v-else
+            ref="panelScrollRef"
+            role="listbox"
+            :aria-multiselectable="multiple || undefined"
+            class="overflow-y-auto py-1"
+            :style="{ maxHeight: resolvedPanelMaxHeight + 'px' }"
+            @scroll="onScroll"
+          >
+            <div :style="{ height: totalHeight + 'px', position: 'relative' }">
+              <div
+                class="absolute inset-x-0 top-0"
+                :style="{ transform: `translateY(${offsetY}px)` }"
+              >
+                <div
+                  v-for="entry in visibleItems"
+                  :key="entry.item.value"
+                  role="option"
+                  :aria-selected="isOptionSelected(entry.item)"
+                  :aria-disabled="entry.item.disabled || undefined"
+                  :style="{ height: optionHeight + 'px' }"
+                  :class="optionRowClasses(entry.item, entry.index)"
+                  @click="!entry.item.disabled && toggleOption(entry.item)"
+                >
+                  <span
+                    v-if="multiple"
+                    class="flex size-4 shrink-0 items-center justify-center rounded border"
+                    :class="
+                      isOptionSelected(entry.item)
+                        ? 'border-main-1 bg-main-1'
+                        : 'border-gray-300 bg-white'
+                    "
+                  >
+                    <Svg
+                      v-if="isOptionSelected(entry.item)"
+                      src="common/check"
+                      class="size-3"
+                      color="white"
+                    />
+                  </span>
+
+                  <span class="flex-1 truncate">{{ entry.item.label }}</span>
+
+                  <Svg
+                    v-if="!multiple && isOptionSelected(entry.item)"
+                    src="common/check"
+                    class="size-4 shrink-0"
+                    color="#f61414"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </div>
+
+    <div
+      v-if="hasError && errorMessage"
+      class="mt-1 text-16 font-light text-error-1 duration-150 animate-[slideIn_0.15s_ease-out_forwards]"
+    >
+      {{ errorMessage }}
+    </div>
+    <div
+      v-else-if="helperText"
+      class="mt-1 text-16 font-light text-gray-500 duration-150 animate-[fadeIn_0.1s_ease-out_forwards]"
+    >
+      {{ helperText }}
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+  import { onClickOutside, useResizeObserver } from '@vueuse/core'
+
+  export interface ISelectOption {
+    label: string
+    value: string | number
+    disabled?: boolean
+  }
+
+  type RoundedPreset = 'none' | 'sm' | 'md' | 'lg' | 'full'
+
+  interface SelectCustomStyle {
+    // ค่าเดียว ไม่คุมทีละมุมเหมือน TextField — เกินความจำเป็นสำหรับ Select
+    rounded?: RoundedPreset | string
+    bgColor?: string
+    labelColor?: string
+    textColor?: string
+    borderColor?: string
+    focusColor?: string
+  }
+
+  type SelectValue = string | number | (string | number)[]
+
+  interface Props {
+    label?: string
+    labelSpace?: boolean
+    placeholder?: string
+    helperText?: string
+    rules?: IValidationRule[]
+    options: ISelectOption[]
+    disabled?: boolean
+    readonly?: boolean
+    // แสดง spinner แทน chevron และกันเปิด panel ไว้ก่อน (เช่น ระหว่างรอ options โหลดจาก API) — ไม่ทำให้ trigger เทาเหมือน disabled
+    loading?: boolean
+    required?: boolean
+    clearable?: boolean
+    multiple?: boolean
+    searchable?: boolean
+    // px ต่อแถว — ใช้คำนวณ virtual-scroll ด้วย ต้องตรงกับความสูงจริงของแถว (label ต้อง truncate ห้าม wrap)
+    optionHeight?: number
+    maxPanelHeight?: number
+    noOptionsText?: string
+    searchPlaceholder?: string
+    customStyle?: SelectCustomStyle
+  }
+
+  const props = withDefaults(defineProps<Props>(), {
+    label: '',
+    labelSpace: false,
+    placeholder: '',
+    helperText: '',
+    rules: () => [],
+    disabled: false,
+    readonly: false,
+    loading: false,
+    required: false,
+    clearable: false,
+    multiple: false,
+    searchable: false,
+    optionHeight: 44,
+    maxPanelHeight: 280,
+    noOptionsText: 'ไม่พบข้อมูล',
+    searchPlaceholder: 'ค้นหา',
+    customStyle: () => ({}),
+  })
+
+  const emit = defineEmits<{
+    error: [error: { hasError: boolean; message: string }]
+    // ไม่มี FocusEvent จริงเสมอไป — มีค่าจริงเฉพาะตอน blur จริงจาก trigger, path ปิดแบบอื่น (Escape/click นอก/เลือกใน single mode) ส่ง undefined
+    blur: [event?: FocusEvent]
+  }>()
+
+  const model = defineModel<SelectValue>({ required: true })
+
+  const wrapperRef = ref<HTMLElement>()
+  const triggerRef = ref<HTMLElement>()
+  const panelRef = ref<HTMLElement>()
+  const panelScrollRef = ref<HTMLElement>()
+  const searchInputRef = ref<HTMLInputElement>()
+
+  const panelId = `select-panel-${useId()}`
+
+  const isOpen = ref(false)
+  const searchQuery = ref('')
+  const highlightedIndex = ref(-1)
+  const openUpward = ref(false)
+  const resolvedPanelMaxHeight = ref(props.maxPanelHeight)
+
+  const hasError = ref(false)
+  const errorMessage = ref('')
+
+  interface UseVirtualListOptions {
+    itemHeight: number
+    overscan?: number
+  }
+
+  interface VirtualListEntry<T> {
+    item: T
+    index: number
+  }
+
+  // Fixed-height virtual scroll: windows a long list down to only the rows near the visible
+  // area of `containerRef`, using translateY on a spacer div (see totalHeight/offsetY) to fake
+  // full-list scroll height. Rows MUST render at a constant `itemHeight` (no wrapping) or the
+  // windowing math goes wrong. No on/off threshold — for a short list containerHeight already
+  // covers the whole thing, so it naturally renders everything. Local to Select — no other
+  // component needs it, so it stays inline instead of its own composable file.
+  function useVirtualList<T>(
+    items: Ref<T[]> | ComputedRef<T[]>,
+    containerRef: Ref<HTMLElement | undefined>,
+    options: UseVirtualListOptions
+  ) {
+    const itemHeight = options.itemHeight
+    const overscan = options.overscan ?? 4
+
+    const scrollTop = ref(0)
+    const containerHeight = ref(0)
+
+    // containerRef is usually only mounted behind a v-if (e.g. a dropdown panel), so its first
+    // ResizeObserver callback fires a frame late — measure synchronously as soon as it appears too.
+    const measureContainer = (): void => {
+      if (containerRef.value)
+        containerHeight.value = containerRef.value.getBoundingClientRect().height
+    }
+
+    watch(containerRef, el => {
+      if (el) nextTick(measureContainer)
+    })
+
+    useResizeObserver(containerRef, entries => {
+      containerHeight.value = entries[0]?.contentRect.height ?? 0
+    })
+
+    const startIndex = computed(() =>
+      Math.max(0, Math.floor(scrollTop.value / itemHeight) - overscan)
+    )
+
+    const visibleCount = computed(() => Math.ceil(containerHeight.value / itemHeight) + overscan * 2)
+
+    const endIndex = computed(() => Math.min(items.value.length, startIndex.value + visibleCount.value))
+
+    const visibleItems = computed<VirtualListEntry<T>[]>(() =>
+      items.value
+        .slice(startIndex.value, endIndex.value)
+        .map((item, i) => ({ item, index: startIndex.value + i }))
+    )
+
+    const totalHeight = computed(() => items.value.length * itemHeight)
+    const offsetY = computed(() => startIndex.value * itemHeight)
+
+    const onScroll = (event: Event): void => {
+      scrollTop.value = (event.target as HTMLElement).scrollTop
+    }
+
+    // call when the underlying item list shrinks (e.g. a search query narrows it) so a stale
+    // scrollTop from the longer list can't leave startIndex pointing past the new array's end
+    const resetScroll = (): void => {
+      scrollTop.value = 0
+      if (containerRef.value) containerRef.value.scrollTop = 0
+    }
+
+    const scrollToIndex = (index: number): void => {
+      const el = containerRef.value
+      if (!el || index < 0) return
+
+      measureContainer()
+      const itemTop = index * itemHeight
+      const itemBottom = itemTop + itemHeight
+
+      if (itemTop < el.scrollTop) {
+        el.scrollTop = itemTop
+      } else if (itemBottom > el.scrollTop + el.clientHeight) {
+        el.scrollTop = itemBottom - el.clientHeight
+      }
+      scrollTop.value = el.scrollTop
+    }
+
+    return { visibleItems, totalHeight, offsetY, onScroll, scrollToIndex, resetScroll }
+  }
+
+  const filteredOptions = computed<ISelectOption[]>(() => {
+    if (!props.searchable || !searchQuery.value.trim()) return props.options
+    const query = searchQuery.value.trim().toLowerCase()
+    return props.options.filter(option => option.label.toLowerCase().includes(query))
+  })
+
+  const { visibleItems, totalHeight, offsetY, onScroll, scrollToIndex, resetScroll } =
+    useVirtualList(filteredOptions, panelScrollRef, { itemHeight: props.optionHeight })
+
+  const selectedValueSet = computed(() => {
+    if (props.multiple) return new Set(Array.isArray(model.value) ? model.value : [])
+    return new Set(model.value === '' || model.value == null ? [] : [model.value])
+  })
+
+  const isOptionSelected = (option: ISelectOption): boolean =>
+    selectedValueSet.value.has(option.value)
+
+  // ปลอดภัยกรณี lookup-miss (ค่าที่เลือกไว้ไม่มีอยู่ใน options แล้ว เช่น options โหลดมาใหม่แบบ async) — ข้ามเงียบๆ แทนที่จะโชว์ undefined
+  const selectedLabels = computed<string[]>(() => {
+    const values = props.multiple
+      ? Array.isArray(model.value)
+        ? model.value
+        : []
+      : model.value === '' || model.value == null
+        ? []
+        : [model.value]
+
+    return values
+      .map(value => props.options.find(option => option.value === value)?.label)
+      .filter((label): label is string => !!label)
+  })
+
+  const resolvedDisplayText = computed(() => selectedLabels.value.join(', '))
+
+  const showClearButton = computed(
+    () => props.clearable && !props.disabled && !props.readonly && selectedLabels.value.length > 0
+  )
+
+  const ROUNDED_CLASS_MAP: Record<RoundedPreset, string> = {
+    none: 'rounded-none',
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    full: 'rounded-full',
+  }
+
+  const isRoundedKeyword = (value: string): value is RoundedPreset => value in ROUNDED_CLASS_MAP
+
+  const roundedClass = computed(() => {
+    const rounded = props.customStyle.rounded ?? 'lg'
+    return isRoundedKeyword(rounded) ? ROUNDED_CLASS_MAP[rounded] : ''
+  })
+
+  const DEFAULT_STATE_CLASSES = ['select-custom-border', 'bg-white', 'text-gray-900']
+  const ERROR_STATE_CLASSES = ['border-error-1', 'bg-error-2', 'text-error-1']
+  const DISABLED_STATE_CLASSES = ['border-gray-300', 'bg-gray-100', 'text-gray-400']
+
+  const triggerStateClasses = computed(() => {
+    if (props.disabled) return DISABLED_STATE_CLASSES
+    if (hasError.value) return ERROR_STATE_CLASSES
+    return DEFAULT_STATE_CLASSES
+  })
+
+  const triggerClasses = computed(() => [
+    'box-border flex h-12 w-full min-w-0 items-center justify-between gap-2 border px-4 outline-none transition-colors duration-150',
+    roundedClass.value,
+    triggerStateClasses.value,
+    isOpen.value && !props.disabled && !hasError.value && 'select-trigger-open ring-2 ring-main-1/20',
+    props.disabled || props.readonly || props.loading ? 'cursor-not-allowed' : 'cursor-pointer',
+  ])
+
+  const triggerCustomStyle = computed(() => {
+    const style: Record<string, string> = {}
+    if (!isRoundedKeyword(props.customStyle.rounded ?? 'lg')) {
+      style.borderRadius = props.customStyle.rounded ?? 'lg'
+    }
+    if (!props.disabled) {
+      if (props.customStyle.bgColor) style.backgroundColor = props.customStyle.bgColor
+      if (props.customStyle.textColor) style.color = props.customStyle.textColor
+      if (props.customStyle.borderColor) style['--select-border-color'] = props.customStyle.borderColor
+      if (props.customStyle.focusColor) style['--select-focus-color'] = props.customStyle.focusColor
+    }
+    return style
+  })
+
+  const labelStyle = computed(() =>
+    props.customStyle.labelColor ? { color: props.customStyle.labelColor } : undefined
+  )
+
+  const optionRowClasses = (option: ISelectOption, index: number) => [
+    'flex items-center gap-2 px-3 text-16',
+    option.disabled ? 'cursor-not-allowed text-gray-400' : 'cursor-pointer text-gray-900',
+    !option.disabled && isOptionSelected(option) && 'bg-main-1/5 font-bold text-main-1',
+    !option.disabled && index === highlightedIndex.value && 'bg-gray-100',
+  ]
+
+  const toggleOption = (option: ISelectOption): void => {
+    if (option.disabled) return
+
+    if (props.multiple) {
+      const current = Array.isArray(model.value) ? model.value : []
+      model.value = current.includes(option.value)
+        ? current.filter(value => value !== option.value)
+        : [...current, option.value]
+      return
+    }
+
+    model.value = option.value
+    closePanel()
+  }
+
+  const clearValue = (): void => {
+    model.value = props.multiple ? [] : ''
+    validate()
+  }
+
+  const computePlacement = (): void => {
+    const trigger = triggerRef.value
+    if (!trigger) return
+
+    const rect = trigger.getBoundingClientRect()
+    const margin = 8
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+
+    if (spaceBelow < props.maxPanelHeight && spaceAbove > spaceBelow) {
+      openUpward.value = true
+      resolvedPanelMaxHeight.value = Math.max(120, Math.min(props.maxPanelHeight, spaceAbove - margin))
+    } else {
+      openUpward.value = false
+      resolvedPanelMaxHeight.value = Math.max(120, Math.min(props.maxPanelHeight, spaceBelow - margin))
+    }
+  }
+
+  const openPanel = async (): Promise<void> => {
+    // loading ไม่ล็อก trigger เหมือน disabled (ยัง focus/tab ได้) แค่กันเปิด panel ที่ options ยังไม่มาก่อน
+    if (isOpen.value || props.loading) return
+    isOpen.value = true
+    searchQuery.value = ''
+
+    await nextTick()
+    computePlacement()
+
+    if (props.searchable) searchInputRef.value?.focus()
+
+    const selectedIndex = filteredOptions.value.findIndex(option => isOptionSelected(option))
+    highlightedIndex.value = selectedIndex
+    if (selectedIndex >= 0) scrollToIndex(selectedIndex)
+  }
+
+  // idempotent โดยตั้งใจ — เรียกซ้ำได้จากหลายทาง (native blur, click-outside, Escape, เลือก option ใน single mode)
+  // ไกด์ isOpen กันไม่ให้ validate/emit ซ้ำสองครั้งจากเหตุการณ์เดียวกัน
+  const closePanel = (event?: FocusEvent): void => {
+    if (!isOpen.value) return
+    isOpen.value = false
+    searchQuery.value = ''
+    highlightedIndex.value = -1
+    validate()
+    emit('blur', event)
+  }
+
+  const toggleOpen = (): void => {
+    if (props.disabled || props.readonly) return
+    if (isOpen.value) closePanel()
+    else openPanel()
+  }
+
+  // relatedTarget อยู่ใน wrapper เอง (เช่น โฟกัสย้ายไป search input ตอนเปิด) ไม่ถือเป็นการปิดจริง
+  const handleTriggerBlur = (event: FocusEvent): void => {
+    const related = event.relatedTarget as Node | null
+    if (related && wrapperRef.value?.contains(related)) return
+    closePanel(event)
+  }
+
+  const moveHighlight = (delta: number): void => {
+    if (!isOpen.value) {
+      openPanel()
+      return
+    }
+
+    const list = filteredOptions.value
+    if (list.length === 0) return
+
+    let index = highlightedIndex.value
+    for (let step = 0; step < list.length; step++) {
+      index = (index + delta + list.length) % list.length
+      if (!list[index].disabled) break
+    }
+
+    highlightedIndex.value = index
+    scrollToIndex(index)
+  }
+
+  const selectHighlighted = (): void => {
+    if (!isOpen.value) {
+      openPanel()
+      return
+    }
+
+    const option = filteredOptions.value[highlightedIndex.value]
+    if (option && !option.disabled) toggleOption(option)
+  }
+
+  const handleGlobalKeydown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') closePanel()
+  }
+
+  watch(isOpen, open => {
+    if (open) {
+      document.addEventListener('keydown', handleGlobalKeydown)
+      window.visualViewport?.addEventListener('resize', computePlacement)
+      // ทั้งหน้า scroll ที่ window/document เสมอ (ดู CLAUDE.md) — ระยะห่างจาก trigger ถึงขอบจอเปลี่ยนตาม scroll จริง ต้องคำนวณ flip ใหม่ทุกครั้ง ไม่ใช่แค่ตอนเปิด
+      window.addEventListener('scroll', computePlacement, { passive: true })
+    } else {
+      document.removeEventListener('keydown', handleGlobalKeydown)
+      window.visualViewport?.removeEventListener('resize', computePlacement)
+      window.removeEventListener('scroll', computePlacement)
+    }
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('keydown', handleGlobalKeydown)
+    window.visualViewport?.removeEventListener('resize', computePlacement)
+    window.removeEventListener('scroll', computePlacement)
+  })
+
+  // คำค้นหาเปลี่ยนทำให้ filteredOptions สั้นลง/ยาวขึ้น — รีเซ็ต scroll/highlight กัน startIndex ค้างเกินขอบ array ใหม่
+  watch(filteredOptions, () => {
+    resetScroll()
+    highlightedIndex.value = -1
+  })
+
+  onClickOutside(panelRef, () => closePanel(), { ignore: [triggerRef] })
+
+  const validate = (): void => {
+    hasError.value = false
+    errorMessage.value = ''
+
+    // ข้อจำกัดที่ยอมรับ: comma ในค่า value ของ option เองจะทำให้ rule ที่เช็คแบบ substring บน string ที่ join แล้วผิดเพี้ยนได้ — value ปกติเป็น id ความเสี่ยงต่ำ
+    const valueToValidate = props.multiple
+      ? Array.isArray(model.value)
+        ? model.value.join(',')
+        : ''
+      : String(model.value ?? '')
+
+    for (const rule of props.rules) {
+      if (!rule.validator(valueToValidate)) {
+        hasError.value = true
+        errorMessage.value = rule.message
+        emit('error', { hasError: true, message: errorMessage.value })
+        return
+      }
+    }
+
+    const isEmpty = props.multiple
+      ? !Array.isArray(model.value) || model.value.length === 0
+      : model.value === '' || model.value == null
+
+    if (props.required && isEmpty) {
+      hasError.value = true
+      errorMessage.value = props.label ? `กรุณาเลือก${props.label}` : 'กรุณาเลือกข้อมูล'
+      emit('error', { hasError: true, message: errorMessage.value })
+      return
+    }
+
+    emit('error', { hasError: false, message: '' })
+  }
+
+  defineExpose({
+    hasError,
+    errorMessage,
+    validate,
+  })
+
+  watch(
+    () => props.rules,
+    () => validate()
+  )
+</script>
+
+<style scoped lang="scss">
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .select-custom-border {
+    border-color: var(--select-border-color, var(--color-gray-300));
+  }
+
+  .select-custom-border:hover {
+    border-color: var(--select-border-color, var(--color-gray-400));
+  }
+
+  .select-trigger-open {
+    border-color: var(--select-focus-color, var(--select-border-color, var(--color-main-1)));
+  }
+
+  .select-panel-shadow {
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  .select-panel-enter-active,
+  .select-panel-leave-active {
+    transition:
+      opacity 0.15s ease,
+      transform 0.15s ease;
+  }
+
+  .select-panel-enter-from,
+  .select-panel-leave-to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+</style>

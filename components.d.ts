@@ -19,6 +19,7 @@ declare module 'vue' {
     Input: typeof import('./src/components/form/Input.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Select: typeof import('./src/components/form/Select.vue')['default']
     Svg: typeof import('./src/components/media/Svg.vue')['default']
     TextArea: typeof import('./src/components/form/TextArea.vue')['default']
     TextField: typeof import('./src/components/form/TextField.vue')['default']

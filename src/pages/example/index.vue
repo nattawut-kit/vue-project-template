@@ -18,6 +18,11 @@
           />
           <Button
             variant="secondary"
+            label="Select Demo"
+            @click="router.push('/example/select-demo')"
+          />
+          <Button
+            variant="secondary"
             label="Dialog Demo"
             @click="router.push('/example/dialog-demo')"
           />
