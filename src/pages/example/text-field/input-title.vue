@@ -2,7 +2,7 @@
   <div class="container">
     <div>input แบบ title</div>
 
-    <div class="mt-4 max-w-xs rounded-lg border border-gray-300 bg-white p-3 text-14">
+    <div class="mt-4 rounded-lg border border-gray-300 bg-white p-3 text-14">
       <div class="mb-1 font-bold">วิธีใช้</div>
       <ul class="list-disc space-y-1 pl-4 leading-relaxed">
         <li>
@@ -25,7 +25,30 @@
           <code class="rounded bg-gray-100 px-1">disabled</code>,
           <code class="rounded bg-gray-100 px-1">readonly</code>,
           <code class="rounded bg-gray-100 px-1">required</code>,
-          <code class="rounded bg-gray-100 px-1">clearable</code>
+          <code class="rounded bg-gray-100 px-1">clearable</code>,
+          <code class="rounded bg-gray-100 px-1">prefix</code>,
+          <code class="rounded bg-gray-100 px-1">suffix</code> (ข้อความสั้นๆ ชิดขอบ เช่น '$'/'บาท' —
+          ใส่คู่กับ start-icon/end-icon slot ได้เลย จะเรียง icon ริมขอบแล้วต่อด้วยข้อความให้)
+        </li>
+        <li>
+          <code class="rounded bg-gray-100 px-1">mask</code> แบบ QInput ของ Quasar:
+          <code class="rounded bg-gray-100 px-1">#</code> ตัวเลข,
+          <code class="rounded bg-gray-100 px-1">S</code> ตัวอักษร,
+          <code class="rounded bg-gray-100 px-1">N</code> ตัวอักษร+ตัวเลข,
+          <code class="rounded bg-gray-100 px-1">A</code>/<code class="rounded bg-gray-100 px-1"
+            >a</code
+          >
+          ตัวอักษรบังคับพิมพ์ใหญ่/เล็ก,
+          <code class="rounded bg-gray-100 px-1">X</code>/<code class="rounded bg-gray-100 px-1"
+            >x</code
+          >
+          ตัวอักษร+ตัวเลขบังคับพิมพ์ใหญ่/เล็ก ตัวอื่นเป็นตัวคั่นคงที่ —
+          <code class="rounded bg-gray-100 px-1">fill-mask</code> เติมตำแหน่งที่ยังไม่ถึงด้วย '_'
+          (หรือกำหนดอักขระเองผ่าน string),
+          <code class="rounded bg-gray-100 px-1">reverse-fill-mask</code>
+          เติมจากขวาไปซ้าย (ใช้คู่กับ fill-mask เหมาะกับตัวเลขที่พิมพ์ไล่จากหลักท้าย),
+          <code class="rounded bg-gray-100 px-1">unmasked-value</code> ให้ v-model
+          เป็นเนื้อหาล้วนไม่มีตัวคั่น
         </li>
         <li>
           slot: <code class="rounded bg-gray-100 px-1">start-icon</code>,
@@ -36,7 +59,7 @@
       </ul>
     </div>
 
-    <div class="mt-6 flex max-w-xs flex-col gap-6">
+    <div class="mt-6 flex flex-col gap-6">
       <div>
         <div class="mb-2 text-14 font-bold">title / placeholder</div>
         <div class="flex flex-col gap-3">
@@ -197,6 +220,80 @@
       <hr />
 
       <div>
+        <div class="mb-2 text-14 font-bold">prefix / suffix</div>
+        <div class="flex flex-col gap-3">
+          <TextField
+            v-model="titlePrefixValue"
+            type="number"
+            label="ราคา"
+            placeholder="0.00"
+            prefix="฿"
+          />
+          <TextField
+            v-model="titleSuffixValue"
+            type="number"
+            label="น้ำหนัก"
+            placeholder="0"
+            suffix="กก."
+          />
+          <!-- ใส่ prefix พร้อม start-icon slot พร้อมกันได้เลย component จะเรียง icon ไว้ริมขอบแล้วต่อด้วยข้อความ prefix ให้เอง -->
+          <TextField
+            v-model="titlePrefixIconTextValue"
+            label="อีเมล"
+            placeholder="กรอกอีเมล"
+            prefix="mail"
+          >
+            <template #start-icon>
+              <Svg
+                src="navbar/user"
+                class="size-4"
+              />
+            </template>
+          </TextField>
+        </div>
+      </div>
+
+      <hr />
+
+      <div>
+        <div class="mb-2 text-14 font-bold">mask</div>
+        <div class="flex flex-col gap-3">
+          <TextField
+            v-model="titleMaskPhoneValue"
+            label="เบอร์โทร (mask)"
+            placeholder="081-234-5678"
+            mask="###-###-####"
+          />
+          <TextField
+            v-model="titleMaskDateValue"
+            label="วันเกิด (fillMask)"
+            mask="##/##/####"
+            fill-mask
+          />
+          <TextField
+            v-model="titleMaskMoneyValue"
+            label="จำนวนเงิน (reverseFillMask)"
+            mask="#,###,###.##"
+            fill-mask
+            reverse-fill-mask
+          />
+          <div>
+            <TextField
+              v-model="titleMaskCouponValue"
+              label="รหัสคูปอง (unmaskedValue)"
+              mask="AAA-####"
+              unmasked-value
+            />
+            <div class="mt-1 text-12 text-gray-500">
+              v-model (ไม่มีตัวคั่น): {{ titleMaskCouponValue }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div>
         <div class="mb-2 text-14 font-bold">start-icon / end-icon slot</div>
         <TextField
           v-model="titleIconValue"
@@ -334,6 +431,13 @@
   const titleReadonlyValue = ref('แก้ไขไม่ได้')
   const titleIconValue = ref('')
   const titleClearableValue = ref('ลบข้อความนี้ได้')
+  const titlePrefixValue = ref('')
+  const titleSuffixValue = ref('')
+  const titlePrefixIconTextValue = ref('')
+  const titleMaskPhoneValue = ref('')
+  const titleMaskDateValue = ref('')
+  const titleMaskMoneyValue = ref('')
+  const titleMaskCouponValue = ref('')
   const titleIconErrorOnlyValue = ref('')
   const titleIconErrorValue = ref('')
 

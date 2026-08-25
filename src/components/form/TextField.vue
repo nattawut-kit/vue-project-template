@@ -52,8 +52,14 @@
 
       <div
         v-if="hasEndIconSlot"
-        class="absolute inset-y-0 right-0 flex items-center pr-4"
+        class="absolute inset-y-0 right-0 flex items-center gap-1 pr-4"
       >
+        <span
+          v-if="suffix"
+          class="text-gray-500"
+          :class="textClass"
+          >{{ suffix }}</span
+        >
         <slot
           v-if="!hasError || !slots['end-icon-error']"
           name="end-icon"
@@ -80,8 +86,19 @@
       </button>
 
       <div
-        v-if="hasStartIcon"
-        class="absolute inset-y-0 left-0 flex items-center pl-4"
+        v-else-if="hasSuffix"
+        class="absolute inset-y-0 right-0 flex items-center pr-4"
+      >
+        <span
+          class="text-gray-500"
+          :class="textClass"
+          >{{ suffix }}</span
+        >
+      </div>
+
+      <div
+        v-if="hasStartIconSlot"
+        class="absolute inset-y-0 left-0 flex items-center gap-1 pl-4"
       >
         <slot
           v-if="!hasError || !slots['start-icon-error']"
@@ -93,6 +110,23 @@
         >
           <slot name="start-icon-error"></slot>
         </span>
+        <span
+          v-if="prefix"
+          class="text-gray-500"
+          :class="textClass"
+          >{{ prefix }}</span
+        >
+      </div>
+
+      <div
+        v-else-if="hasPrefix"
+        class="absolute inset-y-0 left-0 flex items-center pl-4"
+      >
+        <span
+          class="text-gray-500"
+          :class="textClass"
+          >{{ prefix }}</span
+        >
       </div>
     </div>
 
@@ -131,6 +165,17 @@
     readonly?: boolean
     required?: boolean
     clearable?: boolean
+    // ข้อความคงที่แสดงชิดขอบซ้าย/ขวาของกล่อง input เช่น '$' หรือ 'บาท' (เหมือน prefix/suffix ของ QInput ของ Quasar) — start-icon/end-icon slot มีสิทธิ์เหนือกว่าถ้าใส่มาด้วยกัน
+    prefix?: string
+    suffix?: string
+    // รูปแบบ mask แบบ QInput ของ Quasar: '#' ตัวเลข, 'S' ตัวอักษร, 'N' ตัวอักษร+ตัวเลข, 'A'/'a' ตัวอักษรบังคับพิมพ์ใหญ่/เล็ก, 'X'/'x' ตัวอักษร+ตัวเลขบังคับพิมพ์ใหญ่/เล็ก ตัวอื่นถือเป็นตัวคั่นคงที่ (ใส่ '\' นำหน้าถ้าต้องการใช้ตัวอักษร token พวกนี้เป็นตัวคั่นจริงๆ) — เมื่อใส่ mask จะข้ามการกรองตัวอักษรตาม type (number/currency/tel) ไปใช้กติกาของ mask แทนทั้งหมด
+    mask?: string
+    // เติมตำแหน่งของ mask ที่ยังไม่ถึงด้วยอักขระ fill (default '_') ให้เห็นรูปแบบเต็มตั้งแต่ยังไม่พิมพ์ — ใส่เป็น string เพื่อกำหนดอักขระ fill เอง
+    fillMask?: boolean | string
+    // เติม fillMask จากขวาไปซ้ายแทน เหมาะกับ mask ตัวเลขที่พิมพ์ไล่จากหลักท้ายๆ (เช่นช่องจำนวนเงิน) ใช้คู่กับ fillMask
+    reverseFillMask?: boolean
+    // true = ค่าใน v-model เป็นตัวอักษรเนื้อหาล้วนๆ ไม่มีตัวคั่นของ mask, false (default) = ค่าใน v-model เป็น string ที่ใส่ mask แล้ว
+    unmaskedValue?: boolean
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -146,6 +191,12 @@
     readonly: false,
     required: false,
     clearable: false,
+    prefix: '',
+    suffix: '',
+    mask: '',
+    fillMask: false,
+    reverseFillMask: false,
+    unmaskedValue: false,
   })
 
   const emit = defineEmits<{
@@ -163,7 +214,168 @@
 
   const slots = useSlots()
   const hasEndIconSlot = !!slots['end-icon'] || !!slots['end-icon-error']
-  const hasStartIcon = !!slots['start-icon'] || !!slots['start-icon-error']
+  const hasStartIconSlot = !!slots['start-icon'] || !!slots['start-icon-error']
+
+  const hasMask = computed(() => !!props.mask)
+
+  interface MaskToken {
+    char: string
+    isToken: boolean
+  }
+
+  const MASK_TOKEN_PATTERNS: Record<string, RegExp> = {
+    '#': /[0-9]/,
+    S: /[a-zA-Z]/,
+    N: /[0-9a-zA-Z]/,
+    A: /[a-zA-Z]/,
+    a: /[a-zA-Z]/,
+    X: /[0-9a-zA-Z]/,
+    x: /[0-9a-zA-Z]/,
+  }
+
+  const MASK_CASE_TRANSFORM: Record<string, (char: string) => string> = {
+    A: char => char.toUpperCase(),
+    X: char => char.toUpperCase(),
+    a: char => char.toLowerCase(),
+    x: char => char.toLowerCase(),
+  }
+
+  // แปลง mask string เป็น token ทีละตัว — '\' นำหน้าตัวอักษร token ทำให้กลายเป็นตัวคั่นธรรมดา (เผื่อ mask ต้องมีตัวอักษร #/S/N/A/a/X/x เป็นตัวคั่นจริงๆ)
+  const parseMask = (mask: string): MaskToken[] => {
+    const tokens: MaskToken[] = []
+    for (let i = 0; i < mask.length; i++) {
+      const char = mask[i]
+      if (char === '\\' && i + 1 < mask.length) {
+        tokens.push({ char: mask[i + 1], isToken: false })
+        i++
+      } else if (MASK_TOKEN_PATTERNS[char]) {
+        tokens.push({ char, isToken: true })
+      } else {
+        tokens.push({ char, isToken: false })
+      }
+    }
+    return tokens
+  }
+
+  const maskTokens = computed(() => (hasMask.value ? parseMask(props.mask) : []))
+  const maskTokenCount = computed(() => maskTokens.value.filter(token => token.isToken).length)
+  const fillMaskChar = computed(() =>
+    typeof props.fillMask === 'string' && props.fillMask ? props.fillMask[0] : '_'
+  )
+
+  // ดึงเฉพาะตัวอักษรเนื้อหาจาก string ใดๆ โดยเทียบกับชนิด token ที่ mask นี้ใช้จริง — ไม่สนตำแหน่งเดิม เพราะตัวคั่นที่กำหนดใน mask (เช่น '-', '/', ' ') ไม่มีทาง match pattern ของ token พวกนี้อยู่แล้ว จึงกรองตัวคั่นทิ้งได้โดยไม่ต้องรู้ตำแหน่ง
+  const extractMaskContent = (value: string): string => {
+    const usedTokenChars = [
+      ...new Set(maskTokens.value.filter(token => token.isToken).map(token => token.char)),
+    ]
+    if (usedTokenChars.length === 0) return ''
+    return [...value]
+      .filter(char => usedTokenChars.some(tokenChar => MASK_TOKEN_PATTERNS[tokenChar].test(char)))
+      .join('')
+  }
+
+  // ประกอบตัวอักษรเนื้อหาเข้ากับ mask ทีละตำแหน่ง แทรกตัวคั่นทันทีที่ถึงตำแหน่งนั้น (ไม่รอพิมพ์ครบกลุ่มก่อน) แล้วหยุดทันทีที่เจอ token ที่ยังไม่มีตัวอักษรเติม — คืน isContent (ยาวเท่า text) กำกับมาด้วยว่าตำแหน่งไหนเป็นเนื้อหาจริง ไม่ใช่ตัวคั่น เพราะถ้า mask มีตัวคั่นที่ match pattern ของ token เอง (เช่น '0' ใน mask="0##-###-####") จะแยกไม่ออกจากตัวอักษรผลลัพธ์เฉยๆ ว่าตัวไหนเป็นตัวคั่น ตัวไหนเป็นเนื้อหาจริง
+  const buildMaskedValue = (
+    content: string,
+    tokens: MaskToken[]
+  ): { text: string; isContent: boolean[] } => {
+    if (!content) return { text: '', isContent: [] }
+    let text = ''
+    const isContent: boolean[] = []
+    let charIndex = 0
+    for (const token of tokens) {
+      if (token.isToken) {
+        if (charIndex >= content.length) break
+        const pattern = MASK_TOKEN_PATTERNS[token.char]
+        while (charIndex < content.length && !pattern.test(content[charIndex])) charIndex++
+        if (charIndex >= content.length) break
+        const transform = MASK_CASE_TRANSFORM[token.char]
+        text += transform ? transform(content[charIndex]) : content[charIndex]
+        isContent.push(true)
+        charIndex++
+      } else {
+        text += token.char
+        isContent.push(false)
+      }
+    }
+    return { text, isContent }
+  }
+
+  // เติมตำแหน่ง token/ตัวคั่นที่ยังไม่ถึงด้วย fillChar/ตัวคั่นจริง — compact เรียงตรงกับ tokens ทีละตัวเสมออยู่แล้ว จึงเทียบตำแหน่งตรงๆ ได้เลยโดยไม่ต้อง parse ซ้ำ อักขระ fill ไม่ถือเป็นเนื้อหา
+  const applyFillMask = (
+    compact: string,
+    compactIsContent: boolean[],
+    tokens: MaskToken[],
+    fillChar: string
+  ): { text: string; isContent: boolean[] } => {
+    let text = ''
+    const isContent: boolean[] = []
+    for (let i = 0; i < tokens.length; i++) {
+      if (i < compact.length) {
+        text += compact[i]
+        isContent.push(compactIsContent[i])
+      } else if (tokens[i].isToken) {
+        text += fillChar
+        isContent.push(false)
+      } else {
+        text += tokens[i].char
+        isContent.push(false)
+      }
+    }
+    return { text, isContent }
+  }
+
+  // reverseFillMask กลับด้าน mask กับเนื้อหา (พร้อม isContent) ก่อนประกอบ (เท่ากับเติมจากท้าย mask เข้ามา) แล้วกลับผลลัพธ์คืนตอนจบ — ใช้ engine เดียวกับโหมดปกติได้โดยไม่ต้องเขียนซ้ำ
+  const formatMaskValue = (
+    rawContent: string
+  ): { content: string; masked: string; display: string; displayIsContent: boolean[] } => {
+    const tokens = maskTokens.value
+    const limit = maskTokenCount.value
+    const boundedContent = props.reverseFillMask
+      ? rawContent.slice(-limit)
+      : rawContent.slice(0, limit)
+
+    const orderedTokens = props.reverseFillMask ? [...tokens].reverse() : tokens
+    const orderedContent = props.reverseFillMask
+      ? [...boundedContent].reverse().join('')
+      : boundedContent
+
+    const compactResult = buildMaskedValue(orderedContent, orderedTokens)
+    const masked = props.reverseFillMask
+      ? [...compactResult.text].reverse().join('')
+      : compactResult.text
+    const maskedIsContent = props.reverseFillMask
+      ? [...compactResult.isContent].reverse()
+      : compactResult.isContent
+    // ดึง content กลับด้วยตำแหน่ง (maskedIsContent) ไม่ใช่ extractMaskContent(masked) เพราะ masked มีตัวคั่นปนอยู่ — ถ้า mask มีตัวคั่นที่ match pattern ของ token เอง extractMaskContent จะดูดตัวคั่นนั้นกลับมานับเป็นเนื้อหาซ้ำด้วย ส่วนดึงจาก masked (ไม่ใช่จาก rawContent ตรงๆ) เพราะผ่านการแปลงตัวพิมพ์ใหญ่/เล็กตาม token (A/a/X/x) มาแล้ว ต้องให้ค่าที่ unmaskedValue ส่งออกตรงกับสิ่งที่แสดงจริง
+    const content = [...masked].filter((_, i) => maskedIsContent[i]).join('')
+
+    if (!props.fillMask)
+      return { content, masked, display: masked, displayIsContent: maskedIsContent }
+
+    const filledResult = applyFillMask(
+      compactResult.text,
+      compactResult.isContent,
+      orderedTokens,
+      fillMaskChar.value
+    )
+    const display = props.reverseFillMask
+      ? [...filledResult.text].reverse().join('')
+      : filledResult.text
+    const displayIsContent = props.reverseFillMask
+      ? [...filledResult.isContent].reverse()
+      : filledResult.isContent
+
+    return { content, masked, display, displayIsContent }
+  }
+
+  // แหล่งความจริงของ "มีเนื้อหาจริงไหม" สำหรับ field ที่มี mask — ใช้แทน displayValue เพราะตอน fillMask ทำงาน displayValue จะเต็มไปด้วยอักขระ fill ตั้งแต่ยังไม่พิมพ์อะไรเลย
+  const maskRawContent = ref('')
+  // isContent ของ displayValue ปัจจุบัน (ยาวเท่ากัน) เก็บไว้ใช้ตอนแก้ไขครั้งถัดไป — ต้องอิงตำแหน่งนี้เวลานับว่า "ก่อน cursor มีเนื้อหากี่ตัว" ห้ามใช้ extractMaskContent กับ displayValue ตรงๆ เพราะแยกตัวคั่นที่ match pattern ของ token เอง (เช่น '0' ใน mask="0##-###-####") ออกจากเนื้อหาจริงไม่ได้
+  const maskDisplayIsContent = ref<boolean[]>([])
+  // onMaskInput เซ็ต model.value เอง (v-model สองทาง) ทำให้ watchEffect ด้านล่างที่ watch model.value ไว้สำหรับรับค่าจากภายนอกถูกเรียกซ้ำทุกครั้งที่พิมพ์ด้วย — ถ้าปล่อยให้ watchEffect ประมวลผลซ้ำ มันจะ extractMaskContent จาก masked string ทั้งก้อนใหม่ ซึ่งแยกตัวคั่นที่ match pattern ของ token เอง (เช่น '0') ออกจากเนื้อหาจริงไม่ได้ ทำให้ค่าที่ onMaskInput เพิ่งคำนวณถูกต้องถูกเขียนทับด้วยค่าผิดทุกครั้ง ต้องกันด้วย flag นี้ให้ watchEffect ข้ามรอบที่มาจาก onMaskInput เอง (ไม่ใช่ ref เพราะไม่ต้องการให้ trigger reactivity เพิ่ม)
+  let isInternalMaskUpdate = false
+
   // end-icon slot ที่ผู้ใช้กำหนดเองมีสิทธิ์เหนือกว่า ปุ่ม clear จะไม่ถูกเพิ่มถ้าช่องนี้มี end-icon slot อยู่แล้ว
   const showClearButton = computed(
     () =>
@@ -171,9 +383,17 @@
       !hasEndIconSlot &&
       !props.disabled &&
       !props.readonly &&
-      !!displayValue.value
+      (hasMask.value ? !!maskRawContent.value : !!displayValue.value)
   )
   const hasEndIcon = computed(() => hasEndIconSlot || showClearButton.value)
+  // prefix/suffix แสดงคู่กับ icon slot ได้เลย (icon อยู่ริมขอบ ข้อความอยู่ถัดเข้ามาทางค่า input) — ปุ่ม clear ทับ suffix เสมอเพราะอยู่ตำแหน่งเดียวกัน
+  const hasPrefix = computed(() => !!props.prefix)
+  const hasSuffix = computed(() => !!props.suffix && !showClearButton.value)
+  const hasStartContent = computed(() => hasStartIconSlot || hasPrefix.value)
+  const hasEndContent = computed(() => hasEndIcon.value || hasSuffix.value)
+  // icon + prefix/suffix พร้อมกันกินพื้นที่กว้างกว่า icon เดี่ยวๆ ต้องกัน padding เพิ่ม ไม่งั้นตัวอักษรที่พิมพ์ใน input จะไปทับกับ prefix/suffix
+  const hasStartCombo = computed(() => hasStartIconSlot && hasPrefix.value)
+  const hasEndCombo = computed(() => hasEndIconSlot && hasSuffix.value)
 
   const hasError = ref(false)
   const errorMessage = ref('')
@@ -199,7 +419,10 @@
   const DISABLED_STATE_CLASSES = ['border-gray-300', 'bg-gray-100', 'cursor-not-allowed']
 
   const isLabelActive = computed(
-    () => isFocused.value || !!displayValue.value || isAutofilled.value
+    () =>
+      isFocused.value ||
+      (hasMask.value ? !!maskRawContent.value : !!displayValue.value) ||
+      isAutofilled.value
   )
 
   // ป้องกัน Chrome ตีความ tel/email ที่วางอยู่ก่อนช่อง password ผิดเป็นช่อง username แล้วเสนอ autofill บัญชีที่บันทึกไว้
@@ -227,10 +450,18 @@
   )
 
   // ห้ามใช้ 'pl-[15px] pr-4' คู่กับ 'pl-10'/'pr-10' พร้อมกัน (ตอนมี icon) — utility ที่ padding เดียวกันชนกัน ผลลัพธ์ขึ้นกับลำดับใน generated CSS ไม่ใช่ลำดับ class ในเทมเพลต จึงต้องเลือกใช้อันเดียวต่อด้าน
-  const paddingClass = computed(() => [
-    hasStartIcon ? (hasFloatingLabel.value ? 'pl-[39px]' : 'pl-[42px]') : 'pl-[15px]',
-    hasEndIcon.value ? 'pr-10' : 'pr-4',
-  ])
+  // ระยะ padding ตอนมี prefix/suffix เดี่ยวๆ ใช้ค่าเดียวกับ icon (คำนวณจากไอคอนขนาดคงที่) เหมาะกับข้อความสั้นๆ เช่น '$'/'บาท' — ถ้าข้อความยาวอาจล้นทับตัวอักษรใน input ได้ ส่วนตอนมี icon + prefix/suffix คู่กัน (กว้างกว่า icon เดี่ยว) ขยับ padding เผื่อเพิ่มอีกชั้น
+  const paddingClass = computed(() => {
+    let pl = 'pl-[15px]'
+    if (hasStartCombo.value) pl = hasFloatingLabel.value ? 'pl-[71px]' : 'pl-[74px]'
+    else if (hasStartContent.value) pl = hasFloatingLabel.value ? 'pl-[39px]' : 'pl-[42px]'
+
+    let pr = 'pr-4'
+    if (hasEndCombo.value) pr = 'pr-[62px]'
+    else if (hasEndContent.value) pr = 'pr-10'
+
+    return [pl, pr]
+  })
 
   const inputStateClasses = computed(() => {
     if (props.disabled) return DISABLED_STATE_CLASSES
@@ -248,14 +479,117 @@
 
   const labelClasses = computed(() => [
     'pointer-events-none absolute transform duration-150',
-    hasStartIcon ? 'left-10' : 'left-4',
+    hasStartCombo.value ? 'left-[72px]' : hasStartContent.value ? 'left-10' : 'left-4',
     isLabelActive.value
       ? 'top-1 text-14 font-bold text-gray-900'
       : 'top-1/2 -translate-y-1/2 text-18 font-regular text-gray-900',
   ])
 
+  // นับจำนวนตำแหน่งที่เป็นเนื้อหาจริง (isContent[i]===true) ในช่วง [start, end) ของ isContent array
+  const countContent = (isContent: boolean[], start: number, end: number): number => {
+    let count = 0
+    for (let i = start; i < end; i++) {
+      if (isContent[i]) count++
+    }
+    return count
+  }
+
+  // เทียบ raw value ใหม่กับ displayValue เดิม (ก่อนแก้ไข) โดยอาศัยตำแหน่ง cursor หลังแก้ไขหาว่าช่วงไหนถูกแทรก/ลบไป แล้วปรับเฉพาะช่วงนั้นใน maskRawContent — ต้องใช้ maskDisplayIsContent (ตำแหน่งจริง) ในการนับ "ก่อนจุดนี้มีเนื้อหากี่ตัว" ทุกจุด ห้ามใช้ extractMaskContent กับชิ้นส่วนของ displayValue เดิมเด็ดขาด เพราะถ้า mask มีตัวคั่นที่ตรงกับ pattern ของ token ตัวเอง (เช่น mask="0##-###-####" ที่ '0' เป็นตัวคั่นแต่ pattern เดียวกับ '#') จะแยกตัวคั่นออกจากเนื้อหาจริงไม่ได้ ทำให้ตัวคั่นถูกดูดกลับมานับเป็นเนื้อหาซ้ำทุกครั้งที่พิมพ์
+  const onMaskInput = (input: HTMLInputElement, event: Event): void => {
+    const oldDisplay = displayValue.value
+    const oldIsContent = maskDisplayIsContent.value
+    const newRaw = input.value
+    const cursorEnd = input.selectionEnd ?? newRaw.length
+    const lengthDiff = newRaw.length - oldDisplay.length
+    const inputType = event instanceof InputEvent ? event.inputType : undefined
+
+    const prevContent = maskRawContent.value
+    let newContent = prevContent
+    let targetContentIndex: number
+
+    if (lengthDiff > 0) {
+      // แทรกตัวอักษรใหม่ (พิมพ์/วาง) — ดึงเฉพาะช่วงที่ถูกแทรกจริงๆ (เป็นตัวอักษรดิบที่พิมพ์เข้ามาสดๆ ไม่ปนตัวคั่นเดิม) มาต่อเป็นเนื้อหา ไม่แตะเนื้อหาก่อน/หลังช่วงนี้เลย
+      const insertStart = cursorEnd - lengthDiff
+      const insertedContent = extractMaskContent(newRaw.slice(insertStart, cursorEnd))
+      const contentBeforeInsertPoint = countContent(oldIsContent, 0, insertStart)
+      newContent =
+        newContent.slice(0, contentBeforeInsertPoint) +
+        insertedContent +
+        newContent.slice(contentBeforeInsertPoint)
+      targetContentIndex = contentBeforeInsertPoint + insertedContent.length
+    } else if (lengthDiff < 0) {
+      // ลบตัวอักษร (backspace/delete/ตัดข้อความที่เลือกไว้) — หาว่าช่วงที่หายไปมีตัวอักษรเนื้อหากี่ตัว
+      const deletedCount = -lengthDiff
+      const deletedContentCount = countContent(oldIsContent, cursorEnd, cursorEnd + deletedCount)
+      const contentBeforeDeletePoint = countContent(oldIsContent, 0, cursorEnd)
+
+      if (deletedContentCount > 0) {
+        newContent =
+          newContent.slice(0, contentBeforeDeletePoint) +
+          newContent.slice(contentBeforeDeletePoint + deletedContentCount)
+        targetContentIndex = contentBeforeDeletePoint
+      } else if (inputType === 'deleteContentForward') {
+        // ช่วงที่ลบไปเป็นตัวคั่นล้วนๆ (เช่นกด Delete ทับ '-') แปลว่าจริงๆ ต้องการลบตัวอักษรเนื้อหาตัวถัดไปด้วย ไม่งั้นตัวคั่นจะถูกสร้างกลับมาแทนที่ทันทีจนดูเหมือนลบไม่ได้เลย
+        newContent =
+          newContent.slice(0, contentBeforeDeletePoint) +
+          newContent.slice(contentBeforeDeletePoint + 1)
+        targetContentIndex = contentBeforeDeletePoint
+      } else {
+        // เคสเดียวกันแต่เป็น backspace (หรือไม่รู้ inputType) — ลบตัวอักษรเนื้อหาตัวก่อนหน้าแทน
+        const removeAt = Math.max(0, contentBeforeDeletePoint - 1)
+        newContent = newContent.slice(0, removeAt) + newContent.slice(contentBeforeDeletePoint)
+        targetContentIndex = removeAt
+      }
+    } else {
+      // ความยาวเท่าเดิม (เช่น select ข้อความแล้วพิมพ์ทับด้วยความยาวเท่ากัน) — เคสหายากพอที่จะ fallback มา parse ใหม่ทั้ง string ได้ (ยอมรับความเสี่ยงเรื่องตัวคั่นก้ำกึ่งในเคสหายากนี้)
+      newContent = extractMaskContent(newRaw)
+      targetContentIndex = extractMaskContent(newRaw.slice(0, cursorEnd)).length
+    }
+
+    const { content, masked, display, displayIsContent } = formatMaskValue(newContent)
+
+    hasError.value = false
+    errorMessage.value = ''
+    emit('error', { hasError: false, message: '' })
+
+    maskRawContent.value = content
+    displayValue.value = display
+    maskDisplayIsContent.value = displayIsContent
+    isInternalMaskUpdate = true
+    model.value = props.unmaskedValue ? content : masked
+
+    if (input.value !== display) {
+      input.value = display
+
+      let newCursorPos = display.length
+      let contentCharsSeen = 0
+      for (let i = 0; i < display.length; i++) {
+        if (contentCharsSeen === targetContentIndex) {
+          newCursorPos = i
+          break
+        }
+        if (displayIsContent[i]) contentCharsSeen++
+      }
+
+      // ถ้าตำแหน่งที่หาได้ดันไปตกอยู่หน้าตัวคั่นที่เพิ่งแทรกเข้ามาเอง (เช่นพิมพ์ครบกลุ่มแล้วมี '-' ต่อท้ายให้ทันที) ให้เลื่อน cursor ข้ามตัวคั่นนั้นไปเลย เพราะพิมพ์ต่อก็ต้องไปลงที่ตัวเนื้อหาถัดไปอยู่ดี ไม่มีประโยชน์ที่จะจอดหน้าตัวคั่น
+      while (newCursorPos < display.length && !displayIsContent[newCursorPos]) {
+        newCursorPos++
+      }
+
+      if (document.activeElement === input) {
+        input.setSelectionRange(newCursorPos, newCursorPos)
+      }
+    }
+  }
+
   const onInput = (event: Event): void => {
     const input = event.target as HTMLInputElement
+
+    if (hasMask.value) {
+      onMaskInput(input, event)
+      return
+    }
+
     let value = input.value
 
     const cursorPos = input.selectionStart || 0
@@ -367,6 +701,8 @@
 
   const clearValue = (): void => {
     displayValue.value = ''
+    maskRawContent.value = ''
+    maskDisplayIsContent.value = []
     model.value = props.type === 'currency' ? 0 : ''
     hasError.value = false
     errorMessage.value = ''
@@ -413,13 +749,17 @@
     hasError.value = false
     errorMessage.value = ''
 
-    if (!displayValue.value) {
+    // fillMask ทำให้ displayValue เต็มไปด้วยอักขระ fill ตั้งแต่ยังไม่พิมพ์อะไรเลย จึงต้องเช็คความว่างจาก maskRawContent แทน
+    if (hasMask.value ? !maskRawContent.value : !displayValue.value) {
       isFocused.value = false
     }
 
-    let valueToValidate = displayValue.value || ''
+    let valueToValidate = (hasMask.value ? maskRawContent.value : displayValue.value) || ''
 
-    if (props.type === 'number' || props.type === 'currency' || props.type === 'tel') {
+    if (
+      !hasMask.value &&
+      (props.type === 'number' || props.type === 'currency' || props.type === 'tel')
+    ) {
       if (props.type === 'currency') {
         valueToValidate = valueToValidate.replace(/,/g, '')
       }
@@ -476,9 +816,26 @@
   })
 
   watchEffect(() => {
-    if (model.value !== undefined) {
-      displayValue.value = String(model.value)
+    if (model.value === undefined) return
+
+    if (hasMask.value) {
+      // onMaskInput เซ็ต model.value เองเสมอ ทำให้ watchEffect นี้ถูกเรียกซ้ำทุกครั้งที่พิมพ์ — ต้องข้ามรอบที่มาจาก onMaskInput เอง (ตรวจจับผ่าน isInternalMaskUpdate) ไม่งั้นจะ extractMaskContent จากทั้ง masked string ซ้ำ ซึ่งแยกตัวคั่นที่ match pattern ของ token เอง (เช่น '0' ใน mask="0##-###-####") ออกจากเนื้อหาจริงไม่ได้ เขียนทับค่าที่ถูกต้องอยู่แล้วด้วยค่าผิด
+      if (isInternalMaskUpdate) {
+        isInternalMaskUpdate = false
+        return
+      }
+
+      // extractMaskContent ดึงเนื้อหาล้วนได้ไม่ว่าค่าที่มาจากภายนอกจะเป็น raw content (unmaskedValue) หรือ string ที่ใส่ mask มาแล้วก็ตาม (ยกเว้น mask ที่ตัวคั่นตรงกับ pattern ของ token เอง ซึ่งเป็นข้อจำกัดที่ยอมรับได้สำหรับการเซ็ตค่าจากภายนอก ต่างจากตอนพิมพ์สดที่มีตำแหน่ง cursor ให้ diff ได้แม่นยำกว่า)
+      const { content, display, displayIsContent } = formatMaskValue(
+        extractMaskContent(String(model.value))
+      )
+      maskRawContent.value = content
+      displayValue.value = display
+      maskDisplayIsContent.value = displayIsContent
+      return
     }
+
+    displayValue.value = String(model.value)
   })
 
   watch(
