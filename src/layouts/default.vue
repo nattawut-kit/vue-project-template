@@ -1,9 +1,16 @@
 <template>
-  <DefaultLayout />
+  <HorizontalLayout>
+    <router-view v-slot="{ Component, route }">
+      <component
+        :is="Component"
+        :key="route.path"
+      />
+    </router-view>
+  </HorizontalLayout>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
   import { defineAsyncComponent } from 'vue'
 
-  const DefaultLayout = defineAsyncComponent(() => import('./components/DefaultLayout.vue'))
+  const HorizontalLayout = defineAsyncComponent(() => import('./components/HorizontalLayout.vue'))
 </script>

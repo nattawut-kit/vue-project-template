@@ -577,9 +577,8 @@ if (fieldRef.value?.hasError) {
     },
   ].filter(example => !props.hideLabelSpace || !example.title.startsWith('labelSpace'))
 
-  // ตั้งใจไม่ใส่ behavior: 'smooth' — scrollIntoView แบบ smooth ไม่ทำงานกับ .main-container-wrapper (overflow: scroll ทั้งสองแกน) ของ layout นี้ ค้างเงียบๆไม่ scroll เลย ต้องใช้ default (เท่ากับ 'auto' คือ jump ทันที) ซึ่งทำงานแน่นอนกว่า
   const scrollToDemo = (targetId: string): void => {
-    document.getElementById(targetId)?.scrollIntoView({ block: 'start' })
+    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 </script>
 

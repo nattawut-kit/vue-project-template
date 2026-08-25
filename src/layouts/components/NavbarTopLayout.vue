@@ -100,21 +100,20 @@
     return dynamicTitle.value || props.metaNavtopInfo?.title || route.meta.navtop?.title || ''
   })
 
-  // scroll เกิดที่ .main-container-wrapper (overflow: scroll ใน HorizontalLayout.vue)
-  // ไม่ใช่ window/document เลย window.scrollY เดิมค้างที่ 0 ตลอด ไม่มีทาง trigger คลาส .scroll
-  let scrollContainer: Element | null = null
-
   const handleScroll = () => {
-    scrollY.value = scrollContainer?.scrollTop ?? 0
+    // ตอน modal ล็อก scroll (scrollLock.ts) body จะถูกสั่ง position:fixed ทำให้ window.scrollY
+    // เด้งกลับเป็น 0 เอง (document ไม่มีความสูงให้ scroll แล้ว) — ถ้าไม่กันไว้ header จะเข้าใจผิด
+    // ว่า scroll กลับไปบนสุด แล้วปิดพื้นหลังขาวทั้งที่ผู้ใช้ยังไม่ได้เลื่อนขึ้นไปจริง
+    if (isScrollLocked()) return
+    scrollY.value = window.scrollY
   }
 
   onMounted(() => {
-    scrollContainer = document.querySelector('.main-container-wrapper')
-    scrollContainer?.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('scroll', handleScroll, { passive: true })
   })
 
   onUnmounted(() => {
-    scrollContainer?.removeEventListener('scroll', handleScroll)
+    window.removeEventListener('scroll', handleScroll)
   })
 
   const handleBackToPage = () => {
@@ -127,6 +126,10 @@
   .navbar-top-container {
     width: 100%;
     height: 56px;
+    // ต้องระบุ top: 0 ตรงๆ — position: fixed ที่ไม่กำหนด top จะ fallback ไปใช้ static position
+    // (ตำแหน่งที่ควรอยู่ถ้าไม่ fixed) ซึ่งพังทันทีที่ scrollLock.ts สั่ง body { top: -scrollY }
+    // ตอนเปิด modal เพราะ static position ของ navbar จะเลื่อนตาม body ไปด้วย ทำให้หลุดจอ
+    top: 0;
     display: flex;
     justify-content: center;
     // position: relative;
@@ -147,16 +150,10 @@
         align-items: center;
         justify-content: space-between;
         padding: 0 24px;
-        transition:
-          background-color 0.3s ease,
-          backdrop-filter 0.3s ease,
-          border-top 0.3s ease;
+        transition: background-color 0.3s ease;
 
         &.scroll {
           background-color: white;
-          // background-color: rgba(255, 255, 255, 0.8);
-          backdrop-filter: blur(20px);
-          border-top: none;
         }
 
         & .button-back-container {

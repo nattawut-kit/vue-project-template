@@ -31,18 +31,15 @@
 <style lang="scss" scoped>
   .main-container {
     width: 100%;
-    height: 100dvh;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
-    // position: absolute;
-    // top: 0;
-    // overflow: scroll;
 
     & .main-container-wrapper {
       width: 100%;
       max-width: 640px;
+      min-height: 100dvh;
       background-color: #f3f1ea;
-      overflow: scroll;
       padding: 56px 0 0;
 
       &.has-navbottom {
