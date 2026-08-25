@@ -24,7 +24,7 @@
 
     <div class="mt-6 flex flex-col gap-6">
       <div id="demo-basic">
-        <div class="mb-2 text-14 font-bold">title / placeholder</div>
+        <div class="mb-2 text-18 font-bold">title / placeholder</div>
         <div class="flex flex-col gap-3">
           <TextField
             v-model="titleValue"
@@ -50,7 +50,7 @@
       <hr />
 
       <div id="demo-type">
-        <div class="mb-2 text-14 font-bold">type</div>
+        <div class="mb-2 text-18 font-bold">type</div>
         <div class="flex flex-col gap-3">
           <TextField
             v-model="titleTypeEmail"
@@ -102,7 +102,7 @@
       <hr />
 
       <div id="demo-rules">
-        <div class="mb-2 text-14 font-bold">required + rules (blur เพื่อ validate)</div>
+        <div class="mb-2 text-18 font-bold">required + rules (blur เพื่อ validate)</div>
         <TextField
           v-model="titleRuleValue"
           label="อีเมล"
@@ -115,7 +115,7 @@
       <hr />
 
       <div id="demo-helper-text">
-        <div class="mb-2 text-14 font-bold">helperText</div>
+        <div class="mb-2 text-18 font-bold">helperText</div>
         <TextField
           v-model="titleHelperValue"
           label="ชื่อผู้ใช้"
@@ -127,7 +127,7 @@
       <hr />
 
       <div id="demo-max-length">
-        <div class="mb-2 text-14 font-bold">maxLength</div>
+        <div class="mb-2 text-18 font-bold">maxLength</div>
         <TextField
           v-model="titleMaxLengthValue"
           label="โค้ด (สูงสุด 6 ตัว)"
@@ -139,7 +139,7 @@
       <hr />
 
       <div id="demo-format-func">
-        <div class="mb-2 text-14 font-bold">formatFunc (ตัวพิมพ์ใหญ่ทั้งหมด)</div>
+        <div class="mb-2 text-18 font-bold">formatFunc (ตัวพิมพ์ใหญ่ทั้งหมด)</div>
         <TextField
           v-model="titleFormatValue"
           label="รหัสคูปอง"
@@ -151,7 +151,7 @@
       <hr />
 
       <div id="demo-disabled-readonly">
-        <div class="mb-2 text-14 font-bold">disabled / readonly</div>
+        <div class="mb-2 text-18 font-bold">disabled / readonly</div>
         <div class="flex flex-col gap-3">
           <TextField
             v-model="titleDisabledValue"
@@ -171,7 +171,7 @@
       <hr />
 
       <div id="demo-clearable">
-        <div class="mb-2 text-14 font-bold">clearable</div>
+        <div class="mb-2 text-18 font-bold">clearable</div>
         <TextField
           v-model="titleClearableValue"
           label="ค้นหา"
@@ -183,7 +183,7 @@
       <hr />
 
       <div id="demo-prefix-suffix">
-        <div class="mb-2 text-14 font-bold">prefix / suffix</div>
+        <div class="mb-2 text-18 font-bold">prefix / suffix</div>
         <div class="flex flex-col gap-3">
           <TextField
             v-model="titlePrefixValue"
@@ -219,7 +219,7 @@
       <hr />
 
       <div id="demo-mask">
-        <div class="mb-2 text-14 font-bold">mask</div>
+        <div class="mb-2 text-18 font-bold">mask</div>
         <div class="flex flex-col gap-3">
           <TextField
             v-model="titleMaskPhoneValue"
@@ -257,7 +257,7 @@
       <hr />
 
       <div id="demo-custom-style">
-        <div class="mb-2 text-14 font-bold">customStyle</div>
+        <div class="mb-2 text-18 font-bold">customStyle</div>
         <div class="flex flex-col gap-3">
           <TextField
             v-model="titleCustomRoundedValue"
@@ -318,7 +318,7 @@
       <hr />
 
       <div id="demo-icon-slot">
-        <div class="mb-2 text-14 font-bold">start-icon / end-icon slot</div>
+        <div class="mb-2 text-18 font-bold">start-icon / end-icon slot</div>
         <TextField
           v-model="titleIconValue"
           label="ค้นหา"
@@ -343,7 +343,7 @@
       <hr />
 
       <div>
-        <div class="mb-2 text-14 font-bold">
+        <div class="mb-2 text-18 font-bold">
           end-icon-error เฉยๆ ไม่มี end-icon ปกติ (required, blur เพื่อ validate)
         </div>
         <TextField
@@ -363,7 +363,7 @@
       </div>
 
       <div>
-        <div class="mb-2 text-14 font-bold">
+        <div class="mb-2 text-18 font-bold">
           มี end-icon ปกติ แล้วสลับเป็น end-icon-error (required, blur เพื่อ validate)
         </div>
         <TextField
@@ -403,7 +403,7 @@
       <hr />
 
       <div id="demo-form">
-        <div class="mb-2 text-14 font-bold">form (validate ทุก field ตอนกด submit)</div>
+        <div class="mb-2 text-18 font-bold">form (validate ทุก field ตอนกด submit)</div>
         <form
           class="flex flex-col gap-3"
           @submit.prevent="handleFormSubmit"
