@@ -15,6 +15,7 @@
             <Svg
               src="common/arrow-left"
               class="icon"
+              color="white"
             />
           </div>
         </div>

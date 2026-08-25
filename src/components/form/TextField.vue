@@ -1,28 +1,30 @@
 <template>
   <div class="w-full">
+    <!-- default (floatLabel=false) = label อยู่นิ่งด้านบนเสมอ (แบบ QInput's stack-label ของ Quasar) เพราะใช้บ่อยกว่า floating — ยังต้องขึ้นแม้ label ว่าง (เช่น field ไม่มี label แต่ต้องเรียงตรงกับ field อื่นที่มี label ในกลุ่มเดียวกัน) จึงกันความสูงไว้ด้วย min-h-[1em] — field ที่ตั้งใจไม่มี concept label เลย (ไม่อยากได้บล็อกนี้) ให้ส่ง float-label แม้จะไม่ได้ใส่ label ก็ตาม -->
     <div
-      v-if="title"
-      class="mb-1.5 font-bold text-gray-900"
-      :class="titleTextClass"
+      v-if="!floatLabel"
+      class="mb-1.5 min-h-[1.5em] font-bold text-gray-900"
+      :class="stackLabelTextClass"
     >
-      <span>{{ title }}</span>
+      <span>{{ label }}</span>
       <span
         v-if="required"
         class="ml-1 text-error-1"
-        :class="titleRequiredClass"
+        :class="stackLabelRequiredClass"
         >*</span
       >
     </div>
 
     <div class="relative w-full">
       <input
+        ref="inputRef"
         :type="type === 'number' || type === 'currency' ? 'text' : type"
         :inputmode="
           type === 'number' || type === 'currency' ? 'decimal' : type === 'tel' ? 'tel' : undefined
         "
         :value="displayValue"
         :maxlength="maxLength"
-        :placeholder="label && !isLabelActive ? '' : placeholder"
+        :placeholder="floatLabel && label && !isLabelActive ? '' : placeholder"
         :disabled="disabled"
         :readonly="readonly"
         :autocomplete="autocompleteAttr"
@@ -36,12 +38,12 @@
       />
 
       <label
-        v-if="label"
+        v-if="label && floatLabel"
         :class="labelClasses"
       >
         <span>{{ label }}</span>
         <span
-          v-if="required && !title"
+          v-if="required"
           class="ml-0.5 text-error-1"
           :class="isLabelActive ? 'text-16' : 'text-20'"
           >*</span
@@ -49,18 +51,33 @@
       </label>
 
       <div
-        v-if="hasEndIcon"
+        v-if="hasEndIconSlot"
         class="absolute inset-y-0 right-0 flex items-center pr-4"
       >
         <slot
           v-if="!hasError || !slots['end-icon-error']"
           name="end-icon"
         ></slot>
-        <slot
+        <span
           v-else
-          name="end-icon-error"
-        ></slot>
+          class="contents text-field-icon-error"
+        >
+          <slot name="end-icon-error"></slot>
+        </span>
       </div>
+
+      <button
+        v-else-if="showClearButton"
+        type="button"
+        class="absolute inset-y-0 right-0 flex items-center pr-4 cursor-pointer"
+        @click="clearValue"
+      >
+        <Svg
+          src="common/x-close"
+          class="size-4"
+          color="black"
+        />
+      </button>
 
       <div
         v-if="hasStartIcon"
@@ -70,16 +87,18 @@
           v-if="!hasError || !slots['start-icon-error']"
           name="start-icon"
         ></slot>
-        <slot
+        <span
           v-else
-          name="start-icon-error"
-        ></slot>
+          class="contents text-field-icon-error"
+        >
+          <slot name="start-icon-error"></slot>
+        </span>
       </div>
     </div>
 
     <div
       v-if="hasError && errorMessage"
-      class="mt-1 font-regular text-error-1 duration-150 animate-[slideIn_0.15s_ease-out_forwards]"
+      class="mt-1 font-light text-error-1 duration-150 animate-[slideIn_0.15s_ease-out_forwards]"
       :class="errorTextClass"
     >
       {{ errorMessage }}
@@ -87,7 +106,8 @@
 
     <div
       v-else-if="helperText"
-      class="mt-1 text-14 font-regular text-gray-500 duration-150 animate-[fadeIn_0.1s_ease-out_forwards]"
+      class="mt-1 font-light text-gray-500 duration-150 animate-[fadeIn_0.1s_ease-out_forwards]"
+      :class="helperTextClass"
     >
       {{ helperText }}
     </div>
@@ -99,8 +119,8 @@
 
   interface Props {
     label?: string
-    // ข้อความหัวข้อแบบนิ่ง แสดงเหนือกล่อง input — ใช้แทน label ตอนไม่ต้องการ label ลอย
-    title?: string
+    // กลับ default จาก QInput's stack-label ของ Quasar เพราะ label นิ่งด้านบนใช้บ่อยกว่า: false (default) = label อยู่นิ่งด้านบนเสมอ (ไม่ลอย), true = label ลอย (ซ้อนเป็น placeholder ตอนว่าง ลอยขึ้นตอน focus/มีค่า)
+    floatLabel?: boolean
     placeholder?: string
     helperText?: string
     type?: TextFieldType
@@ -110,11 +130,12 @@
     disabled?: boolean
     readonly?: boolean
     required?: boolean
+    clearable?: boolean
   }
 
   const props = withDefaults(defineProps<Props>(), {
     label: '',
-    title: '',
+    floatLabel: false,
     placeholder: '',
     helperText: '',
     type: 'text',
@@ -124,6 +145,7 @@
     disabled: false,
     readonly: false,
     required: false,
+    clearable: false,
   })
 
   const emit = defineEmits<{
@@ -133,14 +155,25 @@
 
   const model = defineModel<string | number>({ required: true })
 
+  const inputRef = ref<HTMLInputElement>()
   const displayValue = ref('')
   const isFocused = ref(false)
   // เบราว์เซอร์ autofill เซ็ตค่า input โดยตรงโดยไม่ยิง 'input' event เสมอไป ทำให้ displayValue ไม่อัปเดตและ label ไม่ลอยขึ้น — ตรวจจับผ่าน CSS animation trick แทน (ดู :-webkit-autofill ด้านล่าง)
   const isAutofilled = ref(false)
 
   const slots = useSlots()
-  const hasEndIcon = !!slots['end-icon'] || !!slots['end-icon-error']
+  const hasEndIconSlot = !!slots['end-icon'] || !!slots['end-icon-error']
   const hasStartIcon = !!slots['start-icon'] || !!slots['start-icon-error']
+  // end-icon slot ที่ผู้ใช้กำหนดเองมีสิทธิ์เหนือกว่า ปุ่ม clear จะไม่ถูกเพิ่มถ้าช่องนี้มี end-icon slot อยู่แล้ว
+  const showClearButton = computed(
+    () =>
+      props.clearable &&
+      !hasEndIconSlot &&
+      !props.disabled &&
+      !props.readonly &&
+      !!displayValue.value
+  )
+  const hasEndIcon = computed(() => hasEndIconSlot || showClearButton.value)
 
   const hasError = ref(false)
   const errorMessage = ref('')
@@ -165,7 +198,9 @@
 
   const DISABLED_STATE_CLASSES = ['border-gray-300', 'bg-gray-100', 'cursor-not-allowed']
 
-  const isLabelActive = computed(() => isFocused.value || !!displayValue.value || isAutofilled.value)
+  const isLabelActive = computed(
+    () => isFocused.value || !!displayValue.value || isAutofilled.value
+  )
 
   // ป้องกัน Chrome ตีความ tel/email ที่วางอยู่ก่อนช่อง password ผิดเป็นช่อง username แล้วเสนอ autofill บัญชีที่บันทึกไว้
   const autocompleteAttr = computed(() => {
@@ -175,20 +210,26 @@
     return undefined
   })
 
+  // label ลอย (floatLabel) และมีข้อความจริง — ใช้คุมทั้ง input font size, padding, และการซ่อน placeholder
+  const hasFloatingLabel = computed(() => props.floatLabel && !!props.label)
+
   // มี placeholder = ช่องแสดงผลเดี่ยว ใช้ตัวอักษรใหญ่ 20px, ไม่มี placeholder (เช่น label ลอย) = ตาม default เดิมของ mk-one ที่ 14px
   const hasPlaceholder = computed(() => !!props.placeholder)
   const textClass = computed(() =>
-    props.label ? 'text-16' : hasPlaceholder.value ? 'text-20' : 'text-17'
+    hasFloatingLabel.value ? 'text-16' : hasPlaceholder.value ? 'text-20' : 'text-17'
   )
-  const errorTextClass = computed(() => (hasPlaceholder.value ? 'text-18' : 'text-16'))
-  const titleTextClass = computed(() => (hasPlaceholder.value ? 'text-18' : 'text-14'))
-  const titleRequiredClass = computed(() => (hasPlaceholder.value ? 'text-16' : 'text-14'))
-  const labelPaddingClass = computed(() => (props.readonly || props.disabled ? 'pt-3' : 'pt-[13px]'))
+  const helperTextClass = computed(() => (hasPlaceholder.value ? 'text-18' : 'text-16'))
+  const errorTextClass = computed(() => (hasPlaceholder.value ? 'text-18' : 'text-18'))
+  const stackLabelTextClass = computed(() => (hasPlaceholder.value ? 'text-18' : 'text-14'))
+  const stackLabelRequiredClass = computed(() => (hasPlaceholder.value ? 'text-16' : 'text-14'))
+  const labelPaddingClass = computed(() =>
+    props.readonly || props.disabled ? 'pt-3' : 'pt-[13px]'
+  )
 
   // ห้ามใช้ 'pl-[15px] pr-4' คู่กับ 'pl-10'/'pr-10' พร้อมกัน (ตอนมี icon) — utility ที่ padding เดียวกันชนกัน ผลลัพธ์ขึ้นกับลำดับใน generated CSS ไม่ใช่ลำดับ class ในเทมเพลต จึงต้องเลือกใช้อันเดียวต่อด้าน
   const paddingClass = computed(() => [
-    hasStartIcon ? (props.label ? 'pl-[39px]' : 'pl-[42px]') : 'pl-[15px]',
-    hasEndIcon ? 'pr-10' : 'pr-4',
+    hasStartIcon ? (hasFloatingLabel.value ? 'pl-[39px]' : 'pl-[42px]') : 'pl-[15px]',
+    hasEndIcon.value ? 'pr-10' : 'pr-4',
   ])
 
   const inputStateClasses = computed(() => {
@@ -202,7 +243,7 @@
     textClass.value,
     paddingClass.value,
     inputStateClasses.value,
-    props.label && labelPaddingClass.value,
+    hasFloatingLabel.value && labelPaddingClass.value,
   ])
 
   const labelClasses = computed(() => [
@@ -324,6 +365,15 @@
     }
   }
 
+  const clearValue = (): void => {
+    displayValue.value = ''
+    model.value = props.type === 'currency' ? 0 : ''
+    hasError.value = false
+    errorMessage.value = ''
+    emit('error', { hasError: false, message: '' })
+    inputRef.value?.focus()
+  }
+
   const onKeypress = (event: KeyboardEvent): void => {
     if (props.type !== 'number' && props.type !== 'tel') return
 
@@ -408,7 +458,7 @@
 
     if (props.required && (!valueToValidate || valueToValidate.trim().length === 0)) {
       hasError.value = true
-      const fieldName = props.label || props.title
+      const fieldName = props.label
       errorMessage.value = fieldName ? `กรุณากรอก${fieldName}` : 'กรุณากรอกข้อมูล'
       emit('error', { hasError: true, message: errorMessage.value })
       if (event) emit('blur', event)
@@ -490,6 +540,11 @@
 
   .text-field-control::-webkit-scrollbar-thumb:hover {
     background: var(--color-gray-400);
+  }
+
+  // บังคับสีแดงให้ icon ใน slot end-icon-error/start-icon-error เอง ไม่ต้องพึ่ง caller ส่ง color มาเอง — ปรับแค่ stroke เพราะไอคอนชุดนี้ (eye, x-close, info-circle, ...) วาดด้วย stroke ทั้งหมด ส่วน fill เป็น none อยู่แล้วจึงไม่ต้องแตะ
+  .text-field-icon-error :deep(svg *) {
+    stroke: var(--color-error-1);
   }
 </style>
 
