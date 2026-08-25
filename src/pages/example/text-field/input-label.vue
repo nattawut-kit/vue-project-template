@@ -19,7 +19,7 @@
       </ul>
     </div>
 
-    <TextFieldDocs />
+    <TextFieldDocs hide-label-space />
 
     <div class="mt-6 flex flex-col gap-6">
       <div id="demo-basic">

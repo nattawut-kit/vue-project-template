@@ -158,6 +158,15 @@
 </template>
 
 <script setup lang="ts">
+  interface Props {
+    // true = หน้านี้โชว์เฉพาะ floatLabel เท่านั้น ซ่อนแถว/ตัวอย่าง labelSpace ออก เพราะ prop นี้มีผลเฉพาะตอน floatLabel=false
+    hideLabelSpace?: boolean
+  }
+
+  const props = withDefaults(defineProps<Props>(), {
+    hideLabelSpace: false,
+  })
+
   interface DocRow {
     name: string
     type: string
@@ -308,7 +317,7 @@
       default: 'false',
       description: 'ไม่มีกรอบและไม่มีพื้นหลังเลย — ไม่มีผลตอน disabled/error',
     },
-  ]
+  ].filter(row => !props.hideLabelSpace || row.name !== 'labelSpace')
 
   const customStyleTable: DocRow[] = [
     {
@@ -566,7 +575,7 @@ if (fieldRef.value?.hasError) {
   // ...
 }`,
     },
-  ]
+  ].filter(example => !props.hideLabelSpace || !example.title.startsWith('labelSpace'))
 
   // ตั้งใจไม่ใส่ behavior: 'smooth' — scrollIntoView แบบ smooth ไม่ทำงานกับ .main-container-wrapper (overflow: scroll ทั้งสองแกน) ของ layout นี้ ค้างเงียบๆไม่ scroll เลย ต้องใช้ default (เท่ากับ 'auto' คือ jump ทันที) ซึ่งทำงานแน่นอนกว่า
   const scrollToDemo = (targetId: string): void => {
