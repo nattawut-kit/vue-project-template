@@ -1,8 +1,8 @@
 <template>
   <div class="w-full">
-    <!-- default (floatLabel=false) = label อยู่นิ่งด้านบนเสมอ (แบบ QInput's stack-label ของ Quasar) เพราะใช้บ่อยกว่า floating — ยังต้องขึ้นแม้ label ว่าง (เช่น field ไม่มี label แต่ต้องเรียงตรงกับ field อื่นที่มี label ในกลุ่มเดียวกัน) จึงกันความสูงไว้ด้วย min-h-[1em] — field ที่ตั้งใจไม่มี concept label เลย (ไม่อยากได้บล็อกนี้) ให้ส่ง float-label แม้จะไม่ได้ใส่ label ก็ตาม -->
+    <!-- default (floatLabel=false) = label อยู่นิ่งด้านบนเสมอ (แบบ QInput's stack-label ของ Quasar) เพราะใช้บ่อยกว่า floating — ตอน label ว่าง โดย default (labelSpace=false) จะไม่เว้นพื้นที่นี้เลย ถ้าต้องเรียง field นี้ให้ตรงกับ field อื่นที่มี label ในกลุ่มเดียวกัน ให้ส่ง label-space เพื่อกันความสูงไว้ด้วย min-h-[1.5em] เหมือนมี label -->
     <div
-      v-if="!floatLabel"
+      v-if="!floatLabel && (label || labelSpace)"
       class="mb-1.5 min-h-[1.5em] font-bold text-gray-900"
       :class="stackLabelTextClass"
       :style="labelStyle"
@@ -183,6 +183,8 @@
     label?: string
     // กลับ default จาก QInput's stack-label ของ Quasar เพราะ label นิ่งด้านบนใช้บ่อยกว่า: false (default) = label อยู่นิ่งด้านบนเสมอ (ไม่ลอย), true = label ลอย (ซ้อนเป็น placeholder ตอนว่าง ลอยขึ้นตอน focus/มีค่า)
     floatLabel?: boolean
+    // มีผลตอน floatLabel=false และ label ว่างเท่านั้น: false (default) = ไม่เว้นพื้นที่ label ด้านบนเลย, true = เว้นพื้นที่ไว้ด้วย min-h-[1.5em] เหมือนกับตอนมี label เพื่อให้เรียงตรงกับ field อื่นที่มี label ในกลุ่มเดียวกัน
+    labelSpace?: boolean
     placeholder?: string
     helperText?: string
     type?: TextFieldType
@@ -215,6 +217,7 @@
   const props = withDefaults(defineProps<Props>(), {
     label: '',
     floatLabel: false,
+    labelSpace: false,
     placeholder: '',
     helperText: '',
     type: 'text',

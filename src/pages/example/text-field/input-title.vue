@@ -11,9 +11,11 @@
           "input แบบ label"
         </li>
         <li>
-          field ที่ไม่มี label แต่ต้องเรียงตรงกับ field อื่นที่มี label ในกลุ่มเดียวกัน
-          (เช่นตัวอย่างที่สองในหัวข้อ "title / placeholder" ด้านล่าง) ไม่ต้องใส่อะไรเพิ่มเช่นกัน
-          เพราะ default กันพื้นที่ไว้ให้อยู่แล้ว
+          field ที่ไม่มี label โดย default (<code class="rounded bg-gray-100 px-1">labelSpace</code>
+          = false) จะไม่เว้นพื้นที่ label ด้านบนเลย — ถ้าต้องเรียงตรงกับ field อื่นที่มี label
+          ในกลุ่มเดียวกัน (เช่นตัวอย่างที่สองในหัวข้อ "title / placeholder" ด้านล่าง) ให้ใส่
+          <code class="rounded bg-gray-100 px-1">label-space</code> เพิ่ม เพื่อกันพื้นที่ไว้
+          เท่ากับตอนมี label
         </li>
       </ul>
     </div>
@@ -42,7 +44,17 @@
             <TextField
               v-model="titleRequiredValue"
               placeholder="กรอกอีเมล"
+              label-space
             />
+          </div>
+          <div>
+            <TextField
+              v-model="titleNoReserveValue"
+              placeholder="ไม่มี label, ไม่เว้นพื้นที่ (default)"
+            />
+            <div class="mt-1 text-12 text-gray-500">
+              labelSpace = false (default) — ไม่มี label ก็ไม่เว้นพื้นที่ด้านบนให้
+            </div>
           </div>
         </div>
       </div>
@@ -444,6 +456,7 @@
 
   const titleValue = ref('')
   const titleRequiredValue = ref('')
+  const titleNoReserveValue = ref('')
   const titleTypeEmail = ref('')
   const titleTypeTel = ref('')
   const titleTypeNumber = ref('')

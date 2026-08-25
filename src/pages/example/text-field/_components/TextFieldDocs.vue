@@ -182,6 +182,13 @@
         'false = label อยู่นิ่งด้านบนเสมอ (ไม่ลอย), true = label ลอยซ้อนเป็น placeholder ตอนว่าง แล้วลอยขึ้นเป็นตัวอักษรเล็กตอน focus/มีค่า',
     },
     {
+      name: 'labelSpace',
+      type: 'boolean',
+      default: 'false',
+      description:
+        'มีผลตอน floatLabel=false และ label ว่างเท่านั้น — false (default) ไม่เว้นพื้นที่ label ด้านบนเลย, true เว้นพื้นที่ไว้เท่ากับตอนมี label เพื่อเรียงตรงกับ field อื่นที่มี label ในกลุ่มเดียวกัน',
+    },
+    {
       name: 'placeholder',
       type: 'string',
       default: "''",
@@ -400,6 +407,15 @@
   v-model="value"
   label="อีเมล"
   float-label
+/>`,
+    },
+    {
+      title: 'labelSpace (label ว่าง แต่เรียงตรงกับ field อื่นที่มี label)',
+      target: 'demo-basic',
+      code: `<TextField
+  v-model="value"
+  placeholder="กรอกอีเมล"
+  label-space
 />`,
     },
     {
