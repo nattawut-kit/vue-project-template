@@ -2,9 +2,13 @@
   <div class="container">
     <div>Button Demo</div>
 
+    <ButtonDocs class="mb-4" />
+
+    <hr />
+
     <div class="mt-6 flex flex-col gap-6">
-      <div>
-        <div class="mb-2 text-14 font-bold">variant</div>
+      <div id="demo-variant">
+        <div class="mb-2 text-18 font-bold">variant</div>
         <div class="flex flex-wrap gap-3">
           <Button
             variant="primary"
@@ -21,8 +25,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">label (แทนการใส่ slot)</div>
+      <hr />
+
+      <div id="demo-label">
+        <div class="mb-2 text-18 font-bold">label (แทนการใส่ slot)</div>
         <div class="flex flex-wrap gap-3">
           <Button label="กดฉัน" />
           <Button
@@ -33,8 +39,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">size</div>
+      <hr />
+
+      <div id="demo-size">
+        <div class="mb-2 text-18 font-bold">size</div>
         <div class="flex flex-wrap items-center gap-3">
           <Button
             size="sm"
@@ -51,8 +59,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">round</div>
+      <hr />
+
+      <div id="demo-round">
+        <div class="mb-2 text-18 font-bold">round</div>
         <div class="flex flex-wrap gap-3">
           <Button
             round="none"
@@ -91,8 +101,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">width</div>
+      <hr />
+
+      <div id="demo-width">
+        <div class="mb-2 text-18 font-bold">width</div>
         <div class="flex max-w-xs flex-col gap-3 rounded-lg bg-gray-100 p-3">
           <Button label="default (เนื้อหากำหนดความกว้าง)" />
           <Button
@@ -110,8 +122,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">height</div>
+      <hr />
+
+      <div id="demo-height">
+        <div class="mb-2 text-18 font-bold">height</div>
         <div class="flex flex-wrap items-center gap-3">
           <Button label="default" />
           <Button
@@ -125,8 +139,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">fontSize</div>
+      <hr />
+
+      <div id="demo-font-size">
+        <div class="mb-2 text-18 font-bold">fontSize</div>
         <div class="flex flex-wrap items-center gap-3">
           <Button label="default" />
           <Button
@@ -140,8 +156,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">height + width + padding</div>
+      <hr />
+
+      <div id="demo-custom-size-combo">
+        <div class="mb-2 text-18 font-bold">height + width + padding</div>
         <div class="flex flex-wrap items-center gap-3">
           <Button
             :custom-size="{ height: '28px', width: '109px', fontSize: '18px', padding: '4px 8px' }"
@@ -164,8 +182,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">padding</div>
+      <hr />
+
+      <div id="demo-padding">
+        <div class="mb-2 text-18 font-bold">padding</div>
         <div class="flex flex-wrap items-center gap-3">
           <Button label="default" />
           <Button
@@ -179,8 +199,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">disabled</div>
+      <hr />
+
+      <div id="demo-disabled">
+        <div class="mb-2 text-18 font-bold">disabled</div>
         <div class="flex flex-wrap gap-3">
           <Button
             variant="primary"
@@ -200,8 +222,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">loading</div>
+      <hr />
+
+      <div id="demo-loading">
+        <div class="mb-2 text-18 font-bold">loading</div>
         <div class="flex flex-wrap gap-3">
           <Button
             variant="primary"
@@ -229,8 +253,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">color / textColor (ทับสีเฉพาะจุด)</div>
+      <hr />
+
+      <div id="demo-color">
+        <div class="mb-2 text-18 font-bold">color / textColor (ทับสีเฉพาะจุด)</div>
         <div class="flex flex-wrap gap-3">
           <Button
             color="#0d6efd"
@@ -249,8 +275,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">start-icon / end-icon slot</div>
+      <hr />
+
+      <div id="demo-icon-slot">
+        <div class="mb-2 text-18 font-bold">start-icon / end-icon slot</div>
         <div class="flex flex-wrap gap-3">
           <Button label="ย้อนกลับ">
             <template #start-icon>
@@ -291,8 +319,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">ripple (Boolean | Object เหมือน Quasar)</div>
+      <hr />
+
+      <div id="demo-ripple">
+        <div class="mb-2 text-18 font-bold">ripple (Boolean | Object เหมือน Quasar)</div>
         <div class="flex flex-wrap gap-3">
           <Button
             ripple
@@ -314,8 +344,10 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">scaleOnPress (ลองกดค้างแล้วสังเกตขนาดปุ่ม)</div>
+      <hr />
+
+      <div id="demo-scale-on-press">
+        <div class="mb-2 text-18 font-bold">scaleOnPress (ลองกดค้างแล้วสังเกตขนาดปุ่ม)</div>
         <div class="flex flex-wrap gap-3">
           <Button label="default (ไม่ย่อ)" />
           <Button
@@ -326,21 +358,26 @@
         </div>
       </div>
 
-      <div>
-        <div class="mb-2 text-14 font-bold">type (submit / reset ในฟอร์มตัวอย่าง)</div>
+      <hr />
+
+      <div id="demo-type">
+        <div class="mb-2 text-18 font-bold">type (submit / reset ในฟอร์มตัวอย่าง)</div>
         <form
           class="flex flex-col gap-3"
           @submit.prevent="handleSubmit"
           @reset="handleReset"
         >
-          <Input
+          <TextField
+            ref="formValueRef"
             v-model="formValue"
             placeholder="input ที่ 1"
           />
 
-          <Input
+          <TextField
+            ref="formValueRef2"
             v-model="formValue2"
             placeholder="input ที่ 2"
+            required
           />
           <div class="flex flex-wrap gap-3">
             <Button
@@ -355,7 +392,7 @@
           </div>
           <div
             v-if="submitResult"
-            class="text-14 text-gray-600"
+            class="text-18 text-gray-600"
           >
             {{ submitResult }}
           </div>
@@ -366,10 +403,21 @@
 </template>
 
 <script setup lang="ts">
+  import ButtonDocs from './_components/ButtonDocs.vue'
+
+  interface TextFieldExposed {
+    hasError: boolean
+    errorMessage: string
+    validate: () => void
+  }
+
   const loading = ref(false)
   const formValue = ref('')
   const formValue2 = ref('')
   const submitResult = ref('')
+
+  const formValueRef = ref<TextFieldExposed | null>(null)
+  const formValueRef2 = ref<TextFieldExposed | null>(null)
 
   const handleToggleLoading = () => {
     loading.value = true
@@ -378,8 +426,24 @@
     }, 1500)
   }
 
+  const handleFormSubmit = () => {
+    const fields = [formValueRef.value, formValueRef2.value]
+    fields.forEach(field => field?.validate())
+
+    if (fields.some(field => field?.hasError)) return
+
+    console.log(`Value 1 : ${formValue.value}<br>Value 2 : ${formValue2.value}`)
+
+    showDialog(
+      'success',
+      'ส่งข้อมูลสำเร็จ',
+      `Value 1 : ${formValue.value}<br>Value 2 : ${formValue2.value}`,
+      [{ action: 'submit', text: 'ปิด' }]
+    )
+  }
+
   const handleSubmit = () => {
-    submitResult.value = `submit แล้ว: "${formValue.value}", "${formValue2.value}"`
+    handleFormSubmit()
   }
 
   const handleReset = () => {
