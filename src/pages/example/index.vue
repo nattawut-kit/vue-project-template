@@ -13,11 +13,6 @@
           />
           <Button
             variant="secondary"
-            label="Input Demo"
-            @click="router.push('/example/input-demo')"
-          />
-          <Button
-            variant="secondary"
             label="TextField Demo"
             @click="router.push('/example/text-field-demo')"
           />
