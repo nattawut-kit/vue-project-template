@@ -159,7 +159,12 @@
     'animate-[shake_0.2s_cubic-bezier(.36,.07,.19,.97)]',
   ]
 
-  const DISABLED_STATE_CLASSES = ['border-gray-300', 'bg-gray-100', 'text-gray-400', 'cursor-not-allowed']
+  const DISABLED_STATE_CLASSES = [
+    'border-gray-300',
+    'bg-gray-100',
+    'text-gray-400',
+    'cursor-not-allowed',
+  ]
 
   const isLabelActive = computed(() => isFocused.value || !!displayValue.value)
 
@@ -177,7 +182,9 @@
     hasEndIcon ? 'pr-10' : 'pr-4',
   ])
 
-  const textareaHeightClass = computed(() => (props.autoResize ? 'overflow-hidden' : 'overflow-auto'))
+  const textareaHeightClass = computed(() =>
+    props.autoResize ? 'overflow-hidden' : 'overflow-auto'
+  )
 
   const textareaResizeClass = computed(() => {
     if (props.resizable === true || props.resizable === 'both') return 'resize'
