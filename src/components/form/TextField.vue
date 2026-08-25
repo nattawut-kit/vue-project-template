@@ -177,10 +177,6 @@
     borderColor?: string
     // สีกรอบตอน focus — ไม่ใส่ = ใช้ borderColor (ถ้ามี) ต่อ ไม่งั้นใช้ main-1 เดิม
     focusColor?: string
-    // true = พื้นหลังโปร่งใส (เท่ากับตั้ง bgColor เป็น transparent ให้ ถ้าไม่ได้ระบุ bgColor เองไว้ก่อน)
-    outlined?: boolean
-    // true = ไม่มีกรอบเลยทุก state มีสิทธิ์เหนือกว่า borderColor/focusColor
-    borderless?: boolean
   }
 
   interface Props {
@@ -210,6 +206,10 @@
     unmaskedValue?: boolean
     // ปรับหน้าตาแบบ custom ผ่าน object เดียว แทนการเพิ่ม props แยกทีละสี/ทีละแบบ — ไม่มีผลตอน disabled/error เพื่อให้ยังคง signal สถานะเหล่านั้นชัดเจนเสมอ
     customStyle?: TextFieldCustomStyle
+    // true = พื้นหลังโปร่งใส (เท่ากับตั้ง customStyle.bgColor เป็น transparent ให้ ถ้าไม่ได้ระบุ bgColor เองไว้ก่อน) — แยกเป็น prop ตรงๆ เพราะเป็น variant ที่ใช้บ่อย ไม่ต้องเข้าไปใน object
+    outlined?: boolean
+    // true = ไม่มีกรอบและไม่มีพื้นหลังเลยทุก state มีสิทธิ์เหนือกว่า customStyle.borderColor/focusColor/bgColor — แยกเป็น prop ตรงๆ เหมือน outlined
+    borderless?: boolean
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -232,6 +232,8 @@
     reverseFillMask: false,
     unmaskedValue: false,
     customStyle: () => ({}),
+    outlined: false,
+    borderless: false,
   })
 
   const emit = defineEmits<{
@@ -527,16 +529,16 @@
     return style
   })
 
-  // ไม่ปรับสี custom ตอน disabled/error เพื่อให้ signal สถานะทั้งสองยังชัดเจนเสมอ ไม่ว่าจะตั้ง customStyle อะไรไว้
+  // ไม่ปรับสี custom ตอน disabled/error เพื่อให้ signal สถานะทั้งสองยังชัดเจนเสมอ ไม่ว่าจะตั้ง customStyle/outlined/borderless อะไรไว้
   const canCustomizeColors = computed(() => !props.disabled && !hasError.value)
-  const isBorderless = computed(() => canCustomizeColors.value && !!props.customStyle.borderless)
+  const isBorderless = computed(() => canCustomizeColors.value && props.borderless)
 
   const effectiveBgColor = computed(() => {
     if (!canCustomizeColors.value) return undefined
     // borderless ไม่มี bg ขาวด้วยเช่นกัน (ไม่งั้นจะเหลือกล่องขาวลอยๆ ไม่มีกรอบ) — bgColor ที่ตั้งเองมาก่อนเสมอถ้าใส่ไว้
     return (
       props.customStyle.bgColor ??
-      (props.customStyle.outlined || isBorderless.value ? 'transparent' : undefined)
+      (props.outlined || isBorderless.value ? 'transparent' : undefined)
     )
   })
 

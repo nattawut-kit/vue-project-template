@@ -61,10 +61,14 @@
           <code class="rounded bg-gray-100 px-1">labelColor</code>,
           <code class="rounded bg-gray-100 px-1">textColor</code>,
           <code class="rounded bg-gray-100 px-1">borderColor</code>,
-          <code class="rounded bg-gray-100 px-1">focusColor</code> (ใส่ CSS color อะไรก็ได้),
-          <code class="rounded bg-gray-100 px-1">outlined</code> (พื้นหลังโปร่งใส),
-          <code class="rounded bg-gray-100 px-1">borderless</code> (ไม่มีกรอบและไม่มีพื้นหลังเลย) —
+          <code class="rounded bg-gray-100 px-1">focusColor</code> (ใส่ CSS color อะไรก็ได้) —
           ไม่มีผลตอน disabled/error เพื่อให้ signal สถานะยังชัดเจนเสมอ
+        </li>
+        <li>
+          <code class="rounded bg-gray-100 px-1">outlined</code> (พื้นหลังโปร่งใส) และ
+          <code class="rounded bg-gray-100 px-1">borderless</code>
+          (ไม่มีกรอบและไม่มีพื้นหลังเลย) แยกเป็น prop ตรงๆ เรียกใช้ได้เลยไม่ต้องผ่าน custom-style —
+          ไม่มีผลตอน disabled/error เหมือนกัน
         </li>
         <li>
           slot: <code class="rounded bg-gray-100 px-1">start-icon</code>,
@@ -340,13 +344,13 @@
             v-model="customOutlinedValue"
             label="outlined"
             float-label
-            :custom-style="{ outlined: true }"
+            outlined
           />
           <TextField
             v-model="customBorderlessValue"
             label="borderless"
             float-label
-            :custom-style="{ borderless: true }"
+            borderless
           />
           <TextField
             v-model="customBorderFocusValue"
