@@ -15,6 +15,7 @@ declare module 'vue' {
     Button: typeof import('./src/components/common/Button.vue')['default']
     DefaultModal: typeof import('./src/components/modal/DefaultModal.vue')['default']
     DialogHost: typeof import('./src/components/modal/DialogHost.vue')['default']
+    Img: typeof import('./src/components/media/Img.vue')['default']
     Input: typeof import('./src/components/form/Input.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

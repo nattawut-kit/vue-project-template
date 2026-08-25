@@ -21,6 +21,11 @@
             label="Dialog Demo"
             @click="router.push('/example/dialog-demo')"
           />
+          <Button
+            variant="secondary"
+            label="Img Demo"
+            @click="router.push('/example/img-demo')"
+          />
         </div>
       </div>
 
