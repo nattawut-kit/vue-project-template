@@ -5,6 +5,7 @@
       v-if="!floatLabel"
       class="mb-1.5 min-h-[1.5em] font-bold text-gray-900"
       :class="stackLabelTextClass"
+      :style="labelStyle"
     >
       <span>{{ label }}</span>
       <span
@@ -29,6 +30,7 @@
         :readonly="readonly"
         :autocomplete="autocompleteAttr"
         :class="inputClasses"
+        :style="[inputCustomStyle, roundedStyle]"
         v-bind="$attrs"
         @input="onInput"
         @keypress="onKeypress"
@@ -40,6 +42,7 @@
       <label
         v-if="label && floatLabel"
         :class="labelClasses"
+        :style="labelStyle"
       >
         <span>{{ label }}</span>
         <span
@@ -151,6 +154,35 @@
 <script setup lang="ts">
   type TextFieldType = 'text' | 'email' | 'number' | 'tel' | 'password' | 'currency'
 
+  type RoundedPreset = 'none' | 'sm' | 'md' | 'lg' | 'full'
+  // นอกจาก preset แล้วใส่ CSS value ดิบๆ เองได้เลย (เช่น '12px', '0.5rem') — ไม่ตรง preset ไหนเลยจะไปใช้ inline style border-radius ให้แทนที่จะเป็น Tailwind class
+  type RoundedValue = RoundedPreset | string
+  interface RoundedCorners {
+    tl?: RoundedValue
+    tr?: RoundedValue
+    br?: RoundedValue
+    bl?: RoundedValue
+  }
+
+  interface TextFieldCustomStyle {
+    // ความมนของขอบ — ไม่ใส่ = rounded-lg เดิม (เท่ากันทุกมุม) ใส่เป็น object { tl, tr, br, bl } ได้ถ้าอยากคุมทีละมุม — มุมที่ไม่ได้ระบุใน object จะเป็น 'none' (ไม่มน) ไม่ได้ fallback ไปที่ 'lg'
+    rounded?: RoundedValue | RoundedCorners
+    // สีพื้นหลัง ใส่ CSS color ใดๆ ก็ได้ (hex/rgb/ชื่อสี) — ไม่ใช่ Tailwind token เพราะเป็นค่าที่กำหนดตอน runtime ไม่ใช่ตอน build จึงให้ Tailwind gen class ล่วงหน้าไม่ได้ ต้องใส่ผ่าน inline style แทน
+    bgColor?: string
+    // สีตัวอักษร label (ทั้งแบบ stack และแบบ float) — เครื่องหมาย * ของ required ยังคงเป็น error-1 เสมอ ไม่ถูกสีนี้ทับ เพราะกำหนดสีของตัวเองแยกไว้แล้ว
+    labelColor?: string
+    // สีตัวอักษรที่พิมพ์ใน input
+    textColor?: string
+    // สีกรอบตอนปกติ/hover — ไม่ใส่ = gray-300/gray-400 เดิม
+    borderColor?: string
+    // สีกรอบตอน focus — ไม่ใส่ = ใช้ borderColor (ถ้ามี) ต่อ ไม่งั้นใช้ main-1 เดิม
+    focusColor?: string
+    // true = พื้นหลังโปร่งใส (เท่ากับตั้ง bgColor เป็น transparent ให้ ถ้าไม่ได้ระบุ bgColor เองไว้ก่อน)
+    outlined?: boolean
+    // true = ไม่มีกรอบเลยทุก state มีสิทธิ์เหนือกว่า borderColor/focusColor
+    borderless?: boolean
+  }
+
   interface Props {
     label?: string
     // กลับ default จาก QInput's stack-label ของ Quasar เพราะ label นิ่งด้านบนใช้บ่อยกว่า: false (default) = label อยู่นิ่งด้านบนเสมอ (ไม่ลอย), true = label ลอย (ซ้อนเป็น placeholder ตอนว่าง ลอยขึ้นตอน focus/มีค่า)
@@ -176,6 +208,8 @@
     reverseFillMask?: boolean
     // true = ค่าใน v-model เป็นตัวอักษรเนื้อหาล้วนๆ ไม่มีตัวคั่นของ mask, false (default) = ค่าใน v-model เป็น string ที่ใส่ mask แล้ว
     unmaskedValue?: boolean
+    // ปรับหน้าตาแบบ custom ผ่าน object เดียว แทนการเพิ่ม props แยกทีละสี/ทีละแบบ — ไม่มีผลตอน disabled/error เพื่อให้ยังคง signal สถานะเหล่านั้นชัดเจนเสมอ
+    customStyle?: TextFieldCustomStyle
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -197,6 +231,7 @@
     fillMask: false,
     reverseFillMask: false,
     unmaskedValue: false,
+    customStyle: () => ({}),
   })
 
   const emit = defineEmits<{
@@ -398,13 +433,8 @@
   const hasError = ref(false)
   const errorMessage = ref('')
 
-  const DEFAULT_STATE_CLASSES = [
-    'border-gray-300',
-    'bg-white',
-    'text-gray-900',
-    'hover:border-gray-400',
-    'focus:border-main-1',
-  ]
+  // border-color คุมผ่าน .text-field-custom-border (CSS variable, ดูด้านล่าง) แทนการ hardcode class ตรงๆ เพื่อให้ customStyle.borderColor/focusColor override ได้โดยไม่ชนกับ hover:/focus: variant ซึ่ง inline style ทำไม่ได้ (bg/text ยังใช้ class ปกติได้ เพราะ inline style ที่ผูกไว้ใน template ชนะ class เสมออยู่แล้วถ้ามีการ override)
+  const DEFAULT_STATE_CLASSES = ['text-field-custom-border', 'bg-white', 'text-gray-900']
 
   const ERROR_STATE_CLASSES = [
     'border-error-1',
@@ -417,6 +447,123 @@
   ]
 
   const DISABLED_STATE_CLASSES = ['border-gray-300', 'bg-gray-100', 'cursor-not-allowed']
+
+  // ต้องเขียน class เต็มไว้ตรงๆ แบบนี้ (ห้าม template ต่อ string เช่น `rounded-tl-${size}`) เพราะ Tailwind หา class จาก source แบบ static scan ต่อ string runtime แล้ว generate ไม่ได้ — ค่าที่ไม่ตรง preset ไหนเลย (เช่น '12px') ไปใช้ inline style border-radius แทน (ดู roundedStyle)
+  const ROUNDED_CLASS_MAP: Record<RoundedPreset, string> = {
+    none: 'rounded-none',
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    full: 'rounded-full',
+  }
+  const ROUNDED_TL_CLASS_MAP: Record<RoundedPreset, string> = {
+    none: 'rounded-tl-none',
+    sm: 'rounded-tl-sm',
+    md: 'rounded-tl-md',
+    lg: 'rounded-tl-lg',
+    full: 'rounded-tl-full',
+  }
+  const ROUNDED_TR_CLASS_MAP: Record<RoundedPreset, string> = {
+    none: 'rounded-tr-none',
+    sm: 'rounded-tr-sm',
+    md: 'rounded-tr-md',
+    lg: 'rounded-tr-lg',
+    full: 'rounded-tr-full',
+  }
+  const ROUNDED_BR_CLASS_MAP: Record<RoundedPreset, string> = {
+    none: 'rounded-br-none',
+    sm: 'rounded-br-sm',
+    md: 'rounded-br-md',
+    lg: 'rounded-br-lg',
+    full: 'rounded-br-full',
+  }
+  const ROUNDED_BL_CLASS_MAP: Record<RoundedPreset, string> = {
+    none: 'rounded-bl-none',
+    sm: 'rounded-bl-sm',
+    md: 'rounded-bl-md',
+    lg: 'rounded-bl-lg',
+    full: 'rounded-bl-full',
+  }
+
+  const isRoundedCorners = (value: TextFieldCustomStyle['rounded']): value is RoundedCorners =>
+    typeof value === 'object' && value !== null
+
+  const isRoundedPreset = (value: RoundedValue): value is RoundedPreset =>
+    value in ROUNDED_CLASS_MAP
+
+  const roundedClass = computed(() => {
+    const rounded = props.customStyle.rounded ?? 'lg'
+
+    if (!isRoundedCorners(rounded)) {
+      return isRoundedPreset(rounded) ? ROUNDED_CLASS_MAP[rounded] : ''
+    }
+
+    const tl = rounded.tl ?? 'none'
+    const tr = rounded.tr ?? 'none'
+    const br = rounded.br ?? 'none'
+    const bl = rounded.bl ?? 'none'
+    return [
+      isRoundedPreset(tl) ? ROUNDED_TL_CLASS_MAP[tl] : '',
+      isRoundedPreset(tr) ? ROUNDED_TR_CLASS_MAP[tr] : '',
+      isRoundedPreset(br) ? ROUNDED_BR_CLASS_MAP[br] : '',
+      isRoundedPreset(bl) ? ROUNDED_BL_CLASS_MAP[bl] : '',
+    ]
+  })
+
+  // ค่าที่ไม่ตรง preset ไหนเลย (เช่น '12px', '0.5rem') ใส่ผ่าน inline style ตรงนี้แทน — คู่กับ roundedClass ที่จะเว้น class ของมุมนั้นไว้เป็นค่าว่างให้ไม่ชนกัน
+  const roundedStyle = computed(() => {
+    const rounded = props.customStyle.rounded ?? 'lg'
+    const style: Record<string, string> = {}
+
+    if (!isRoundedCorners(rounded)) {
+      if (!isRoundedPreset(rounded)) style.borderRadius = rounded
+      return style
+    }
+
+    if (rounded.tl && !isRoundedPreset(rounded.tl)) style.borderTopLeftRadius = rounded.tl
+    if (rounded.tr && !isRoundedPreset(rounded.tr)) style.borderTopRightRadius = rounded.tr
+    if (rounded.br && !isRoundedPreset(rounded.br)) style.borderBottomRightRadius = rounded.br
+    if (rounded.bl && !isRoundedPreset(rounded.bl)) style.borderBottomLeftRadius = rounded.bl
+    return style
+  })
+
+  // ไม่ปรับสี custom ตอน disabled/error เพื่อให้ signal สถานะทั้งสองยังชัดเจนเสมอ ไม่ว่าจะตั้ง customStyle อะไรไว้
+  const canCustomizeColors = computed(() => !props.disabled && !hasError.value)
+  const isBorderless = computed(() => canCustomizeColors.value && !!props.customStyle.borderless)
+
+  const effectiveBgColor = computed(() => {
+    if (!canCustomizeColors.value) return undefined
+    // borderless ไม่มี bg ขาวด้วยเช่นกัน (ไม่งั้นจะเหลือกล่องขาวลอยๆ ไม่มีกรอบ) — bgColor ที่ตั้งเองมาก่อนเสมอถ้าใส่ไว้
+    return (
+      props.customStyle.bgColor ??
+      (props.customStyle.outlined || isBorderless.value ? 'transparent' : undefined)
+    )
+  })
+
+  // borderless มีสิทธิ์เหนือกว่า borderColor/focusColor เสมอ
+  const effectiveBorderColor = computed(() => {
+    if (isBorderless.value) return 'transparent'
+    return canCustomizeColors.value ? props.customStyle.borderColor : undefined
+  })
+  const effectiveFocusColor = computed(() => {
+    if (isBorderless.value) return 'transparent'
+    return canCustomizeColors.value ? props.customStyle.focusColor : undefined
+  })
+
+  const inputCustomStyle = computed(() => {
+    const style: Record<string, string> = {}
+    if (effectiveBgColor.value) style.backgroundColor = effectiveBgColor.value
+    if (canCustomizeColors.value && props.customStyle.textColor) {
+      style.color = props.customStyle.textColor
+    }
+    if (effectiveBorderColor.value) style['--tf-border-color'] = effectiveBorderColor.value
+    if (effectiveFocusColor.value) style['--tf-focus-color'] = effectiveFocusColor.value
+    return style
+  })
+
+  const labelStyle = computed(() =>
+    props.customStyle.labelColor ? { color: props.customStyle.labelColor } : undefined
+  )
 
   const isLabelActive = computed(
     () =>
@@ -470,7 +617,8 @@
   })
 
   const inputClasses = computed(() => [
-    'text-field-control box-border h-12 w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border outline-none transition-colors duration-150',
+    'text-field-control box-border h-12 w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap border outline-none transition-colors duration-150',
+    roundedClass.value,
     textClass.value,
     paddingClass.value,
     inputStateClasses.value,
@@ -902,6 +1050,19 @@
   // บังคับสีแดงให้ icon ใน slot end-icon-error/start-icon-error เอง ไม่ต้องพึ่ง caller ส่ง color มาเอง — ปรับแค่ stroke เพราะไอคอนชุดนี้ (eye, x-close, info-circle, ...) วาดด้วย stroke ทั้งหมด ส่วน fill เป็น none อยู่แล้วจึงไม่ต้องแตะ
   .text-field-icon-error :deep(svg *) {
     stroke: var(--color-error-1);
+  }
+
+  // border-color ของ state ปกติ ผูกกับ CSS variable แทน Tailwind class ตรงๆ เพื่อให้ customStyle.borderColor/focusColor ที่ผูกผ่าน inline style (--tf-border-color/--tf-focus-color) override ตอน hover/focus ได้ — inline style เข้าไปแทรก pseudo-class เองไม่ได้ ต้องผ่าน CSS variable แบบนี้ ไม่กระทบ error/disabled เพราะสอง state นั้นใช้ class คนละชุด (ERROR_STATE_CLASSES/DISABLED_STATE_CLASSES) ไม่มี .text-field-custom-border ปนอยู่
+  .text-field-custom-border {
+    border-color: var(--tf-border-color, var(--color-gray-300));
+  }
+
+  .text-field-custom-border:hover {
+    border-color: var(--tf-border-color, var(--color-gray-400));
+  }
+
+  .text-field-custom-border:focus {
+    border-color: var(--tf-focus-color, var(--tf-border-color, var(--color-main-1)));
   }
 </style>
 

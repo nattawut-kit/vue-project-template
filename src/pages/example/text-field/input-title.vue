@@ -51,6 +51,22 @@
           เป็นเนื้อหาล้วนไม่มีตัวคั่น
         </li>
         <li>
+          <code class="rounded bg-gray-100 px-1">custom-style</code> ปรับหน้าตาผ่าน object เดียว:
+          <code class="rounded bg-gray-100 px-1">rounded</code> ('none'|'sm'|'md'|'lg'|'full'
+          เท่ากันทุกมุม, ใส่ CSS value ดิบเองก็ได้เช่น '12px' หรือใส่ object
+          <code class="rounded bg-gray-100 px-1">{'{'} tl, tr, br, bl {'}'}</code>
+          คุมทีละมุมได้ (แต่ละมุมรับทั้ง preset และ CSS value ดิบ) — มุมที่ไม่ได้ระบุใน object
+          จะเป็น 'none'),
+          <code class="rounded bg-gray-100 px-1">bgColor</code>,
+          <code class="rounded bg-gray-100 px-1">labelColor</code>,
+          <code class="rounded bg-gray-100 px-1">textColor</code>,
+          <code class="rounded bg-gray-100 px-1">borderColor</code>,
+          <code class="rounded bg-gray-100 px-1">focusColor</code> (ใส่ CSS color อะไรก็ได้),
+          <code class="rounded bg-gray-100 px-1">outlined</code> (พื้นหลังโปร่งใส),
+          <code class="rounded bg-gray-100 px-1">borderless</code> (ไม่มีกรอบและไม่มีพื้นหลังเลย) —
+          ไม่มีผลตอน disabled/error เพื่อให้ signal สถานะยังชัดเจนเสมอ
+        </li>
+        <li>
           slot: <code class="rounded bg-gray-100 px-1">start-icon</code>,
           <code class="rounded bg-gray-100 px-1">end-icon</code> (และ
           <code class="rounded bg-gray-100 px-1">start-icon-error</code> /
@@ -294,6 +310,67 @@
       <hr />
 
       <div>
+        <div class="mb-2 text-14 font-bold">customStyle</div>
+        <div class="flex flex-col gap-3">
+          <TextField
+            v-model="titleCustomRoundedValue"
+            label="rounded: 'full'"
+            placeholder="กรอกข้อมูล"
+            :custom-style="{ rounded: 'full' }"
+          />
+          <TextField
+            v-model="titleCustomRoundedCornersValue"
+            label="rounded: { tl: 'lg', br: 'lg' } (คุมทีละมุม)"
+            placeholder="กรอกข้อมูล"
+            :custom-style="{ rounded: { tl: 'lg', br: 'lg' } }"
+          />
+          <TextField
+            v-model="titleCustomRoundedRawValue"
+            label="rounded: '12px' (ค่าดิบ ไม่ใช่ preset)"
+            placeholder="กรอกข้อมูล"
+            :custom-style="{ rounded: '12px' }"
+          />
+          <TextField
+            v-model="titleCustomColorValue"
+            label="bgColor / labelColor / textColor"
+            placeholder="กรอกข้อมูล"
+            :custom-style="{
+              bgColor: '#fef3c7',
+              labelColor: '#b45309',
+              textColor: '#78350f',
+            }"
+          />
+          <TextField
+            v-model="titleCustomOutlinedValue"
+            label="outlined"
+            placeholder="กรอกข้อมูล"
+            :custom-style="{ outlined: true }"
+          />
+          <TextField
+            v-model="titleCustomBorderlessValue"
+            label="borderless"
+            placeholder="กรอกข้อมูล"
+            :custom-style="{ borderless: true }"
+          />
+          <TextField
+            v-model="titleCustomBorderFocusValue"
+            label="borderColor / focusColor"
+            placeholder="กรอกข้อมูล"
+            :custom-style="{ borderColor: '#78350f', focusColor: '#7c3aed' }"
+          />
+          <TextField
+            v-model="titleCustomDisabledValue"
+            label="disabled (customStyle ไม่มีผล)"
+            placeholder="กรอกข้อมูล"
+            disabled
+            :custom-style="{ bgColor: '#fef3c7', borderColor: '#a855f7' }"
+          />
+        </div>
+      </div>
+
+      <hr />
+
+      <div>
         <div class="mb-2 text-14 font-bold">start-icon / end-icon slot</div>
         <TextField
           v-model="titleIconValue"
@@ -438,6 +515,14 @@
   const titleMaskDateValue = ref('')
   const titleMaskMoneyValue = ref('')
   const titleMaskCouponValue = ref('')
+  const titleCustomRoundedValue = ref('')
+  const titleCustomRoundedCornersValue = ref('')
+  const titleCustomRoundedRawValue = ref('')
+  const titleCustomColorValue = ref('')
+  const titleCustomOutlinedValue = ref('')
+  const titleCustomBorderlessValue = ref('')
+  const titleCustomBorderFocusValue = ref('')
+  const titleCustomDisabledValue = ref('กรอกไว้แล้ว')
   const titleIconErrorOnlyValue = ref('')
   const titleIconErrorValue = ref('')
 

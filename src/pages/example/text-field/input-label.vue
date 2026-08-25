@@ -52,6 +52,21 @@
           เป็นเนื้อหาล้วนไม่มีตัวคั่น
         </li>
         <li>
+          <code class="rounded bg-gray-100 px-1">custom-style</code> ปรับหน้าตาผ่าน object เดียว:
+          <code class="rounded bg-gray-100 px-1">rounded</code> ('none'|'sm'|'md'|'lg'|'full'
+          เท่ากันทุกมุม, ใส่ CSS value ดิบเองก็ได้เช่น '12px' หรือใส่ object
+          <code class="rounded bg-gray-100 px-1">{'{'} tl, tr, br, bl {'}'}</code>
+          คุมทีละมุมได้ (แต่ละมุมรับทั้ง preset และ CSS value ดิบ) — มุมที่ไม่ได้ระบุใน object
+          จะเป็น 'none'), <code class="rounded bg-gray-100 px-1">bgColor</code>,
+          <code class="rounded bg-gray-100 px-1">labelColor</code>,
+          <code class="rounded bg-gray-100 px-1">textColor</code>,
+          <code class="rounded bg-gray-100 px-1">borderColor</code>,
+          <code class="rounded bg-gray-100 px-1">focusColor</code> (ใส่ CSS color อะไรก็ได้),
+          <code class="rounded bg-gray-100 px-1">outlined</code> (พื้นหลังโปร่งใส),
+          <code class="rounded bg-gray-100 px-1">borderless</code> (ไม่มีกรอบและไม่มีพื้นหลังเลย) —
+          ไม่มีผลตอน disabled/error เพื่อให้ signal สถานะยังชัดเจนเสมอ
+        </li>
+        <li>
           slot: <code class="rounded bg-gray-100 px-1">start-icon</code>,
           <code class="rounded bg-gray-100 px-1">end-icon</code> (และ
           <code class="rounded bg-gray-100 px-1">start-icon-error</code> /
@@ -291,6 +306,67 @@
       <hr />
 
       <div>
+        <div class="mb-2 text-14 font-bold">customStyle</div>
+        <div class="flex flex-col gap-3">
+          <TextField
+            v-model="customRoundedValue"
+            label="rounded: 'full'"
+            float-label
+            :custom-style="{ rounded: 'full' }"
+          />
+          <TextField
+            v-model="customRoundedCornersValue"
+            label="rounded: { tl: 'lg', br: 'lg' } (คุมทีละมุม)"
+            float-label
+            :custom-style="{ rounded: { tl: 'lg', br: 'lg' } }"
+          />
+          <TextField
+            v-model="customRoundedRawValue"
+            label="rounded: '12px' (ค่าดิบ ไม่ใช่ preset)"
+            float-label
+            :custom-style="{ rounded: '12px' }"
+          />
+          <TextField
+            v-model="customColorValue"
+            label="bgColor / labelColor / textColor"
+            float-label
+            :custom-style="{
+              bgColor: '#fef3c7',
+              labelColor: '#b45309',
+              textColor: '#78350f',
+            }"
+          />
+          <TextField
+            v-model="customOutlinedValue"
+            label="outlined"
+            float-label
+            :custom-style="{ outlined: true }"
+          />
+          <TextField
+            v-model="customBorderlessValue"
+            label="borderless"
+            float-label
+            :custom-style="{ borderless: true }"
+          />
+          <TextField
+            v-model="customBorderFocusValue"
+            label="borderColor / focusColor"
+            float-label
+            :custom-style="{ borderColor: '#a855f7', focusColor: '#7c3aed' }"
+          />
+          <TextField
+            v-model="customDisabledValue"
+            label="disabled (customStyle ไม่มีผล)"
+            float-label
+            disabled
+            :custom-style="{ bgColor: '#fef3c7', borderColor: '#a855f7' }"
+          />
+        </div>
+      </div>
+
+      <hr />
+
+      <div>
         <div class="mb-2 text-14 font-bold">start-icon / end-icon slot</div>
         <TextField
           v-model="iconValue"
@@ -433,6 +509,14 @@
   const maskDateValue = ref('')
   const maskMoneyValue = ref('')
   const maskCouponValue = ref('')
+  const customRoundedValue = ref('')
+  const customRoundedCornersValue = ref('')
+  const customRoundedRawValue = ref('')
+  const customColorValue = ref('')
+  const customOutlinedValue = ref('')
+  const customBorderlessValue = ref('')
+  const customBorderFocusValue = ref('')
+  const customDisabledValue = ref('กรอกไว้แล้ว')
   const iconErrorOnlyValue = ref('')
   const iconErrorValue = ref('')
 
