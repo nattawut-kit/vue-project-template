@@ -55,6 +55,32 @@
     </div>
 
     <div>
+      <div class="mb-2 font-bold">Slots</div>
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[560px] border-collapse text-left text-16">
+          <thead>
+            <tr class="border-b border-gray-300">
+              <th class="py-1 pr-2 font-bold">slot</th>
+              <th class="py-1 pr-2 font-bold">scope</th>
+              <th class="py-1 font-bold">คำอธิบาย</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="row in slotsTable"
+              :key="row.name"
+              class="border-b border-gray-100 align-top"
+            >
+              <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
+              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.type }}</td>
+              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div>
       <div class="mb-2 font-bold">Events</div>
       <div class="overflow-x-auto">
         <table class="w-full min-w-[420px] border-collapse text-left text-16">
@@ -198,6 +224,20 @@
       description: 'แสดงช่องค้นหาบนสุดของ panel กรอง options ตาม label',
     },
     {
+      name: 'emitValue',
+      type: 'boolean',
+      default: 'true',
+      description:
+        "แบบ Quasar's emit-value — true (default) = v-model ได้ ISelectOption['value'] เดี่ยว/array, false = v-model ได้ ISelectOption เต็มๆ/array ของมัน",
+    },
+    {
+      name: 'mapOptions',
+      type: 'boolean',
+      default: 'true',
+      description:
+        "แบบ Quasar's map-options — true (default) = resolve label จาก options มาโชว์ที่ trigger, false = โชว์ค่าดิบใน model.value ตรงๆ แทน label — มีผลเฉพาะตอน emitValue=true (ตอน emitValue=false model มี label ติดมากับ object อยู่แล้ว ไม่ต้อง resolve)",
+    },
+    {
       name: 'optionHeight',
       type: 'number',
       default: '44',
@@ -240,6 +280,30 @@
     { name: 'textColor', type: 'string', description: 'สีตัวอักษรใน control — ไม่มีผลตอน disabled' },
     { name: 'borderColor', type: 'string', description: 'สีขอบปกติ/hover — ไม่มีผลตอน disabled' },
     { name: 'focusColor', type: 'string', description: 'สีขอบตอน panel เปิดอยู่ — ไม่มีผลตอน disabled' },
+    {
+      name: 'optionHoverColor',
+      type: 'string',
+      description: 'สี background ตอน hover เมาส์/ไล่ด้วย arrow key บน option แถวหนึ่งใน panel',
+    },
+    {
+      name: 'optionSelectedColor',
+      type: 'string',
+      description: 'สี background ของแถวที่ถูกเลือกอยู่ใน panel — ไม่ใส่ default main-1 tint จางๆ',
+    },
+    {
+      name: 'optionSelectedTextColor',
+      type: 'string',
+      description: 'สีตัวอักษรของแถวที่ถูกเลือกอยู่ใน panel — ไม่ใส่ default เป็น main-1',
+    },
+  ]
+
+  const slotsTable: DocRow[] = [
+    {
+      name: 'option',
+      type: '{ option: ISelectOption; index: number; selected: boolean; highlighted: boolean }',
+      description:
+        'แทนที่เนื้อหาแต่ละแถวใน panel ทั้งหมด (default = checkbox ตอน multiple + label เฉยๆ ไม่มีไอคอน check) — ใช้เพิ่มไอคอนต่อ option, ปรับ layout เอง ฯลฯ ถ้าจะโชว์ checkbox/checkmark เองต้องเขียนเองในสล็อตด้วย',
+    },
   ]
 
   const eventsTable: DocRow[] = [
@@ -276,6 +340,44 @@
 
   const examples: ExampleRow[] = [
     {
+      title: 'slot: option — ครบ 4 scope prop (option / index / selected / highlighted)',
+      target: 'demo-option-slot',
+      code: `<Select
+  v-model="province"
+  label="จังหวัด"
+  :options="provinceOptions"
+  :option-height="56"
+>
+  <template #option="{ option, index, selected, highlighted }">
+    <Svg src="common/info-circle" class="size-4 shrink-0" :class="option.disabled && 'opacity-40'" />
+    <span class="min-w-0 flex-1">
+      <span class="block truncate">{{ option.label }}</span>
+      <span class="block truncate text-12 text-gray-500">ลำดับที่ {{ index + 1 }} · value: {{ option.value }}</span>
+    </span>
+    <span v-if="option.disabled" class="shrink-0 rounded bg-gray-200 px-1.5 py-0.5 text-12 text-gray-500">ปิดใช้งาน</span>
+    <Svg v-if="highlighted && !option.disabled" src="common/arrow-right" class="size-3 shrink-0" />
+    <Svg v-if="selected" src="common/check" class="size-4 shrink-0" color="#f61414" />
+  </template>
+</Select>
+<!-- แถวสูงขึ้น (2 บรรทัด) ต้องปรับ optionHeight ให้ตรงความสูงจริงด้วย ไม่งั้น virtual-scroll เพี้ยน -->`,
+    },
+    {
+      title: 'slot: option + multiple (ต้องวาด checkbox เองด้วย)',
+      target: 'demo-option-slot-multiple',
+      code: `<Select v-model="tags" multiple label="แท็ก" :options="tagOptions">
+  <template #option="{ option, selected }">
+    <span
+      class="flex size-4 shrink-0 items-center justify-center rounded-full border-2"
+      :class="selected ? 'border-main-1 bg-main-1' : 'border-gray-300'"
+    >
+      <span v-if="selected" class="size-1.5 rounded-full bg-white"></span>
+    </span>
+    <span class="flex-1 truncate">{{ option.label }}</span>
+  </template>
+</Select>
+<!-- multiple ไม่มี checkbox สี่เหลี่ยม default ให้อัตโนมัติแล้วตอนใส่ slot — วาดเองตามต้องการ -->`,
+    },
+    {
       title: 'single-select พื้นฐาน',
       target: 'demo-basic',
       code: `<Select
@@ -305,6 +407,39 @@
   label="จังหวัด (ค้นหาได้)"
   :options="provinceOptions"
 />`,
+    },
+    {
+      title: 'emitValue: true (default — v-model ได้ value ดิบ)',
+      target: 'demo-emit-value-true',
+      code: `<Select
+  v-model="province"
+  emit-value
+  label="จังหวัด (ได้ value ดิบ)"
+  :options="provinceOptions"
+/>
+<!-- province === 'chiang-mai' -->`,
+    },
+    {
+      title: 'emitValue: false (v-model ได้ option object เต็มๆ)',
+      target: 'demo-emit-value-false',
+      code: `<Select
+  v-model="provinceObject"
+  :emit-value="false"
+  label="จังหวัด (ได้ object เต็มๆ)"
+  :options="provinceOptions"
+/>
+<!-- provinceObject.value === { label: 'เชียงใหม่', value: 'chiang-mai' } -->`,
+    },
+    {
+      title: 'mapOptions: false (trigger โชว์ค่าดิบ ไม่ resolve label)',
+      target: 'demo-map-options',
+      code: `<Select
+  v-model="provinceRaw"
+  :map-options="false"
+  label="จังหวัด (โชว์ value ดิบ)"
+  :options="provinceOptions"
+/>
+<!-- เลือก "เชียงใหม่" แล้ว trigger จะโชว์ "chiang-mai" ไม่ใช่ "เชียงใหม่" -->`,
     },
     {
       title: 'ลิสต์ยาว (virtual scroll)',
@@ -355,13 +490,20 @@
 />`,
     },
     {
-      title: 'customStyle',
+      title: 'customStyle (รวมสี hover/highlight/selected ใน panel)',
       target: 'demo-custom-style',
       code: `<Select
   v-model="province"
   label="จังหวัด"
   :options="provinceOptions"
-  :custom-style="{ rounded: 'full', borderColor: '#0d6efd', focusColor: '#0d6efd' }"
+  :custom-style="{
+    rounded: 'full',
+    borderColor: '#0d6efd',
+    focusColor: '#0d6efd',
+    optionHoverColor: '#e0edff',
+    optionSelectedColor: '#0d6efd',
+    optionSelectedTextColor: '#ffffff',
+  }"
 />`,
     },
     {

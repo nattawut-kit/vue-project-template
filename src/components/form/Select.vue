@@ -50,7 +50,7 @@
           >
             <Svg
               src="common/x-close"
-              class="size-4"
+              class="size-4 cursor-pointer"
               color="black"
             />
           </button>
@@ -76,6 +76,7 @@
           ref="panelRef"
           class="select-panel-shadow absolute z-45 w-full rounded-lg border border-gray-300 bg-white"
           :class="openUpward ? 'bottom-full mb-1' : 'top-full mt-1'"
+          :style="panelCustomStyle"
           @mousedown.prevent
         >
           <div
@@ -125,32 +126,34 @@
                   :style="{ height: optionHeight + 'px' }"
                   :class="optionRowClasses(entry.item, entry.index)"
                   @click="!entry.item.disabled && toggleOption(entry.item)"
+                  @mouseenter="!entry.item.disabled && (highlightedIndex = entry.index)"
                 >
-                  <span
-                    v-if="multiple"
-                    class="flex size-4 shrink-0 items-center justify-center rounded border"
-                    :class="
-                      isOptionSelected(entry.item)
-                        ? 'border-main-1 bg-main-1'
-                        : 'border-gray-300 bg-white'
-                    "
+                  <slot
+                    name="option"
+                    :option="entry.item"
+                    :index="entry.index"
+                    :selected="isOptionSelected(entry.item)"
+                    :highlighted="entry.index === highlightedIndex"
                   >
-                    <Svg
-                      v-if="isOptionSelected(entry.item)"
-                      src="common/check"
-                      class="size-3"
-                      color="white"
-                    />
-                  </span>
+                    <span
+                      v-if="multiple"
+                      class="flex size-4 shrink-0 items-center justify-center rounded border"
+                      :class="
+                        isOptionSelected(entry.item)
+                          ? 'border-main-1 bg-main-1'
+                          : 'border-gray-300 bg-white'
+                      "
+                    >
+                      <Svg
+                        v-if="isOptionSelected(entry.item)"
+                        src="common/check"
+                        class="size-3"
+                        color="white"
+                      />
+                    </span>
 
-                  <span class="flex-1 truncate">{{ entry.item.label }}</span>
-
-                  <Svg
-                    v-if="!multiple && isOptionSelected(entry.item)"
-                    src="common/check"
-                    class="size-4 shrink-0"
-                    color="#f61414"
-                  />
+                    <span class="flex-1 truncate">{{ entry.item.label }}</span>
+                  </slot>
                 </div>
               </div>
             </div>
@@ -193,9 +196,17 @@
     textColor?: string
     borderColor?: string
     focusColor?: string
+    // สี background ตอน hover เมาส์/ไล่ด้วย arrow key บน option แถวหนึ่ง (ไม่มีผลตอน option.disabled)
+    optionHoverColor?: string
+    // สี background ของแถวที่ถูกเลือกอยู่ใน panel
+    optionSelectedColor?: string
+    // สีตัวอักษรของแถวที่ถูกเลือกอยู่ใน panel
+    optionSelectedTextColor?: string
   }
 
-  type SelectValue = string | number | (string | number)[]
+  // emitValue=true (default): v-model เป็นค่า value เดี่ยว/array — emitValue=false: v-model เป็น option object เต็มๆ/array ของมัน
+  // mapOptions คุมว่าจะ resolve ค่าดิบกลับเป็น label ให้แสดงผลไหม (มีผลเฉพาะตอน emitValue=true — ตอน emitValue=false model มี label ติดมาอยู่แล้ว ไม่ต้อง resolve)
+  type SelectValue = string | number | ISelectOption | (string | number)[] | ISelectOption[]
 
   interface Props {
     label?: string
@@ -212,6 +223,10 @@
     clearable?: boolean
     multiple?: boolean
     searchable?: boolean
+    // true (default) = v-model ได้ ISelectOption['value'] เดี่ยว/array, false = v-model ได้ ISelectOption เต็มๆ/array ของมัน
+    emitValue?: boolean
+    // แบบ Quasar's map-options — true (default) = resolve label จาก options มาโชว์ที่ trigger, false = โชว์ค่าดิบใน model.value ตรงๆ (มีผลเฉพาะตอน emitValue=true)
+    mapOptions?: boolean
     // px ต่อแถว — ใช้คำนวณ virtual-scroll ด้วย ต้องตรงกับความสูงจริงของแถว (label ต้อง truncate ห้าม wrap)
     optionHeight?: number
     maxPanelHeight?: number
@@ -233,6 +248,8 @@
     clearable: false,
     multiple: false,
     searchable: false,
+    emitValue: true,
+    mapOptions: true,
     optionHeight: 44,
     maxPanelHeight: 280,
     noOptionsText: 'ไม่พบข้อมูล',
@@ -311,9 +328,13 @@
       Math.max(0, Math.floor(scrollTop.value / itemHeight) - overscan)
     )
 
-    const visibleCount = computed(() => Math.ceil(containerHeight.value / itemHeight) + overscan * 2)
+    const visibleCount = computed(
+      () => Math.ceil(containerHeight.value / itemHeight) + overscan * 2
+    )
 
-    const endIndex = computed(() => Math.min(items.value.length, startIndex.value + visibleCount.value))
+    const endIndex = computed(() =>
+      Math.min(items.value.length, startIndex.value + visibleCount.value)
+    )
 
     const visibleItems = computed<VirtualListEntry<T>[]>(() =>
       items.value
@@ -363,26 +384,41 @@
   const { visibleItems, totalHeight, offsetY, onScroll, scrollToIndex, resetScroll } =
     useVirtualList(filteredOptions, panelScrollRef, { itemHeight: props.optionHeight })
 
+  // entry ดิบที่อาจเจอใน model.value ทีละตัว — scalar ตอน emitValue=true, ISelectOption เต็มๆ ตอน emitValue=false
+  type SelectEntry = string | number | ISelectOption
+
+  const extractValue = (entry: SelectEntry): string | number =>
+    typeof entry === 'object' ? entry.value : entry
+
   const selectedValueSet = computed(() => {
-    if (props.multiple) return new Set(Array.isArray(model.value) ? model.value : [])
-    return new Set(model.value === '' || model.value == null ? [] : [model.value])
+    if (props.multiple) {
+      const entries = (Array.isArray(model.value) ? model.value : []) as SelectEntry[]
+      return new Set(entries.map(extractValue))
+    }
+    if (model.value === '' || model.value == null) return new Set<string | number>()
+    return new Set([extractValue(model.value as SelectEntry)])
   })
 
   const isOptionSelected = (option: ISelectOption): boolean =>
     selectedValueSet.value.has(option.value)
 
   // ปลอดภัยกรณี lookup-miss (ค่าที่เลือกไว้ไม่มีอยู่ใน options แล้ว เช่น options โหลดมาใหม่แบบ async) — ข้ามเงียบๆ แทนที่จะโชว์ undefined
+  // label ถูก resolve จาก props.options สดใหม่เสมอ ไม่ได้อ่านจาก entry ของ model.value ตรงๆ แม้ตอน emitValue=false — กัน label ค้างถ้า options เปลี่ยนแต่ object ใน model.value ยังเป็นก้อนเดิม
   const selectedLabels = computed<string[]>(() => {
-    const values = props.multiple
-      ? Array.isArray(model.value)
-        ? model.value
-        : []
+    const entries: SelectEntry[] = props.multiple
+      ? ((Array.isArray(model.value) ? model.value : []) as SelectEntry[])
       : model.value === '' || model.value == null
         ? []
-        : [model.value]
+        : [model.value as SelectEntry]
 
-    return values
-      .map(value => props.options.find(option => option.value === value)?.label)
+    return entries
+      .map(entry => {
+        // ได้ object เต็มๆ อยู่แล้ว (emitValue=false) — ใช้ label ของมันตรงๆ เสมอ ไม่ต้อง resolve
+        if (typeof entry === 'object') return entry.label
+        // scalar (emitValue=true) — resolve เป็น label จาก options ถ้าเปิด mapOptions ไม่งั้นโชว์ค่าดิบตรงๆ (เหมือน Quasar emit-value ที่ไม่เปิด map-options)
+        if (!props.mapOptions) return String(entry)
+        return props.options.find(option => option.value === entry)?.label
+      })
       .filter((label): label is string => !!label)
   })
 
@@ -421,7 +457,10 @@
     'box-border flex h-12 w-full min-w-0 items-center justify-between gap-2 border px-4 outline-none transition-colors duration-150',
     roundedClass.value,
     triggerStateClasses.value,
-    isOpen.value && !props.disabled && !hasError.value && 'select-trigger-open ring-2 ring-main-1/20',
+    isOpen.value &&
+      !props.disabled &&
+      !hasError.value &&
+      'select-trigger-open ring-2 ring-main-1/20',
     props.disabled || props.readonly || props.loading ? 'cursor-not-allowed' : 'cursor-pointer',
   ])
 
@@ -433,7 +472,8 @@
     if (!props.disabled) {
       if (props.customStyle.bgColor) style.backgroundColor = props.customStyle.bgColor
       if (props.customStyle.textColor) style.color = props.customStyle.textColor
-      if (props.customStyle.borderColor) style['--select-border-color'] = props.customStyle.borderColor
+      if (props.customStyle.borderColor)
+        style['--select-border-color'] = props.customStyle.borderColor
       if (props.customStyle.focusColor) style['--select-focus-color'] = props.customStyle.focusColor
     }
     return style
@@ -443,25 +483,41 @@
     props.customStyle.labelColor ? { color: props.customStyle.labelColor } : undefined
   )
 
+  const panelCustomStyle = computed(() => {
+    const style: Record<string, string> = {}
+    if (props.customStyle.optionHoverColor)
+      style['--select-option-hover-color'] = props.customStyle.optionHoverColor
+    if (props.customStyle.optionSelectedColor)
+      style['--select-option-selected-color'] = props.customStyle.optionSelectedColor
+    if (props.customStyle.optionSelectedTextColor)
+      style['--select-option-selected-text-color'] = props.customStyle.optionSelectedTextColor
+    return style
+  })
+
   const optionRowClasses = (option: ISelectOption, index: number) => [
     'flex items-center gap-2 px-3 text-16',
-    option.disabled ? 'cursor-not-allowed text-gray-400' : 'cursor-pointer text-gray-900',
-    !option.disabled && isOptionSelected(option) && 'bg-main-1/5 font-bold text-main-1',
-    !option.disabled && index === highlightedIndex.value && 'bg-gray-100',
+    option.disabled ? 'cursor-not-allowed text-gray-400' : 'select-option-row cursor-pointer text-gray-900',
+    !option.disabled && isOptionSelected(option) && 'select-option-selected font-bold',
+    !option.disabled && index === highlightedIndex.value && 'select-option-highlighted',
   ]
 
   const toggleOption = (option: ISelectOption): void => {
     if (option.disabled) return
 
+    const entry: SelectEntry = props.emitValue ? option.value : option
+
     if (props.multiple) {
-      const current = Array.isArray(model.value) ? model.value : []
-      model.value = current.includes(option.value)
-        ? current.filter(value => value !== option.value)
-        : [...current, option.value]
+      const current = (Array.isArray(model.value) ? model.value : []) as SelectEntry[]
+      const alreadySelected = current.some(item => extractValue(item) === option.value)
+      model.value = (
+        alreadySelected
+          ? current.filter(item => extractValue(item) !== option.value)
+          : [...current, entry]
+      ) as SelectValue
       return
     }
 
-    model.value = option.value
+    model.value = entry as SelectValue
     closePanel()
   }
 
@@ -481,10 +537,16 @@
 
     if (spaceBelow < props.maxPanelHeight && spaceAbove > spaceBelow) {
       openUpward.value = true
-      resolvedPanelMaxHeight.value = Math.max(120, Math.min(props.maxPanelHeight, spaceAbove - margin))
+      resolvedPanelMaxHeight.value = Math.max(
+        120,
+        Math.min(props.maxPanelHeight, spaceAbove - margin)
+      )
     } else {
       openUpward.value = false
-      resolvedPanelMaxHeight.value = Math.max(120, Math.min(props.maxPanelHeight, spaceBelow - margin))
+      resolvedPanelMaxHeight.value = Math.max(
+        120,
+        Math.min(props.maxPanelHeight, spaceBelow - margin)
+      )
     }
   }
 
@@ -594,10 +656,12 @@
 
     // ข้อจำกัดที่ยอมรับ: comma ในค่า value ของ option เองจะทำให้ rule ที่เช็คแบบ substring บน string ที่ join แล้วผิดเพี้ยนได้ — value ปกติเป็น id ความเสี่ยงต่ำ
     const valueToValidate = props.multiple
-      ? Array.isArray(model.value)
-        ? model.value.join(',')
-        : ''
-      : String(model.value ?? '')
+      ? ((Array.isArray(model.value) ? model.value : []) as SelectEntry[])
+          .map(extractValue)
+          .join(',')
+      : String(
+          model.value === '' || model.value == null ? '' : extractValue(model.value as SelectEntry)
+        )
 
     for (const rule of props.rules) {
       if (!rule.validator(valueToValidate)) {
@@ -671,6 +735,23 @@
     box-shadow:
       0 4px 6px -1px rgb(0 0 0 / 0.1),
       0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  // --select-option-*-color มาจาก customStyle ผ่าน panelCustomStyle — ไม่ตั้งไว้ก็ fallback เป็นค่า default เดิม
+  .select-option-row:hover {
+    background-color: var(--select-option-hover-color, var(--color-gray-100));
+  }
+
+  .select-option-highlighted {
+    background-color: var(--select-option-hover-color, var(--color-gray-100));
+  }
+
+  .select-option-selected {
+    background-color: var(
+      --select-option-selected-color,
+      color-mix(in srgb, var(--color-main-1) 5%, transparent)
+    );
+    color: var(--select-option-selected-text-color, var(--color-main-1));
   }
 
   .select-panel-enter-active,
