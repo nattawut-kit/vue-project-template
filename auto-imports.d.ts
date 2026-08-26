@@ -108,11 +108,8 @@ declare global {
   export type { AxiosRequestConfig, ApiErrorLocale, ApiErrorResponse, ApiEnvelope } from './src/api/index'
   import('./src/api/index')
   // @ts-ignore
-  export type { DialogResult, DialogOkCallback, DialogCancelCallback, DialogDismissCallback, DialogCreateOptions, DialogHandle, DialogInstance } from './src/components/modal/dialog'
+  export type { DialogType, DialogButtonAction, IDialogButton, DialogResult, DialogOkCallback, DialogCancelCallback, DialogDismissCallback, DialogCreateOptions, DialogHandle, DialogInstance } from './src/components/modal/dialog'
   import('./src/components/modal/dialog')
-  // @ts-ignore
-  export type { DialogType, DialogButtonAction, IDialogButton } from './src/components/modal/dialog.types'
-  import('./src/components/modal/dialog.types')
   // @ts-ignore
   export type { DialogComponentEmit } from './src/components/modal/useDialogComponent'
   import('./src/components/modal/useDialogComponent')
