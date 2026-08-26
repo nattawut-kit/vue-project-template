@@ -57,11 +57,11 @@
     <div>
       <div class="mb-2 font-bold">Slots</div>
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[560px] border-collapse text-left text-16">
+        <table class="w-full min-w-[560px] table-fixed border-collapse text-left text-16">
           <thead>
             <tr class="border-b border-gray-300">
-              <th class="py-1 pr-2 font-bold">slot</th>
-              <th class="py-1 pr-2 font-bold">scope</th>
+              <th class="w-20 py-1 pr-2 font-bold">slot</th>
+              <th class="w-32 py-1 pr-2 font-bold">scope</th>
               <th class="py-1 font-bold">คำอธิบาย</th>
             </tr>
           </thead>
@@ -71,8 +71,8 @@
               :key="row.name"
               class="border-b border-gray-100 align-top"
             >
-              <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
-              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.type }}</td>
+              <td class="py-1.5 pr-2 font-bold text-main-1">{{ row.name }}</td>
+              <td class="py-1.5 pr-2 text-14 break-words text-gray-500">{{ row.type }}</td>
               <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
             </tr>
           </tbody>
@@ -186,9 +186,23 @@
     },
     {
       name: 'options',
-      type: 'ISelectOption[]',
+      type: 'Record<string, unknown>[]',
       default: '(required)',
-      description: "รายการตัวเลือก { label, value, disabled? } — เปลี่ยน options ระหว่างมีค่าเลือกอยู่ได้ปลอดภัย ค่าที่หาไม่เจอจะแสดงว่างแทนที่จะพัง",
+      description:
+        'รายการตัวเลือก — ปกติเป็น { label, value, disabled? } ผ่านตรงๆ ได้เลย แต่ก็รับ shape อื่นได้ถ้าตั้ง optionValue/optionLabel/optionDisabled คู่กัน — เปลี่ยน options ระหว่างมีค่าเลือกอยู่ได้ปลอดภัย ค่าที่หาไม่เจอจะแสดงว่างแทนที่จะพัง',
+    },
+    {
+      name: 'optionValue / optionLabel / optionDisabled',
+      type: "string | ((option) => value)",
+      default: "'value' / 'label' / 'disabled'",
+      description:
+        "แบบ Quasar's option-value/option-label/option-disabled — ใส่ชื่อ field (string) หรือฟังก์ชันดึงค่าเอง ใช้ตอน options ไม่ได้เป็น { label, value, disabled } ตรงๆ เช่น API ตอบ { id, name } ก็ใส่ option-value=\"id\" option-label=\"name\" โดยไม่ต้อง map array เองก่อน",
+    },
+    {
+      name: 'dropdownIcon / clearIcon',
+      type: 'string',
+      default: "'common/chevron-down' / 'common/x-close'",
+      description: "แบบ Quasar's dropdown-icon/clear-icon — เปลี่ยน path ไอคอนได้ (ใช้ convention Svg src เดียวกับที่ใช้ทั่วโปรเจกต์)",
     },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'ปิดการใช้งานทั้งหมด' },
     {
@@ -330,7 +344,29 @@
       name: 'option',
       type: '{ option: ISelectOption; index: number; selected: boolean; highlighted: boolean }',
       description:
-        'แทนที่เนื้อหาแต่ละแถวใน panel ทั้งหมด (default = checkbox ตอน multiple + label เฉยๆ ไม่มีไอคอน check) — ใช้เพิ่มไอคอนต่อ option, ปรับ layout เอง ฯลฯ ถ้าจะโชว์ checkbox/checkmark เองต้องเขียนเองในสล็อตด้วย',
+        'แทนที่เนื้อหาแต่ละแถวใน panel ทั้งหมด (default = checkbox ตอน multiple + label เฉยๆ ไม่มีไอคอน check) — ใช้เพิ่มไอคอนต่อ option, ปรับ layout เอง ฯลฯ ถ้าจะโชว์ checkbox/checkmark เองต้องเขียนเองในสล็อตด้วย option.raw คือ object ดิบก่อน normalize เผื่ออยาก field อื่นนอก label/value/disabled',
+    },
+    {
+      name: 'selected',
+      type: '{ selectedOptions: ISelectOption[]; displayText: string }',
+      description:
+        'แทนที่เนื้อหาที่ trigger โชว์ตอนไม่ได้อยู่โหมด useInput ทั้งหมด (default = text ธรรมดา) — selectedOptions คือ option object เต็มๆ ของทุกตัวที่เลือกอยู่ ใช้ทำ badge สี/icon ต่อรายการเองได้',
+    },
+    {
+      name: 'prepend',
+      type: '(ไม่มี scope)',
+      description: 'เนื้อหาก่อนข้อความ/ช่องพิมพ์ใน trigger เช่น icon ค้นหานำหน้า',
+    },
+    {
+      name: 'append',
+      type: '(ไม่มี scope)',
+      description: 'เนื้อหาหลังข้อความ/ช่องพิมพ์ใน trigger ก่อนปุ่ม clear/ไอคอน chevron',
+    },
+    {
+      name: 'no-option',
+      type: '(ไม่มี scope)',
+      description:
+        'แทนที่ข้อความ noOptionsText/loadingText ตอน filteredOptions ว่างเปล่า ใช้ใส่ icon/ปุ่มเสริม (เช่น "ล้างคำค้นหา") เองได้',
     },
   ]
 
@@ -354,6 +390,19 @@
       type: '',
       description:
         'แบบ Quasar — ยิงตอน useInput=true ทุกครั้งที่พิมพ์ (หน่วงตาม inputDebounce) รวมถึง value = \'\' แบบไม่หน่วงอีก 3 จังหวะ (ให้ consumer reset list กลับเป็นชุดเต็ม): panel เปิดจาก focus/คลิก chevron, กดปุ่ม clear, และเลือก option ใน multiple mode (input เคลียร์พร้อมกัน) ต้องเรียก update(() => { myOptions.value = ... }) เพื่อ mutate options ที่ผูกกับ :options เอง (sync หรือหลัง await fetch ก็ได้) ไม่เรียก update = list ไม่กรองเลย เรียก abort() แทนถ้าไม่อยากอัปเดต (เช่น response เก่ากว่าคำค้นล่าสุด)',
+    },
+    {
+      name: 'popup-show / popup-hide',
+      payload: '',
+      type: '',
+      description: 'ยิงตอน panel เปิด/ปิดจริง (ทุกทาง ไม่ใช่แค่คลิก trigger) ใช้ทำ analytics, lazy-load ข้อมูลรอบแรกตอนเปิด ฯลฯ',
+    },
+    {
+      name: 'virtual-scroll',
+      payload: "{ index: number; from: number; to: number; direction: 'increase' | 'decrease' }",
+      type: '',
+      description:
+        'แบบ Quasar — ยิงทุกครั้งที่ window ของ virtual scroll เลื่อน ใช้ทำ infinite-scroll เช่น to ใกล้ options.length - 1 แล้วค่อยยิง API โหลดหน้าถัดไปเพิ่มเข้า options ที่ผูกไว้',
     },
   ]
 
@@ -571,7 +620,83 @@ function onFilterTags(value, update) {
   searchable
   label="ตัวเลือก 1,000 รายการ"
   :options="longOptions"
+  @popup-show="() => console.log('เปิด panel')"
+  @popup-hide="() => console.log('ปิด panel')"
+  @virtual-scroll="({ index, from, to, direction }) => console.log(direction, from, to)"
 />`,
+    },
+    {
+      title: 'optionHeight / maxPanelHeight',
+      target: 'demo-option-height',
+      code: `<Select
+  v-model="monthValue"
+  label="เดือน"
+  :options="monthOptions"
+  :option-height="60"
+  :max-panel-height="180"
+/>
+<!-- default: optionHeight 44px / maxPanelHeight 280px — สองค่านี้ต้องปรับคู่กันเสมอเวลาทำแถว custom สูงไม่เท่า default -->`,
+    },
+    {
+      title: 'optionValue/optionLabel (options shape อื่น)',
+      target: 'demo-custom-option-keys',
+      code: `<Select
+  v-model="cityValue"
+  option-value="id"
+  option-label="name"
+  label="เมือง"
+  :options="cityOptionsRaw"
+/>
+<!-- cityOptionsRaw: { id: number, name: string }[] — ไม่ต้อง map เป็น { value, label } เอง -->`,
+    },
+    {
+      title: 'slot: selected (custom เนื้อหาที่ trigger โชว์)',
+      target: 'demo-selected-slot',
+      code: `<Select v-model="province" label="จังหวัด" :options="provinceOptions">
+  <template #selected="{ selectedOptions, displayText }">
+    <span v-if="selectedOptions.length" class="flex-1 truncate">
+      <span class="rounded bg-main-1/10 px-1.5 py-0.5 text-main-1">{{ selectedOptions[0].value }}</span>
+      {{ selectedOptions[0].label }}
+    </span>
+    <span v-else class="flex-1 truncate text-gray-500">{{ displayText || 'เลือกจังหวัด' }}</span>
+  </template>
+</Select>`,
+    },
+    {
+      title: 'slot: prepend / append',
+      target: 'demo-prepend-append',
+      code: `<Select v-model="province" searchable label="จังหวัด" :options="provinceOptions">
+  <template #prepend>
+    <Svg src="common/info-circle" class="mr-2 size-4 shrink-0" />
+  </template>
+  <template #append>
+    <span class="mr-2 rounded bg-gray-100 px-1.5 py-0.5 text-12">TH</span>
+  </template>
+</Select>`,
+    },
+    {
+      title: 'dropdownIcon / clearIcon',
+      target: 'demo-custom-icons',
+      code: `<Select
+  v-model="province"
+  clearable
+  dropdown-icon="common/arrow-right"
+  clear-icon="common/eye-off"
+  label="จังหวัด"
+  :options="provinceOptions"
+/>`,
+    },
+    {
+      title: 'slot: no-option',
+      target: 'demo-no-option-slot',
+      code: `<Select v-model="province" searchable label="จังหวัด" :options="provinceOptions">
+  <template #no-option>
+    <div class="flex flex-col items-center gap-1 py-1">
+      <Svg src="common/info-circle" class="size-5 text-gray-400" />
+      <span>ไม่พบจังหวัดที่ค้นหา ลองคำอื่นดูนะ</span>
+    </div>
+  </template>
+</Select>`,
     },
     {
       title: 'clearable',

@@ -33,6 +33,8 @@
         @keydown.enter.prevent="!useInput && selectHighlighted()"
         @keydown.space.prevent="!useInput && toggleOpen()"
       >
+        <slot name="prepend"></slot>
+
         <input
           v-if="useInput"
           ref="triggerInputRef"
@@ -53,12 +55,20 @@
           @keydown.up.prevent="moveHighlight(-1)"
           @keydown.enter.prevent="selectHighlighted"
         />
-        <span
+        <slot
           v-else
-          class="flex-1 truncate text-17"
-          :class="!resolvedDisplayText && 'text-gray-500'"
-          >{{ resolvedDisplayText || placeholder }}</span
+          name="selected"
+          :selected-options="selectedOptionObjects"
+          :display-text="resolvedDisplayText"
         >
+          <span
+            class="flex-1 truncate text-17"
+            :class="!resolvedDisplayText && 'text-gray-500'"
+            >{{ resolvedDisplayText || placeholder }}</span
+          >
+        </slot>
+
+        <slot name="append"></slot>
 
         <span
           class="flex shrink-0 items-center gap-1"
@@ -74,7 +84,7 @@
             @click.stop="clearValue"
           >
             <Svg
-              src="common/x-close"
+              :src="clearIcon"
               class="size-4 cursor-pointer"
               color="black"
             />
@@ -86,7 +96,7 @@
           ></span>
           <Svg
             v-else
-            src="common/chevron-down"
+            :src="dropdownIcon"
             class="size-4 transition-transform duration-150"
             :class="isOpen && 'rotate-180'"
             color="black"
@@ -125,7 +135,7 @@
             v-if="filteredOptions.length === 0"
             class="p-3 text-center text-16 text-gray-500"
           >
-            {{ loading ? loadingText : noOptionsText }}
+            <slot name="no-option">{{ loading ? loadingText : noOptionsText }}</slot>
           </div>
 
           <div
@@ -209,7 +219,13 @@
     label: string
     value: string | number
     disabled?: boolean
+    // object ดิบก่อน normalize — เท่ากับตัวมันเองถ้าไม่ได้ใช้ optionValue/optionLabel/optionDisabled เอง มีให้เผื่ออยากได้ field อื่นนอกจาก label/value/disabled ผ่าน slot (option/selected)
+    raw?: unknown
   }
+
+  type OptionValueAccessor = string | ((option: Record<string, unknown>) => string | number)
+  type OptionLabelAccessor = string | ((option: Record<string, unknown>) => string)
+  type OptionDisabledAccessor = string | ((option: Record<string, unknown>) => boolean)
 
   type RoundedPreset = 'none' | 'sm' | 'md' | 'lg' | 'full'
 
@@ -239,7 +255,12 @@
     placeholder?: string
     helperText?: string
     rules?: IValidationRule[]
-    options: ISelectOption[]
+    // รับ object shape อะไรก็ได้ (ไม่บังคับ { label, value, disabled }) — ใช้คู่กับ optionValue/optionLabel/optionDisabled ถ้า shape ไม่ตรง ปกติ (ISelectOption[]) ก็ผ่านตรงๆ ได้เลยไม่ต้องทำอะไรเพิ่ม
+    options: Record<string, unknown>[]
+    // แบบ Quasar's option-value/option-label/option-disabled — ชื่อ field (string) หรือฟังก์ชันดึงค่าเองจาก option ดิบ ใช้ตอน options ไม่ได้เป็น { label, value, disabled } ตรงๆ (เช่น API ตอบ { id, name })
+    optionValue?: OptionValueAccessor
+    optionLabel?: OptionLabelAccessor
+    optionDisabled?: OptionDisabledAccessor
     disabled?: boolean
     readonly?: boolean
     // แสดง spinner แทน chevron และกันเปิด panel ไว้ก่อน (เช่น ระหว่างรอ options โหลดจาก API) — ไม่ทำให้ trigger เทาเหมือน disabled
@@ -266,6 +287,9 @@
     maxPanelHeight?: number
     noOptionsText?: string
     searchPlaceholder?: string
+    // แบบ Quasar's dropdown-icon/clear-icon — เปลี่ยน path ไอคอนได้ (ใช้ convention เดียวกับ Svg src="โฟลเดอร์/ชื่อ" ทั่วโปรเจกต์)
+    dropdownIcon?: string
+    clearIcon?: string
     customStyle?: SelectCustomStyle
   }
 
@@ -275,6 +299,9 @@
     placeholder: '',
     helperText: '',
     rules: () => [],
+    optionValue: 'value',
+    optionLabel: 'label',
+    optionDisabled: 'disabled',
     disabled: false,
     readonly: false,
     loading: false,
@@ -292,6 +319,8 @@
     maxPanelHeight: 280,
     noOptionsText: 'ไม่พบข้อมูล',
     searchPlaceholder: 'ค้นหา',
+    dropdownIcon: 'common/chevron-down',
+    clearIcon: 'common/x-close',
     customStyle: () => ({}),
   })
 
@@ -301,6 +330,11 @@
     blur: [event?: FocusEvent]
     // แบบ Quasar's @filter — ยิงเฉพาะตอน useInput=true ทุกครั้งที่พิมพ์ ต้องเรียก update() พร้อม callback ที่ mutate options ref ของตัวเอง (sync หรือ async หลัง fetch ก็ได้) ถึงจะเห็นผล ไม่เรียก = list ไม่กรองเลย
     filter: [value: string, update: (apply: () => void) => void, abort: () => void]
+    // ยิงตอน panel เปิด/ปิดจริง (ทุกทาง ไม่ใช่แค่ toggleOpen) — ใช้ทำ analytics, lazy-load ข้อมูลรอบแรกตอนเปิด ฯลฯ
+    'popup-show': []
+    'popup-hide': []
+    // แบบ Quasar's @virtual-scroll — ยิงทุกครั้งที่ window ของ virtual scroll เลื่อน ใช้ทำ infinite-scroll (index/to ใกล้ options.length แล้วค่อยโหลดหน้าถัดไปเพิ่ม)
+    'virtual-scroll': [details: { index: number; from: number; to: number; direction: 'increase' | 'decrease' }]
   }>()
 
   const model = defineModel<SelectValue>({ required: true })
@@ -416,16 +450,53 @@
     return { visibleItems, totalHeight, offsetY, onScroll, scrollToIndex, resetScroll }
   }
 
+  const resolveOptionValue = (raw: Record<string, unknown>): string | number =>
+    (typeof props.optionValue === 'function'
+      ? props.optionValue(raw)
+      : raw[props.optionValue]) as string | number
+
+  const resolveOptionLabel = (raw: Record<string, unknown>): string =>
+    String(typeof props.optionLabel === 'function' ? props.optionLabel(raw) : raw[props.optionLabel])
+
+  const resolveOptionDisabled = (raw: Record<string, unknown>): boolean =>
+    Boolean(
+      typeof props.optionDisabled === 'function' ? props.optionDisabled(raw) : raw[props.optionDisabled]
+    )
+
+  // normalize ให้เป็น shape เดียวกันเสมอไม่ว่า options ดิบจะหน้าตาแบบไหน (optionValue/optionLabel/optionDisabled) —
+  // ให้ logic ที่เหลือทั้งไฟล์ทำงานกับ ISelectOption ปกติต่อไปได้โดยไม่ต้องรู้เรื่อง custom key เลย ส่วน raw
+  // เก็บ object เดิมไว้เผื่อ slot (option/selected) อยากได้ field อื่นนอกจาก label/value/disabled
+  const normalizedOptions = computed<ISelectOption[]>(() =>
+    props.options.map(raw => ({
+      label: resolveOptionLabel(raw),
+      value: resolveOptionValue(raw),
+      disabled: resolveOptionDisabled(raw),
+      raw,
+    }))
+  )
+
   const filteredOptions = computed<ISelectOption[]>(() => {
     // useInput ไม่ filter เอง — รอ parent กรอง options ที่ผูกไว้เองผ่าน @filter (เหมือน Quasar use-input+filter)
-    if (props.useInput) return props.options
-    if (!props.searchable || !searchQuery.value.trim()) return props.options
+    if (props.useInput) return normalizedOptions.value
+    if (!props.searchable || !searchQuery.value.trim()) return normalizedOptions.value
     const query = searchQuery.value.trim().toLowerCase()
-    return props.options.filter(option => option.label.toLowerCase().includes(query))
+    return normalizedOptions.value.filter(option => option.label.toLowerCase().includes(query))
   })
 
   const { visibleItems, totalHeight, offsetY, onScroll, scrollToIndex, resetScroll } =
     useVirtualList(filteredOptions, panelScrollRef, { itemHeight: props.optionHeight })
+
+  // แบบ Quasar's @virtual-scroll — ให้ consumer รู้ว่า window ที่มองเห็นอยู่เลื่อนไปถึงไหนแล้ว ใช้ทำ infinite-scroll
+  // (เช่น to ใกล้ options.length - 1 แล้วค่อยยิง API โหลดหน้าถัดไปเพิ่มเข้า options ที่ผูกไว้)
+  let lastVirtualScrollTo = -1
+  watch(visibleItems, items => {
+    if (items.length === 0) return
+    const from = items[0].index
+    const to = items[items.length - 1].index
+    const direction = to >= lastVirtualScrollTo ? 'increase' : 'decrease'
+    lastVirtualScrollTo = to
+    emit('virtual-scroll', { index: to, from, to, direction })
+  })
 
   // entry ดิบที่อาจเจอใน model.value ทีละตัว — scalar ตอน emitValue=true, ISelectOption เต็มๆ ตอน emitValue=false
   type SelectEntry = string | number | ISelectOption
@@ -447,23 +518,36 @@
 
   // ปลอดภัยกรณี lookup-miss (ค่าที่เลือกไว้ไม่มีอยู่ใน options แล้ว เช่น options โหลดมาใหม่แบบ async) — ข้ามเงียบๆ แทนที่จะโชว์ undefined
   // label ถูก resolve จาก props.options สดใหม่เสมอ ไม่ได้อ่านจาก entry ของ model.value ตรงๆ แม้ตอน emitValue=false — กัน label ค้างถ้า options เปลี่ยนแต่ object ใน model.value ยังเป็นก้อนเดิม
-  const selectedLabels = computed<string[]>(() => {
-    const entries: SelectEntry[] = props.multiple
+  // model.value แตกเป็น entry ทีละตัวเสมอ ไม่ว่าจะเป็น scalar เดี่ยว/array/object เดี่ยว — ใช้ร่วมกันทั้ง selectedLabels และ selectedOptionObjects
+  const selectedEntries = computed<SelectEntry[]>(() =>
+    props.multiple
       ? ((Array.isArray(model.value) ? model.value : []) as SelectEntry[])
       : model.value === '' || model.value == null
         ? []
         : [model.value as SelectEntry]
+  )
 
-    return entries
+  const selectedLabels = computed<string[]>(() =>
+    selectedEntries.value
       .map(entry => {
         // ได้ object เต็มๆ อยู่แล้ว (emitValue=false) — ใช้ label ของมันตรงๆ เสมอ ไม่ต้อง resolve
         if (typeof entry === 'object') return entry.label
         // scalar (emitValue=true) — resolve เป็น label จาก options ถ้าเปิด mapOptions ไม่งั้นโชว์ค่าดิบตรงๆ (เหมือน Quasar emit-value ที่ไม่เปิด map-options)
         if (!props.mapOptions) return String(entry)
-        return props.options.find(option => option.value === entry)?.label
+        return normalizedOptions.value.find(option => option.value === entry)?.label
       })
       .filter((label): label is string => !!label)
-  })
+  )
+
+  // full ISelectOption object (มี raw ติดมาด้วย) ของแต่ละตัวที่เลือกอยู่ — ให้ slot #selected เข้าถึงข้อมูลเต็มๆ ได้ ไม่ใช่แค่ label string
+  // ปลอดภัยกรณี lookup-miss เหมือน selectedLabels — ตัวที่หาไม่เจอใน options ปัจจุบันจะถูกข้ามไปเงียบๆ
+  const selectedOptionObjects = computed<ISelectOption[]>(() =>
+    selectedEntries.value
+      .map(entry =>
+        typeof entry === 'object' ? entry : normalizedOptions.value.find(option => option.value === entry)
+      )
+      .filter((option): option is ISelectOption => !!option)
+  )
 
   const resolvedDisplayText = computed(() => props.displayValue || selectedLabels.value.join(', '))
 
@@ -620,6 +704,7 @@
     // loading ไม่ล็อก trigger เหมือน disabled (ยัง focus/tab ได้) แค่กันเปิด panel ที่ options ยังไม่มาก่อน
     if (isOpen.value || (props.loading && !force)) return
     isOpen.value = true
+    emit('popup-show')
     searchQuery.value = ''
 
     await nextTick()
@@ -637,6 +722,7 @@
   const closePanel = (event?: FocusEvent): void => {
     if (!isOpen.value) return
     isOpen.value = false
+    emit('popup-hide')
     // useInput + single: กลับไปโชว์ label/ค่าของสิ่งที่เลือกไว้จริง (เผื่อพิมพ์ค้างแล้วไม่ได้เลือกอะไรก็ revert กลับ) — โหมดอื่นเคลียร์เป็นค่าว่างเหมือนเดิม
     searchQuery.value = props.useInput && !props.multiple ? inputFallbackDisplayText.value : ''
     highlightedIndex.value = -1
@@ -777,6 +863,7 @@
   watch(filteredOptions, () => {
     resetScroll()
     highlightedIndex.value = -1
+    lastVirtualScrollTo = -1
   })
 
   // useInput + single: sync ค่าเริ่มต้น/ค่าที่เปลี่ยนจากภายนอก (v-model ถูกเซ็ตตรงๆ) เข้า input ตอน panel ปิดอยู่ — ไม่แตะระหว่างเปิด กันไปทับข้อความที่ผู้ใช้กำลังพิมพ์อยู่

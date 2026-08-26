@@ -357,7 +357,9 @@
       <hr />
 
       <div id="demo-virtual-scroll">
-        <div class="mb-2 text-18 font-bold">ลิสต์ยาว 1,000 รายการ (virtual scroll)</div>
+        <div class="mb-2 text-18 font-bold">
+          ลิสต์ยาว 1,000 รายการ (virtual scroll) + @popup-show/@popup-hide + @virtual-scroll
+        </div>
         <div class="max-w-xs">
           <Select
             v-model="longValue"
@@ -365,6 +367,9 @@
             label="ตัวเลือก 1,000 รายการ"
             placeholder="เลือกตัวเลือก"
             :options="longOptions"
+            @popup-show="logSelectEvent('popup-show')"
+            @popup-hide="logSelectEvent('popup-hide')"
+            @virtual-scroll="onLongListVirtualScroll"
           />
           <div class="mt-2 text-16 text-gray-600">
             ค่าที่เลือก: {{ optionLabelFor(longValue, longOptions) }}
@@ -373,6 +378,185 @@
           <div class="mt-2 text-16 text-gray-600">
             เปิด dev tools แล้วตรวจ DOM — จะมีแค่ option ส่วนน้อยที่ถูก render จริงในแต่ละขณะ
             ไม่ใช่ทั้ง 1,000 ตัว
+          </div>
+          <div class="mt-2 text-16 text-gray-600">
+            event log (เปิด/ปิด/scroll ล่าสุด 5 รายการ):
+            <span
+              v-for="(entry, i) in selectEventLog"
+              :key="i"
+              class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 text-14"
+              >{{ entry }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-option-height">
+        <div class="mb-2 text-18 font-bold">optionHeight / maxPanelHeight</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="monthValue"
+            label="เดือน (แถวสูง 60px, panel สูงสุด 180px)"
+            placeholder="เลือกเดือน"
+            :options="monthOptions"
+            :option-height="60"
+            :max-panel-height="180"
+          />
+          <div class="mt-2 text-16 text-gray-600">
+            v-model: {{ monthValue || '(ยังไม่ได้เลือก)' }}
+          </div>
+          <div class="mt-2 text-16 text-gray-600">
+            default คือ <code>optionHeight</code> 44px / <code>maxPanelHeight</code> 280px —
+            เปิด dropdown แล้วสังเกตว่าแถวสูงขึ้นชัดเจน (60px) และ panel เตี้ยลง (สูงสุด 180px)
+            เห็นแค่ ~3 แถวก่อนต้อง scroll จาก 12 เดือนทั้งหมด — สองค่านี้ต้องปรับคู่กันเสมอเวลาทำแถว
+            custom ที่สูงไม่เท่า default (ดู demo slot: option ด้านบนที่แถวสูงขึ้นเพราะมี 2 บรรทัด)
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-custom-option-keys">
+        <div class="mb-2 text-18 font-bold">
+          optionValue/optionLabel (options shape อื่น ไม่ใช่ { label, value })
+        </div>
+        <div class="max-w-xs">
+          <Select
+            v-model="cityValue"
+            option-value="id"
+            option-label="name"
+            label="เมือง (options เป็น { id, name })"
+            placeholder="เลือกเมือง"
+            :options="cityOptionsRaw"
+          />
+          <div class="mt-2 text-16 text-gray-600">v-model: {{ cityValue || '(ยังไม่ได้เลือก)' }}</div>
+          <div class="mt-2 text-16 text-gray-600">
+            options ดิบเป็น <code>{ id: number, name: string }</code> ไม่ใช่
+            <code>{ value, label }</code> — ไม่ต้อง <code>.map()</code> แปลงเองก่อนส่งเข้า
+            <code>:options</code> เลย ใส่ <code>option-value="id"</code>
+            <code>option-label="name"</code> ให้ Select ไปดึงเองแทน
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-selected-slot">
+        <div class="mb-2 text-18 font-bold">slot: selected (custom เนื้อหาที่ trigger โชว์)</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="provinceSelectedSlot"
+            label="จังหวัด (badge สีเอง)"
+            placeholder="เลือกจังหวัด"
+            :options="provinceOptions"
+          >
+            <template #selected="{ selectedOptions, displayText }">
+              <span
+                v-if="selectedOptions.length"
+                class="flex-1 truncate text-17"
+              >
+                <span class="rounded bg-main-1/10 px-1.5 py-0.5 text-14 font-bold text-main-1">{{
+                  selectedOptions[0].value
+                }}</span>
+                {{ selectedOptions[0].label }}
+              </span>
+              <span
+                v-else
+                class="flex-1 truncate text-17 text-gray-500"
+                >{{ displayText || 'เลือกจังหวัด' }}</span
+              >
+            </template>
+          </Select>
+          <div class="mt-2 text-16 text-gray-600">
+            v-model: {{ provinceSelectedSlot || '(ยังไม่ได้เลือก)' }}
+          </div>
+          <div class="mt-2 text-16 text-gray-600">
+            trigger โชว์ badge รหัสจังหวัด (option.value) นำหน้าชื่อ — ข้อมูลมาจาก
+            <code>selectedOptions</code> ของ slot นี้ ไม่ใช่แค่ string ธรรมดา
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-prepend-append">
+        <div class="mb-2 text-18 font-bold">slot: prepend / append</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="provincePrependAppend"
+            searchable
+            label="จังหวัด (มี icon นำหน้า + badge ต่อท้าย)"
+            placeholder="เลือกจังหวัด"
+            :options="provinceOptions"
+          >
+            <template #prepend>
+              <Svg
+                src="common/info-circle"
+                class="mr-2 size-4 shrink-0"
+              />
+            </template>
+            <template #append>
+              <span class="mr-2 shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-12 text-gray-600"
+                >TH</span
+              >
+            </template>
+          </Select>
+          <div class="mt-2 text-16 text-gray-600">
+            v-model: {{ provincePrependAppend || '(ยังไม่ได้เลือก)' }}
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-custom-icons">
+        <div class="mb-2 text-18 font-bold">dropdownIcon / clearIcon</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="provinceCustomIcons"
+            clearable
+            dropdown-icon="common/arrow-right"
+            clear-icon="common/eye-off"
+            label="จังหวัด (ไอคอนเปลี่ยนเอง)"
+            placeholder="เลือกจังหวัด"
+            :options="provinceOptions"
+          />
+          <div class="mt-2 text-16 text-gray-600">
+            v-model: {{ provinceCustomIcons || '(ยังไม่ได้เลือก)' }}
+          </div>
+          <div class="mt-2 text-16 text-gray-600">
+            ลูกศร chevron เปลี่ยนเป็น <code>common/arrow-right</code> (หมุนได้ตามปกติตอนเปิด) ปุ่ม clear
+            เปลี่ยนเป็น <code>common/eye-off</code> — จงใจใช้ icon แปลกๆ ให้เห็นชัดว่าเปลี่ยนได้จริง
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-no-option-slot">
+        <div class="mb-2 text-18 font-bold">slot: no-option</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="provinceNoOptionSlot"
+            searchable
+            label="จังหวัด (custom ข้อความไม่พบข้อมูล)"
+            placeholder="ลองพิมพ์ 'xyz'"
+            :options="provinceOptions"
+          >
+            <template #no-option>
+              <div class="flex flex-col items-center gap-1 py-1">
+                <Svg
+                  src="common/info-circle"
+                  class="size-5 text-gray-400"
+                />
+                <span>ไม่พบจังหวัดที่ค้นหา ลองคำอื่นดูนะ</span>
+              </div>
+            </template>
+          </Select>
+          <div class="mt-2 text-16 text-gray-600">
+            v-model: {{ provinceNoOptionSlot || '(ยังไม่ได้เลือก)' }}
           </div>
         </div>
       </div>
@@ -591,12 +775,40 @@
     { label: 'นครราชสีมา (ปิดใช้งาน)', value: 'nakhon-ratchasima', disabled: true },
   ]
 
+  // options shape ไม่ตรง { label, value } ปกติ — จำลอง response จาก API จริงที่ไม่ได้ตั้งชื่อ field ตามที่ Select ต้องการ
+  interface IRawCity {
+    id: number
+    name: string
+  }
+
+  const cityOptionsRaw: IRawCity[] = [
+    { id: 1, name: 'กรุงเทพมหานคร' },
+    { id: 2, name: 'เชียงใหม่' },
+    { id: 3, name: 'ขอนแก่น' },
+    { id: 4, name: 'ภูเก็ต' },
+  ]
+
   const tagOptions: ISelectOption[] = [
     { label: 'ลูกค้าใหม่', value: 'new' },
     { label: 'ลูกค้าเก่า', value: 'returning' },
     { label: 'VIP', value: 'vip' },
     { label: 'สมัครสมาชิก', value: 'member' },
   ]
+
+  const monthOptions: ISelectOption[] = [
+    'มกราคม',
+    'กุมภาพันธ์',
+    'มีนาคม',
+    'เมษายน',
+    'พฤษภาคม',
+    'มิถุนายน',
+    'กรกฎาคม',
+    'สิงหาคม',
+    'กันยายน',
+    'ตุลาคม',
+    'พฤศจิกายน',
+    'ธันวาคม',
+  ].map((label, i) => ({ label, value: i + 1 }))
 
   const longOptions: ISelectOption[] = Array.from({ length: 1000 }, (_, i) => ({
     label: `ตัวเลือกที่ ${i + 1}`,
@@ -624,6 +836,27 @@
     tagsWithDisplayValue.value.length > 2 ? `เลือกไว้ ${tagsWithDisplayValue.value.length} รายการ` : ''
   )
   const searchableProvince = ref('')
+  const monthValue = ref<number | ''>('')
+
+  const cityValue = ref<number | ''>('')
+  const provinceSelectedSlot = ref('')
+  const provincePrependAppend = ref('')
+  const provinceCustomIcons = ref('')
+  const provinceNoOptionSlot = ref('')
+
+  // เก็บ event log ล่าสุด 5 รายการไว้โชว์บนจอ — ไม่ใช่ pattern ที่ต้องทำตาม แค่สาธิตว่า event ยิงจริง
+  const selectEventLog = ref<string[]>([])
+  const logSelectEvent = (label: string): void => {
+    selectEventLog.value = [...selectEventLog.value, label].slice(-5)
+  }
+  const onLongListVirtualScroll = (details: {
+    index: number
+    from: number
+    to: number
+    direction: 'increase' | 'decrease'
+  }): void => {
+    logSelectEvent(`scroll ${details.direction} → ${details.from}-${details.to}`)
+  }
 
   const provinceUseInput = ref('')
   const filteredProvinceOptions = ref<ISelectOption[]>(provinceOptions)
