@@ -16,6 +16,17 @@
  * ไม่ต้องรอให้ผู้ใช้กดปุ่ม — แนบ payload บอกสาเหตุไปให้ call site แยกเคสได้
  */
 
+/** ชนิดของ dialog — คุมสี/ไอคอนหัว popup ของ DefaultModal.vue */
+export type DialogType = 'success' | 'question' | 'alert' | 'cancel'
+
+/** 'submit' -> onOk(), 'cancel' -> onCancel() */
+export type DialogButtonAction = 'submit' | 'cancel'
+
+export interface IDialogButton {
+  action: DialogButtonAction
+  text: string
+}
+
 export type DialogResult = 'ok' | 'cancel'
 
 export type DialogOkCallback<TOk = unknown> = (payload?: TOk) => void
