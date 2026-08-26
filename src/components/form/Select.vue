@@ -19,27 +19,52 @@
     >
       <div
         ref="triggerRef"
-        :tabindex="disabled ? -1 : 0"
-        role="combobox"
-        aria-haspopup="listbox"
-        :aria-expanded="isOpen"
-        :aria-controls="panelId"
+        :tabindex="useInput || disabled ? -1 : 0"
+        :role="useInput ? undefined : 'combobox'"
+        :aria-haspopup="useInput ? undefined : 'listbox'"
+        :aria-expanded="useInput ? undefined : isOpen"
+        :aria-controls="useInput ? undefined : panelId"
         :class="triggerClasses"
         :style="triggerCustomStyle"
-        @click="toggleOpen"
-        @blur="handleTriggerBlur"
-        @keydown.down.prevent="moveHighlight(1)"
-        @keydown.up.prevent="moveHighlight(-1)"
-        @keydown.enter.prevent="selectHighlighted"
-        @keydown.space.prevent="toggleOpen"
+        @click="!useInput && toggleOpen()"
+        @blur="!useInput && handleTriggerBlur($event)"
+        @keydown.down.prevent="!useInput && moveHighlight(1)"
+        @keydown.up.prevent="!useInput && moveHighlight(-1)"
+        @keydown.enter.prevent="!useInput && selectHighlighted()"
+        @keydown.space.prevent="!useInput && toggleOpen()"
       >
+        <input
+          v-if="useInput"
+          ref="triggerInputRef"
+          v-model="searchQuery"
+          type="text"
+          role="combobox"
+          aria-haspopup="listbox"
+          :aria-expanded="isOpen"
+          :aria-controls="panelId"
+          :disabled="disabled"
+          :readonly="readonly"
+          :placeholder="placeholder"
+          class="w-full min-w-0 flex-1 bg-transparent text-17 outline-none placeholder:text-gray-500 disabled:cursor-not-allowed"
+          @input="handleInputChange"
+          @focus="handleInputFocus"
+          @blur="handleTriggerBlur"
+          @keydown.down.prevent="moveHighlight(1)"
+          @keydown.up.prevent="moveHighlight(-1)"
+          @keydown.enter.prevent="selectHighlighted"
+        />
         <span
+          v-else
           class="flex-1 truncate text-17"
           :class="!resolvedDisplayText && 'text-gray-500'"
           >{{ resolvedDisplayText || placeholder }}</span
         >
 
-        <span class="flex shrink-0 items-center gap-1">
+        <span
+          class="flex shrink-0 items-center gap-1"
+          @mousedown="handleIconAreaMousedown"
+          @click="handleChevronClick"
+        >
           <button
             v-if="showClearButton"
             type="button"
@@ -80,7 +105,7 @@
           @mousedown.prevent
         >
           <div
-            v-if="searchable"
+            v-if="searchable && !useInput"
             class="border-b border-gray-100 p-2"
             @mousedown.stop
           >
@@ -100,7 +125,7 @@
             v-if="filteredOptions.length === 0"
             class="p-3 text-center text-16 text-gray-500"
           >
-            {{ noOptionsText }}
+            {{ loading ? loadingText : noOptionsText }}
           </div>
 
           <div
@@ -223,10 +248,19 @@
     clearable?: boolean
     multiple?: boolean
     searchable?: boolean
+    // แบบ Quasar's use-input — trigger กลายเป็น <input> พิมพ์ได้ตรงๆ แทนกล่อง search แยกใน panel (ปิด searchable box อัตโนมัติถ้าเปิดคู่กัน)
+    // ไม่ทำ local filter ให้เองเหมือน searchable — ต้องฟัง @filter แล้ว mutate options ที่ผูกไว้เองเสมอ ไม่งั้นพิมพ์แล้วลิสต์ไม่กรอง (ของจริงตาม Quasar)
+    useInput?: boolean
+    // แบบ Quasar's input-debounce — หน่วงก่อนยิง @filter ตอนพิมพ์ (ms) กัน API ยิงรัวทุกตัวอักษร — 0 = ไม่หน่วงเลย ยิงทันที (ไม่มีผลตอน useInput=false)
+    inputDebounce?: number
+    // ข้อความตอน filteredOptions ว่างเปล่า "ระหว่าง" loading=true (เช่น รอ @filter แบบ async ตอบ) แยกจาก noOptionsText ที่ใช้ตอนค้นจริงแล้วไม่เจอ
+    loadingText?: string
     // true (default) = v-model ได้ ISelectOption['value'] เดี่ยว/array, false = v-model ได้ ISelectOption เต็มๆ/array ของมัน
     emitValue?: boolean
     // แบบ Quasar's map-options — true (default) = resolve label จาก options มาโชว์ที่ trigger, false = โชว์ค่าดิบใน model.value ตรงๆ (มีผลเฉพาะตอน emitValue=true)
     mapOptions?: boolean
+    // แบบ Quasar's display-value — ทับข้อความที่ trigger โชว์ตรงๆ ไม่ว่า selectedLabels จะคำนวณออกมาเป็นอะไร (ไม่กระทบ v-model/selection logic เลย) ปล่อยว่างไว้ = ใช้ label ที่ resolve จาก options ตามปกติ
+    displayValue?: string
     // px ต่อแถว — ใช้คำนวณ virtual-scroll ด้วย ต้องตรงกับความสูงจริงของแถว (label ต้อง truncate ห้าม wrap)
     optionHeight?: number
     maxPanelHeight?: number
@@ -248,8 +282,12 @@
     clearable: false,
     multiple: false,
     searchable: false,
+    useInput: false,
+    inputDebounce: 500,
+    loadingText: 'กำลังค้นหา...',
     emitValue: true,
     mapOptions: true,
+    displayValue: '',
     optionHeight: 44,
     maxPanelHeight: 280,
     noOptionsText: 'ไม่พบข้อมูล',
@@ -261,12 +299,15 @@
     error: [error: { hasError: boolean; message: string }]
     // ไม่มี FocusEvent จริงเสมอไป — มีค่าจริงเฉพาะตอน blur จริงจาก trigger, path ปิดแบบอื่น (Escape/click นอก/เลือกใน single mode) ส่ง undefined
     blur: [event?: FocusEvent]
+    // แบบ Quasar's @filter — ยิงเฉพาะตอน useInput=true ทุกครั้งที่พิมพ์ ต้องเรียก update() พร้อม callback ที่ mutate options ref ของตัวเอง (sync หรือ async หลัง fetch ก็ได้) ถึงจะเห็นผล ไม่เรียก = list ไม่กรองเลย
+    filter: [value: string, update: (apply: () => void) => void, abort: () => void]
   }>()
 
   const model = defineModel<SelectValue>({ required: true })
 
   const wrapperRef = ref<HTMLElement>()
   const triggerRef = ref<HTMLElement>()
+  const triggerInputRef = ref<HTMLInputElement>()
   const panelRef = ref<HTMLElement>()
   const panelScrollRef = ref<HTMLElement>()
   const searchInputRef = ref<HTMLInputElement>()
@@ -376,6 +417,8 @@
   }
 
   const filteredOptions = computed<ISelectOption[]>(() => {
+    // useInput ไม่ filter เอง — รอ parent กรอง options ที่ผูกไว้เองผ่าน @filter (เหมือน Quasar use-input+filter)
+    if (props.useInput) return props.options
     if (!props.searchable || !searchQuery.value.trim()) return props.options
     const query = searchQuery.value.trim().toLowerCase()
     return props.options.filter(option => option.label.toLowerCase().includes(query))
@@ -422,7 +465,14 @@
       .filter((label): label is string => !!label)
   })
 
-  const resolvedDisplayText = computed(() => selectedLabels.value.join(', '))
+  const resolvedDisplayText = computed(() => props.displayValue || selectedLabels.value.join(', '))
+
+  // ใช้เฉพาะ sync ข้อความกลับเข้า <input> ตอน useInput+single — ถ้า resolve label ไม่ได้ (เช่น พิมพ์กรอง options จนไม่เหลือตัวที่เลือกไว้แล้ว) โชว์ค่าดิบแทน ดีกว่าโชว์ว่างเปล่าทำให้ดูเหมือนค่าหาย ทั้งที่ model.value ยังมีค่าอยู่จริง
+  const inputFallbackDisplayText = computed(() => {
+    if (resolvedDisplayText.value) return resolvedDisplayText.value
+    if (model.value === '' || model.value == null) return ''
+    return String(extractValue(model.value as SelectEntry))
+  })
 
   const showClearButton = computed(
     () => props.clearable && !props.disabled && !props.readonly && selectedLabels.value.length > 0
@@ -514,6 +564,13 @@
           ? current.filter(item => extractValue(item) !== option.value)
           : [...current, entry]
       ) as SelectValue
+      // เคลียร์คำค้นให้พิมพ์คำถัดไปต่อได้เลย — multiple ไม่มีที่โชว์รายการที่เลือกไว้ในตัว input (ไม่ทำ chips) เลยไม่ sync กลับเป็น label เหมือน single
+      // ยิง filter('') ด้วย (เหมือน focus/clear) ให้ consumer reset list กลับเป็นชุดเต็ม ไม่งั้นเลือกแล้ว panel ยังค้างโชว์แค่ผลกรองรอบก่อน
+      if (props.useInput) {
+        searchQuery.value = ''
+        clearFilterDebounce()
+        emitFilter('')
+      }
       return
     }
 
@@ -523,6 +580,12 @@
 
   const clearValue = (): void => {
     model.value = props.multiple ? [] : ''
+    if (props.useInput) {
+      searchQuery.value = ''
+      // ล้าง debounce ที่ค้างไว้ก่อน กันคำค้นเก่ามาทับ list ที่เพิ่ง reset ไปแล้วจากปุ่มนี้
+      clearFilterDebounce()
+      emitFilter('')
+    }
     validate()
   }
 
@@ -550,16 +613,19 @@
     }
   }
 
-  const openPanel = async (): Promise<void> => {
+  // force=true ข้าม guard ของ props.loading (ไม่ข้าม isOpen) — ใช้ตอนเปิดจาก update() ของ @filter เท่านั้น เพราะตอนนั้น
+  // apply() (ที่ mutate options ของ consumer) รันไปแล้วจริงๆ options พร้อมแล้ว แต่ props.loading (ref ฝั่ง consumer เอง
+  // เช่น filterLoading) มักยังไม่ทันเป็น false เพราะ finally ของ async function เขายังไม่ถึงรอบ — ถ้าไม่ข้าม panel จะไม่เปิดเลย
+  const openPanel = async (force = false): Promise<void> => {
     // loading ไม่ล็อก trigger เหมือน disabled (ยัง focus/tab ได้) แค่กันเปิด panel ที่ options ยังไม่มาก่อน
-    if (isOpen.value || props.loading) return
+    if (isOpen.value || (props.loading && !force)) return
     isOpen.value = true
     searchQuery.value = ''
 
     await nextTick()
     computePlacement()
 
-    if (props.searchable) searchInputRef.value?.focus()
+    if (props.searchable && !props.useInput) searchInputRef.value?.focus()
 
     const selectedIndex = filteredOptions.value.findIndex(option => isOptionSelected(option))
     highlightedIndex.value = selectedIndex
@@ -571,7 +637,8 @@
   const closePanel = (event?: FocusEvent): void => {
     if (!isOpen.value) return
     isOpen.value = false
-    searchQuery.value = ''
+    // useInput + single: กลับไปโชว์ label/ค่าของสิ่งที่เลือกไว้จริง (เผื่อพิมพ์ค้างแล้วไม่ได้เลือกอะไรก็ revert กลับ) — โหมดอื่นเคลียร์เป็นค่าว่างเหมือนเดิม
+    searchQuery.value = props.useInput && !props.multiple ? inputFallbackDisplayText.value : ''
     highlightedIndex.value = -1
     validate()
     emit('blur', event)
@@ -588,6 +655,69 @@
     const related = event.relatedTarget as Node | null
     if (related && wrapperRef.value?.contains(related)) return
     closePanel(event)
+  }
+
+  const emitFilter = (value: string): void => {
+    emit(
+      'filter',
+      value,
+      apply => {
+        apply()
+        // force: true — ตอนนี้ apply() เพิ่ง mutate options ของ consumer เสร็จจริงๆ ต้องเปิดให้เห็นผลทันที
+        // ต่อให้ props.loading (ref ฝั่ง consumer) ยังไม่ทันเป็น false ก็ตาม (ดูคอมเมนต์ที่ openPanel)
+        if (!isOpen.value) openPanel(true)
+      },
+      () => {}
+    )
+  }
+
+  // จับเวลา debounce ของ handleInputChange — ตัวแปรธรรมดา ไม่ใช่ ref เพราะไม่ต้องขับ template
+  let filterDebounceTimer: ReturnType<typeof setTimeout> | undefined
+
+  const clearFilterDebounce = (): void => {
+    if (filterDebounceTimer) clearTimeout(filterDebounceTimer)
+    filterDebounceTimer = undefined
+  }
+
+  // เลือก text ทั้งหมดตอน focus ให้พิมพ์ทับได้ทันที เหมือน combobox ทั่วไป (คลิก address bar แล้วพิมพ์ทับ)
+  const handleInputFocus = (): void => {
+    if (props.disabled || props.readonly) return
+    openPanel()
+    // searchQuery ถูก openPanel() เคลียร์เป็น '' ไปแล้ว (synchronous ก่อน await แรก) — ยิง filter('') ทุกครั้งที่เปิด แบบไม่หน่วง (ไม่ใช่พิมพ์ ไม่มีเหตุผลต้องรอ)
+    // ให้ consumer มีโอกาส reset list ของตัวเองกลับเป็นชุดเต็ม เผื่อรอบก่อนพิมพ์ค้างไว้จนกรองเหลือน้อย (ครอบคลุมทั้งคลิก input ตรงๆ และคลิกไอคอน chevron ที่ focus() ให้ input ต่อ)
+    if (props.useInput) {
+      clearFilterDebounce()
+      emitFilter(searchQuery.value)
+    }
+    nextTick(() => triggerInputRef.value?.select())
+  }
+
+  // @input เท่านั้น (ไม่ใช่ watch(searchQuery)) — กันไม่ให้ยิง filter event ตอนโปรแกรมเซ็ต searchQuery เอง (sync กลับเป็น label ตอนปิด panel, clear ฯลฯ)
+  // แบบ Quasar's input-debounce — หน่วงก่อนยิงจริง กันพิมพ์รัวแล้ว @filter (มักผูกกับ API) ทำงานทุกตัวอักษร — inputDebounce=0 ยิงทันทีไม่หน่วง
+  const handleInputChange = (): void => {
+    if (!props.useInput) return
+    clearFilterDebounce()
+
+    if (props.inputDebounce <= 0) {
+      emitFilter(searchQuery.value)
+      return
+    }
+
+    const value = searchQuery.value
+    filterDebounceTimer = setTimeout(() => emitFilter(value), props.inputDebounce)
+  }
+
+  // ไอคอน chevron/spinner (และปุ่ม clear ที่ stop propagation ของตัวเองอยู่แล้ว) เป็น sibling ของ <input> ไม่ใช่ ancestor
+  // — กัน mousedown แค่ตรงนี้ไม่ให้ blur input ที่กำลัง focus อยู่ (เช่น panel เปิดจาก input แล้วมาคลิก chevron) โดยไม่กระทบการคลิก input เองเลย
+  const handleIconAreaMousedown = (event: MouseEvent): void => {
+    if (props.useInput) event.preventDefault()
+  }
+
+  // แบบ Quasar: คลิกลูกศรเปิด/ปิด panel ได้โดยไม่ต้องพิมพ์ก่อน — ปิดอยู่ก็ focus() ให้ input เอง (เข้า handleInputFocus ต่อเองผ่าน native focus event)
+  const handleChevronClick = (): void => {
+    if (!props.useInput) return
+    if (isOpen.value) closePanel()
+    else triggerInputRef.value?.focus()
   }
 
   const moveHighlight = (delta: number): void => {
@@ -640,6 +770,7 @@
     document.removeEventListener('keydown', handleGlobalKeydown)
     window.visualViewport?.removeEventListener('resize', computePlacement)
     window.removeEventListener('scroll', computePlacement)
+    clearFilterDebounce()
   })
 
   // คำค้นหาเปลี่ยนทำให้ filteredOptions สั้นลง/ยาวขึ้น — รีเซ็ต scroll/highlight กัน startIndex ค้างเกินขอบ array ใหม่
@@ -647,6 +778,15 @@
     resetScroll()
     highlightedIndex.value = -1
   })
+
+  // useInput + single: sync ค่าเริ่มต้น/ค่าที่เปลี่ยนจากภายนอก (v-model ถูกเซ็ตตรงๆ) เข้า input ตอน panel ปิดอยู่ — ไม่แตะระหว่างเปิด กันไปทับข้อความที่ผู้ใช้กำลังพิมพ์อยู่
+  watch(
+    inputFallbackDisplayText,
+    text => {
+      if (props.useInput && !props.multiple && !isOpen.value) searchQuery.value = text
+    },
+    { immediate: true }
+  )
 
   onClickOutside(panelRef, () => closePanel(), { ignore: [triggerRef] })
 

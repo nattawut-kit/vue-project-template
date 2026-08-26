@@ -221,7 +221,28 @@
       name: 'searchable',
       type: 'boolean',
       default: 'false',
-      description: 'แสดงช่องค้นหาบนสุดของ panel กรอง options ตาม label',
+      description: 'แสดงช่องค้นหาบนสุดของ panel กรอง options ตาม label เอง (local filter)',
+    },
+    {
+      name: 'useInput',
+      type: 'boolean',
+      default: 'false',
+      description:
+        "แบบ Quasar's use-input — trigger กลายเป็น <input> พิมพ์ได้ตรงๆ แทนกล่อง search แยกใน panel (ปิด searchable box อัตโนมัติถ้าเปิดคู่กัน) ไม่ filter ให้เองเหมือน searchable — ต้องฟัง @filter แล้ว mutate options เองเสมอ ไม่งั้นพิมพ์แล้วลิสต์ไม่กรอง",
+    },
+    {
+      name: 'inputDebounce',
+      type: 'number',
+      default: '500',
+      description:
+        "แบบ Quasar's input-debounce — หน่วง (ms) ก่อนยิง @filter จริงตอนพิมพ์ กันยิง API ทุกตัวอักษร ใส่ 0 = ยิงทันทีไม่หน่วง — ไม่มีผลตอน useInput=false, focus/clear ยิงทันทีเสมอไม่หน่วง",
+    },
+    {
+      name: 'loadingText',
+      type: 'string',
+      default: "'กำลังค้นหา...'",
+      description:
+        'ข้อความตอน filteredOptions ว่างเปล่า "ระหว่าง" loading=true (เช่น รอ @filter แบบ async ตอบ) — แยกจาก noOptionsText ที่ใช้ตอนค้นจริงแล้วไม่เจอ (loading=false)',
     },
     {
       name: 'emitValue',
@@ -236,6 +257,13 @@
       default: 'true',
       description:
         "แบบ Quasar's map-options — true (default) = resolve label จาก options มาโชว์ที่ trigger, false = โชว์ค่าดิบใน model.value ตรงๆ แทน label — มีผลเฉพาะตอน emitValue=true (ตอน emitValue=false model มี label ติดมากับ object อยู่แล้ว ไม่ต้อง resolve)",
+    },
+    {
+      name: 'displayValue',
+      type: 'string',
+      default: "''",
+      description:
+        "แบบ Quasar's display-value — ทับข้อความที่ trigger โชว์ตรงๆ ไม่ว่า label ที่ resolve ได้จะเป็นอะไร ไม่กระทบ v-model/selection logic เลย เช่น multi-select ที่เลือกเยอะ อยากโชว์ 'เลือกไว้ N รายการ' แทนการต่อ label ยาวๆ — ปล่อยว่างไว้ (default) = โชว์ label ปกติ",
     },
     {
       name: 'optionHeight',
@@ -319,6 +347,13 @@
       type: '',
       description:
         'ยิงตอน panel ปิด — มี FocusEvent จริงเฉพาะทาง native blur (เช่น กด Tab ออก) ทางอื่น (Escape/คลิกนอก/เลือกใน single mode) ส่ง undefined',
+    },
+    {
+      name: 'filter',
+      payload: '(value: string, update: (apply: () => void) => void, abort: () => void)',
+      type: '',
+      description:
+        'แบบ Quasar — ยิงตอน useInput=true ทุกครั้งที่พิมพ์ (หน่วงตาม inputDebounce) รวมถึง value = \'\' แบบไม่หน่วงอีก 3 จังหวะ (ให้ consumer reset list กลับเป็นชุดเต็ม): panel เปิดจาก focus/คลิก chevron, กดปุ่ม clear, และเลือก option ใน multiple mode (input เคลียร์พร้อมกัน) ต้องเรียก update(() => { myOptions.value = ... }) เพื่อ mutate options ที่ผูกกับ :options เอง (sync หรือหลัง await fetch ก็ได้) ไม่เรียก update = list ไม่กรองเลย เรียก abort() แทนถ้าไม่อยากอัปเดต (เช่น response เก่ากว่าคำค้นล่าสุด)',
     },
   ]
 
@@ -409,6 +444,81 @@
 />`,
     },
     {
+      title: 'useInput + filter (กรองเอง แบบ sync ในเครื่อง)',
+      target: 'demo-use-input',
+      code: `<Select
+  v-model="province"
+  use-input
+  clearable
+  label="จังหวัด (พิมพ์กรองเอง)"
+  :options="filteredProvinces"
+  @filter="onFilter"
+/>
+
+const filteredProvinces = ref(provinceOptions)
+function onFilter(value, update) {
+  update(() => {
+    const needle = value.toLowerCase()
+    filteredProvinces.value = provinceOptions.filter(o => o.label.toLowerCase().includes(needle))
+  })
+}`,
+    },
+    {
+      title: 'useInput + filter (autocomplete จาก API จริง)',
+      target: 'demo-use-input-remote',
+      code: `<Select
+  v-model="selectedUserAsync"
+  use-input
+  :loading="filterLoading"
+  label="ผู้ใช้ (พิมพ์ค้นหาจาก API จริง)"
+  :options="userOptionsAsync"
+  @filter="onFilterRemote"
+/>
+
+const userOptionsAsync = ref([])
+const filterLoading = ref(false)
+let filterToken = 0
+
+async function onFilterRemote(value, update, abort) {
+  const token = ++filterToken
+  filterLoading.value = true
+  try {
+    const users = await apiRaw({ method: 'GET', url: 'https://jsonplaceholder.typicode.com/users' })
+    if (token !== filterToken) return abort() // มีคำค้นใหม่กว่าเข้ามาแล้วระหว่างรอ ทิ้งผลลัพธ์เก่า
+    const needle = value.toLowerCase()
+    update(() => {
+      userOptionsAsync.value = users
+        .filter(u => u.name.toLowerCase().includes(needle))
+        .map(u => ({ label: u.name, value: u.id }))
+    })
+  } finally {
+    if (token === filterToken) filterLoading.value = false
+  }
+}
+// ไม่ต้อง debounce เอง — inputDebounce default 500ms หน่วงให้แล้วก่อนยิง @filter จริง`,
+    },
+    {
+      title: 'useInput + multiple + filter',
+      target: 'demo-use-input-multiple',
+      code: `<Select
+  v-model="tags"
+  use-input
+  multiple
+  label="แท็ก"
+  :options="filteredTagOptions"
+  @filter="onFilterTags"
+/>
+
+const filteredTagOptions = ref(tagOptions)
+function onFilterTags(value, update) {
+  update(() => {
+    const needle = value.toLowerCase()
+    filteredTagOptions.value = tagOptions.filter(o => o.label.toLowerCase().includes(needle))
+  })
+}
+// เลือกแล้วช่องพิมพ์เคลียร์เป็นว่างทันที (ไม่โชว์รายการที่เลือกไว้ในตัว input — ไม่ทำ chips)`,
+    },
+    {
       title: 'emitValue: true (default — v-model ได้ value ดิบ)',
       target: 'demo-emit-value-true',
       code: `<Select
@@ -440,6 +550,18 @@
   :options="provinceOptions"
 />
 <!-- เลือก "เชียงใหม่" แล้ว trigger จะโชว์ "chiang-mai" ไม่ใช่ "เชียงใหม่" -->`,
+    },
+    {
+      title: 'displayValue (ทับข้อความที่ trigger โชว์)',
+      target: 'demo-display-value',
+      code: `<Select
+  v-model="tags"
+  multiple
+  label="แท็ก"
+  :options="tagOptions"
+  :display-value="tags.length > 2 ? \`เลือกไว้ \${tags.length} รายการ\` : ''"
+/>
+<!-- เลือก > 2 รายการ trigger จะโชว์ "เลือกไว้ N รายการ" แทนการต่อ label ยาวๆ -->`,
     },
     {
       title: 'ลิสต์ยาว (virtual scroll)',

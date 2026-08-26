@@ -174,6 +174,91 @@
 
       <hr />
 
+      <div id="demo-use-input">
+        <div class="mb-2 text-18 font-bold">useInput + filter (กรองเอง แบบ sync ในเครื่อง)</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="provinceUseInput"
+            use-input
+            clearable
+            label="จังหวัด (พิมพ์กรองเอง ผ่าน @filter)"
+            placeholder="พิมพ์เพื่อค้นหา"
+            :options="filteredProvinceOptions"
+            @filter="onFilterProvince"
+          />
+          <div class="mt-2 text-16 text-gray-600">
+            ค่าที่เลือก: {{ optionLabelFor(provinceUseInput, provinceOptions) }}
+          </div>
+          <div class="text-16 text-gray-600">
+            v-model: {{ provinceUseInput || '(ยังไม่ได้เลือก)' }}
+          </div>
+          <div class="mt-2 text-16 text-gray-600">
+            ต่างจาก searchable ตรงที่ trigger กลายเป็นช่องพิมพ์ตรงๆ และ Select เอง
+            <b>ไม่กรองให้อัตโนมัติ</b> — ต้องฟัง @filter แล้ว mutate
+            <code>filteredProvinceOptions</code> เอง (ในนี้กรองแบบ sync จาก provinceOptions ทั้งชุด)
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-use-input-remote">
+        <div class="mb-2 text-18 font-bold">useInput + filter (autocomplete จาก API จริง)</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="selectedUserAsync"
+            use-input
+            :loading="filterLoading"
+            label="ผู้ใช้ (พิมพ์ค้นหาจาก API จริง)"
+            placeholder="พิมพ์ชื่อผู้ใช้ (เช่น a, e, l)"
+            :options="userOptionsAsync"
+            @filter="onFilterRemote"
+          />
+          <div class="mt-2 text-16 text-gray-600">
+            ค่าที่เลือก: {{ optionLabelFor(selectedUserAsync, userOptionsAsync) }}
+          </div>
+          <div class="text-16 text-gray-600">
+            v-model: {{ selectedUserAsync || '(ยังไม่ได้เลือก)' }}
+          </div>
+          <div class="mt-2 text-16 text-gray-600">
+            หยุดพิมพ์ 500ms (default ของ inputDebounce) แล้วค่อยยิง API จริงไปที่
+            jsonplaceholder.typicode.com/users แล้วกรองฝั่งเราเอง (จำลอง remote search) — ไม่ใช่ยิงทุก
+            keystroke แล้ว มี token guard กันเคสตอบช้าสลับคิวกัน (คำค้นใหม่มาก่อน response เก่าจะกลับมา
+            ก็ทิ้ง response เก่าผ่าน abort())
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-use-input-multiple">
+        <div class="mb-2 text-18 font-bold">useInput + multiple + filter</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="tagsUseInput"
+            use-input
+            multiple
+            label="แท็ก (พิมพ์กรองแล้วเลือกได้หลายตัว)"
+            placeholder="พิมพ์เพื่อค้นหา"
+            :options="filteredTagOptions"
+            @filter="onFilterTags"
+          />
+          <div class="mt-2 text-16 text-gray-600">
+            ค่าที่เลือก: {{ optionLabelFor(tagsUseInput, tagOptions) }}
+          </div>
+          <div class="text-16 text-gray-600">
+            v-model: {{ tagsUseInput.join(', ') || '(ยังไม่ได้เลือก)' }}
+          </div>
+          <div class="mt-2 text-16 text-gray-600">
+            multiple ไม่โชว์รายการที่เลือกไว้ในตัวช่องพิมพ์ (ไม่ทำ chips) — เลือกแล้วช่องพิมพ์เคลียร์เป็น
+            ว่างพร้อม list กลับมาเป็นชุดเต็มให้ไล่ดูต่อได้ทันที (ไม่ค้างเป็นผลกรองคำก่อนหน้า)
+            ดูรายการที่เลือกจริงได้จากบรรทัด "ค่าที่เลือก"/"v-model" ด้านล่างแทน
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
       <div id="demo-emit-value-true">
         <div class="mb-2 text-18 font-bold">emitValue: true (default — v-model ได้ value ดิบ)</div>
         <div class="max-w-xs">
@@ -239,6 +324,32 @@
           <div class="mt-2 text-16 text-gray-600">
             เทียบกับ demo แรก (mapOptions default true) — เลือกจังหวัดเดียวกัน trigger จะโชว์ value
             ดิบ เช่น "chiang-mai" แทน "เชียงใหม่"
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-display-value">
+        <div class="mb-2 text-18 font-bold">displayValue (ทับข้อความที่ trigger โชว์)</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="tagsWithDisplayValue"
+            multiple
+            label="แท็ก (เลือกเกิน 2 แล้วสรุปเป็นจำนวน)"
+            placeholder="เลือกแท็ก"
+            :options="tagOptions"
+            :display-value="tagsDisplayValue"
+          />
+          <div class="mt-2 text-16 text-gray-600">
+            ค่าที่เลือกจริง: {{ optionLabelFor(tagsWithDisplayValue, tagOptions) }}
+          </div>
+          <div class="text-16 text-gray-600">
+            v-model: {{ tagsWithDisplayValue.join(', ') || '(ยังไม่ได้เลือก)' }}
+          </div>
+          <div class="mt-2 text-16 text-gray-600">
+            ลองเลือกเกิน 2 รายการ — trigger จะโชว์ "เลือกไว้ N รายการ" แทนการต่อ label ยาวๆ
+            (เลือก ≤ 2 ยังโชว์ label ปกติ เพราะ displayValue เป็น '' ตอนนั้น)
           </div>
         </div>
       </div>
@@ -507,7 +618,36 @@
   const provinceWithIcon = ref('')
   const tags = ref<(string | number)[]>([])
   const tagsWithCustomCheckbox = ref<(string | number)[]>([])
+
+  const tagsWithDisplayValue = ref<(string | number)[]>([])
+  const tagsDisplayValue = computed(() =>
+    tagsWithDisplayValue.value.length > 2 ? `เลือกไว้ ${tagsWithDisplayValue.value.length} รายการ` : ''
+  )
   const searchableProvince = ref('')
+
+  const provinceUseInput = ref('')
+  const filteredProvinceOptions = ref<ISelectOption[]>(provinceOptions)
+  // @filter: value คือข้อความที่พิมพ์ล่าสุด, update(fn) เรียก fn() ให้เองแล้วเปิด/รีเฟรช panel ให้ — filter เองแบบ sync จาก provinceOptions ทั้งชุด (ไม่ผ่าน API)
+  const onFilterProvince = (value: string, update: (apply: () => void) => void): void => {
+    update(() => {
+      const needle = value.trim().toLowerCase()
+      filteredProvinceOptions.value = needle
+        ? provinceOptions.filter(option => option.label.toLowerCase().includes(needle))
+        : provinceOptions
+    })
+  }
+
+  const tagsUseInput = ref<(string | number)[]>([])
+  const filteredTagOptions = ref<ISelectOption[]>(tagOptions)
+  const onFilterTags = (value: string, update: (apply: () => void) => void): void => {
+    update(() => {
+      const needle = value.trim().toLowerCase()
+      filteredTagOptions.value = needle
+        ? tagOptions.filter(option => option.label.toLowerCase().includes(needle))
+        : tagOptions
+    })
+  }
+
   const provinceemit = ref('')
   const provinceObject = ref<ISelectOption | ''>('')
   const provinceRaw = ref('')
@@ -557,6 +697,50 @@
   }
 
   onMounted(fetchUsers)
+
+  const selectedUserAsync = ref('')
+  const userOptionsAsync = ref<ISelectOption[]>([])
+  const filterLoading = ref(false)
+  // ไม่ใช้ ref เพราะไม่ต้องขับ template — กันแค่ response เก่ากลับมาช้ากว่าคำค้นใหม่ (race condition ปกติของ debounce-less remote search)
+  let filterToken = 0
+
+  const onFilterRemote = async (
+    value: string,
+    update: (apply: () => void) => void,
+    abort: () => void
+  ): Promise<void> => {
+    const token = ++filterToken
+    filterLoading.value = true
+
+    try {
+      const users = await apiRaw<IJsonPlaceholderUser[]>({
+        method: 'GET',
+        url: 'https://jsonplaceholder.typicode.com/users',
+      })
+      // jsonplaceholder ตอบเร็วมาก (~10-20ms, มักโดน browser cache) — หน่วงเทียมไว้เฉยๆ ให้ loadingText
+      // ใน demo นี้เห็นผลจริงบนจอ ไม่ใช่ pattern ที่ต้องทำตามตอนต่อ API จริงของหน้างาน
+      await new Promise(resolve => setTimeout(resolve, 700))
+
+      // มีคำค้นใหม่กว่ายิงเข้ามาระหว่างรอ response นี้อยู่ — ทิ้ง response เก่า ไม่ให้ทับผลลัพธ์ที่ใหม่กว่า
+      if (token !== filterToken) {
+        abort()
+        return
+      }
+
+      const needle = value.trim().toLowerCase()
+      update(() => {
+        userOptionsAsync.value = users
+          .filter(user => user.name.toLowerCase().includes(needle))
+          .map(user => ({ label: user.name, value: user.id }))
+      })
+    } catch (e) {
+      abort()
+      const { title, message } = getErrorDisplay(e)
+      showDialogError(title, message)
+    } finally {
+      if (token === filterToken) filterLoading.value = false
+    }
+  }
 </script>
 
 <style scoped lang="scss">
