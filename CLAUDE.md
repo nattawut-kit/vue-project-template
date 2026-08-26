@@ -66,9 +66,7 @@ meta:
 
 `.main-container-wrapper` inside `HorizontalLayout` sets `min-height: 100dvh` but does **not** scroll on its own — default-layout pages scroll the document/window, same as blank-layout pages. (An earlier version made this container the scroll owner via `overflow: scroll` under a fixed-height parent; that's gone now, so `window.scrollY` reflects real scroll position everywhere, matching mk-one's layout.)
 
-Window-scroll surfaced two gotchas in `NavbarTopLayout.vue`'s scroll-shrink header, both fixed and worth not re-breaking:
-- `.navbar-top-container` needs an explicit `top: 0`. A `position: fixed` element with no `top`/`bottom` set falls back to its **static position** (where it'd sit in normal flow) — harmless normally since that's the top of the page anyway, but `scrollLock.ts`'s `body { position: fixed; top: -scrollY }` trick (see below) shifts that static position along with it, so without the explicit `top: 0` the header visibly flies off-screen the moment a modal opens while scrolled. `NavbarBottomLayout.vue` never had this bug because it already sets `bottom: 0` explicitly.
-- The header's scroll listener ignores scroll events while `isScrollLocked()` (from `scrollLock.ts`) is true. Locking `body` makes `window.scrollY` snap to `0` (the document has no scrollable height while `body` is `position: fixed`), which would otherwise make the header think the page scrolled back to top and drop its white background the instant a modal opens.
+Window-scroll surfaced two gotchas in `NavbarTopLayout.vue`'s scroll-shrink header — an explicit `top: 0` on the fixed header (else `scrollLock.ts`'s `body { position: fixed; top: -scrollY }` trick drags it off-screen), and ignoring scroll events while `isScrollLocked()` is true (else the header thinks the page scrolled to top the instant a modal opens). Both are fixed and explained in comments right at the relevant lines in that file — read them before touching header positioning. `NavbarBottomLayout.vue` never had the first bug since it already sets `bottom: 0` explicitly.
 
 Two deliberate things not to undo: `<router-view :key="route.path">` in both `App.vue` and `default.vue` (commit f2852fb, fixes an `insertBefore` remount race), and the absence of page transitions (fade and slide were both prototyped and rejected).
 
@@ -78,94 +76,13 @@ Two deliberate things not to undo: `<router-view :key="route.path">` in both `Ap
 
 ### Global dialog (`Dialog.create`)
 
-Programmatic modals — nothing to mount per page. `src/components/modal/dialog.ts` is the engine: `Dialog.create({ component, componentProps? })` pushes an entry onto a module-level stack and returns a chainable handle. The whole modal system (engine, host, base/default components, the dialog composable, shared types) lives under `src/components/modal/` on purpose — the folder is meant to be copy-pasted whole into another project forked from this template. `vite.config.ts`'s `AutoImport({ dirs })` includes `./src/components/modal/**` alongside the usual roots — safe because `unplugin-auto-import`'s default dir scan only matches `.ts`/`.js` extensions, never `.vue`, so it can't collide with `unplugin-vue-components`' registration of the `.vue` files in the same folder. That's why `Dialog`, `activeDialogs`, `closeAllDialogs`, `useDialogComponent`, and the shared types are still ambient at call sites — `Dialog.create` needs no import of its own below — while `DefaultModal` (a `.vue` file, only auto-registered for templates) still does when referenced as a plain value:
+Programmatic modals — nothing to mount per page. The engine (`Dialog.create`, `closeAllDialogs`, `activeDialogs`, and all shared types) lives in `src/components/modal/dialog.ts`. Every file under `src/components/modal/` documents its own usage examples, mechanics, and design decisions in Thai comments (`dialog.ts`'s top comment has a full `Dialog.create` example; `BaseModal.vue`, `DefaultModal.vue`, `DialogHost.vue`, `useDialogComponent.ts` each explain their own piece) — **read the file before changing it** rather than relying on this section. What follows is only what's cross-cutting or invisible from any single file:
 
-```ts
-import DefaultModal from '@/components/modal/DefaultModal.vue'
-
-Dialog.create({
-  component: DefaultModal,
-  componentProps: {
-    type: 'question', // success | question | alert | cancel
-    title: 'ยืนยันการทำรายการ',
-    content: 'ต้องการบันทึกข้อมูลนี้หรือไม่', // ผ่าน v-dompurify-html — ใส่ <br> ได้
-    buttons: [
-      { action: 'cancel', text: 'ยกเลิก' },
-      { action: 'submit', text: 'ยืนยัน' },
-    ],
-  },
-})
-  .onOk(() => {})
-  .onCancel(() => {})
-```
-
-Three hooks, all chainable and all optional: `onOk`, `onCancel`, and `onDismiss((result, payload) => …)` which fires on *every* close (cleanup that must run either way). Both outcomes carry an optional payload, and `Dialog.create<TCancel, TOk>()` types it so call sites don't cast — **`TCancel` comes first** because the cancel path is the one that usually needs a reason, so one type argument is normally enough:
-
-```ts
-Dialog.create<{ reason: 'expired' | 'close' }>({ component: CouponModal })
-  .onCancel(payload => payload?.reason === 'expired')
-```
-
-Skipping the generics is fine too: `payload` is then `unknown` and you narrow at the point of use, the same way `validate` is handled in the api layer. Often you need neither — the data the caller wants is already in its own scope (see `handleOpenCoupon` in `src/pages/example.vue`, whose `onOk` reads the page's own `couponDataList`).
-
-**Closing without user interaction** needs nothing extra from the engine — a modal calls `onDialogOk()`/`onDialogCancel()` whenever it likes (countdown expiry, a websocket event, a watcher) and puts the reason in the payload so the caller can tell it apart from a button press. `src/pages/_components/ExampleCouponModal.vue` is that case end to end: a coupon code with a countdown that closes itself with `{ reason: 'expired' }`. Clear your own timers in `onUnmounted` — the component stays alive for `LEAVE_DURATION` after closing.
-
-The dialog component is imported **explicitly** — auto-registration only covers templates, and `componentProps` is `Record<string, unknown>` (typed by the component itself).
-
-**Shortcut for the standard popup.** `showDialog` / `showDialogError` (same file) hardwire `DefaultModal`, so a page needs no component import and no `componentProps` nesting. Positional args are deliberate — they match the signature used in the chua-hah-seng project so pages port over unchanged:
-
-```ts
-showDialog(
-  'success',
-  'อัปเดตข้อมูลสำเร็จ',
-  'คุณได้ทำการอัปเดตข้อมูลเรียบร้อยแล้ว',
-  [{ action: 'submit', text: 'ปิด' }],
-  async () => {
-    await customerStore.fetchCustomerInfo()
-    router.push({ name: 'profile' })
-  }
-)
-
-const { title, message } = getErrorDisplay(e)
-showDialogError(title, message) // type 'cancel', one button — or call it with no args at all
-```
-
-Both return the `Dialog.create` handle, so `.onDismiss()` still chains. Two things to know: passing `submit` while leaving `buttons` out needs an `undefined` hole (the cost of positional args), and these only ever render `DefaultModal` — a custom modal always goes through `Dialog.create` directly. Because of them `src/utils/dialog.ts` imports `DefaultModal.vue`, which is why the dialog UI now sits in the main chunk instead of a lazy one.
-
-Three pieces:
-
-- `src/components/modal/dialog.ts` — `Dialog.create`, `closeAllDialogs`, the `activeDialogs` stack (`shallowRef` + array reassignment, so component definitions never get proxied), and `LEAVE_DURATION` (250ms — must stay above `BaseModal`'s 0.2s close transition; the entry leaves the stack that long after closing).
-- `src/components/modal/DialogHost.vue` — mounted once in `App.vue`, renders the stack and listens for each dialog's `ok`/`cancel` emit. Multiple dialogs may be open at once; later ones paint on top by DOM order.
-- `src/components/modal/useDialogComponent.ts` — what a dialog component calls, passing its own `emit` in: `useDialogComponent(emit)` returns `{ visible, onDialogOk, onDialogCancel }` (both handlers take an optional payload). `visible` starts `false` and flips `true` on mount so the enter transition plays; closing settles once (later calls are ignored), emits immediately, then unmounts after the transition. `visible` going `false` on its own (backdrop/ESC) counts as **cancel**.
-
-The `emit` hand-off is why every dialog component declares `defineEmits<{ ok: [payload?: unknown]; cancel: [payload?: unknown] }>()` — three lines of boilerplate that buy a single host component (`provide`/`inject` would need a wrapper component per dialog, since `provide` runs once per instance and can't vary across a `v-for`). `DialogComponentEmit` is written as overloads to match what `defineEmits` generates; a plain union signature won't assign.
-
-**Navigation closes everything.** `DialogHost` watches `route.path` and calls `closeAllDialogs()` — dialogs live outside `RouterView`, so without it a modal left open would sit on top of the next page (browser back on a coupon popup, for one). That teardown fires **no** callbacks: not `onCancel`, not `onDismiss` — it isn't a user outcome. Consequence to know: opening a dialog and navigating in the same tick kills the dialog. (Quasar behaves differently here — `Dialog.create` renders outside the app tree and survives route changes; what it hooks instead is the browser history, so back closes the top overlay rather than leaving the page. Worth revisiting if that's the UX you want.)
-
-UI side, `src/components/modal/BaseModal.vue` is the shared shell — backdrop, centered 327px panel (`max-w-81.75`), `Teleport to="body"`, ESC/backdrop close (a shake animation instead when both are off), focus handling, and scroll locking — with **no padding and no dialog logic**; everything visible comes from the slot. `DefaultModal.vue` is the standard popup (icon band per `type`, title, content, 1–2 buttons) built on it, and any custom modal (`SelectAddressModal`, …) is the same shape:
-
-```vue
-<template>
-  <BaseModal v-model="visible">
-    <!-- custom UI -->
-  </BaseModal>
-</template>
-
-<script setup lang="ts">
-  const emit = defineEmits<{
-    ok: [payload?: unknown]
-    cancel: [payload?: unknown]
-  }>()
-
-  const { visible, onDialogOk, onDialogCancel } = useDialogComponent(emit)
-</script>
-```
-
-**Scroll locking** is `src/utils/scrollLock.ts`, called from `BaseModal` (open → `lockScroll`, close *or* unmount → `unlockScroll`), so every modal gets it whether it came from `Dialog.create` or is used directly. Ported from the mk-one project with three changes: it **counts** locks instead of keeping a boolean (stacked dialogs would otherwise unlock as soon as the first one closed), it restores the styles it captured instead of blanking them, and it drops the scrollbar-width padding compensation — `html` already reserves the gutter via `scrollbar-gutter: stable`, so adding padding would shift the page sideways. It keeps the `position: fixed` + `top: -scrollY` technique on purpose: plain `overflow: hidden` doesn't hold on iOS Safari. Since both default- and blank-layout pages scroll the document/window (see Layout chain above), this is a real scroll-position lock on every page — not just an iOS-bounce guard. `BaseModal` releases in `onUnmounted` too, which is what keeps `closeAllDialogs()` on navigation from leaking a lock.
-
-Two `DefaultModal` decisions worth keeping: backdrop/ESC close are **off** (a `success` popup whose `onOk` navigates must not be dismissable in a way that skips the callback — so `buttons: []` makes it unclosable), and `type: 'cancel'` defaults its copy to `เกิดข้อผิดพลาด` / `กรุณาลองใหม่อีกครั้ง` so error popups can pass none. Shared UI types (`DialogType`, `DialogButtonAction`, `IDialogButton`) live in `src/components/modal/dialog.types.ts`, engine types stay in `src/components/modal/dialog.ts` — both auto-imported via the scoped `dirs` entries mentioned above. `showDialog`/`showDialogError` are the one part of this system that stays in `src/utils/dialog.ts` rather than `components/modal/` — they're an opinionated calling convention (positional args matching another project), not core mechanism, so a forked project is free to keep, rewrite, or drop them independently of the portable `modal/` folder.
-
-The old `useDialog().confirm()` singleton (two buttons, one global `<Modal>`) is gone — this replaced it.
+- **Auto-import boundary.** `vite.config.ts`'s `AutoImport({ dirs })` includes `./src/components/modal/**` alongside the usual roots — safe because `unplugin-auto-import`'s dir scan only matches `.ts`/`.js`, never `.vue`, so it can't collide with `unplugin-vue-components`' registration of the `.vue` files in the same folder. That's why `Dialog`, `closeAllDialogs`, `useDialogComponent`, and the shared types are ambient at call sites, while `DefaultModal` — passed as a `.vue` value to `component:`, not used as a template tag — still needs an explicit import.
+- **Portability.** The whole `modal/` folder (engine, host, base/default components, composable, types) is meant to be copy-pasted whole into a project forked from this template.
+- **`showDialog`/`showDialogError`** (the positional-args shortcut for the standard popup) live in `src/utils/dialog.ts`, deliberately outside `components/modal/` — an opinionated calling convention (matches the chua-hah-seng project's signature) rather than core mechanism, so a fork can keep, rewrite, or drop them independently. Because that file imports `DefaultModal.vue` directly, the dialog UI sits in the main chunk instead of a lazy one.
+- **Navigation closes everything.** `DialogHost` closes all open dialogs on route change with **no** `onCancel`/`onDismiss` fired — that's teardown, not a user outcome. Opening a dialog and navigating away in the same tick kills it before it can be interacted with. (Quasar behaves differently — its dialogs survive route changes and hook browser history instead, so back closes the top overlay. Worth revisiting if that's the UX you want.)
+- The old `useDialog().confirm()` singleton (two buttons, one global `<Modal>`) is gone — this system replaced it.
 
 ### Pinia stores
 
@@ -177,7 +94,7 @@ Category folders under `src/components/` (chosen by usage, not component type, a
 
 - `common/` — general-purpose (`Button.vue`)
 - `form/` — user input (`Input.vue`; future `Checkbox`/`Radio`/`Select`)
-- `modal/` — the dialog system, kept self-contained so the folder can be copied whole into a forked project: `BaseModal.vue`, `DefaultModal.vue`, `DialogHost.vue`, `dialog.ts` (engine), `dialog.types.ts`, `useDialogComponent.ts` (see above)
+- `modal/` — the dialog system, kept self-contained so the folder can be copied whole into a forked project: `BaseModal.vue`, `DefaultModal.vue`, `DialogHost.vue`, `dialog.ts` (engine + shared types), `useDialogComponent.ts` (see above)
 - `media/`, `content/` — reserved (images/SVGs; banners/cards); create when the first real component lands
 - `icons/` — see the convention comment atop `IconHouse.vue`: no hardcoded size (size via parent `w-*`/`h-*`), `currentColor` for fill/stroke
 
