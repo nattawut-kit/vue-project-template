@@ -5,9 +5,14 @@
     :style="containerStyle"
   >
     <img
-      v-show="!hasError"
       class="block h-full w-full"
-      :class="[fitClasses[props.fit], positionClass, props.imgClass]"
+      :class="[
+        fitClasses[props.fit],
+        positionClass,
+        props.imgClass,
+        // visibility ไม่ใช่ display:none — ต้องเหลือ layout box ไว้ให้ loading=lazy (IntersectionObserver) ทำงานได้ปกติ
+        hasError || (props.reveal && isLoading) ? 'invisible' : 'visible',
+      ]"
       :src="currentSrc"
       :srcset="props.srcset || undefined"
       :sizes="props.sizes || undefined"
@@ -48,8 +53,12 @@
           aria-hidden="true"
         />
         <div
+          v-else-if="isPulse"
+          class="pulse-fade h-full min-h-6 w-full min-w-6 bg-[#9ca3af]"
+        />
+        <div
           v-else-if="spinnerConfig"
-          class="flex h-full min-h-6 w-full min-w-6 items-center justify-center bg-gray-100"
+          class="flex h-full min-h-6 w-full min-w-6 items-center justify-center bg-gray-100/70"
         >
           <span
             class="animate-spin rounded-full border-2 border-t-transparent"
@@ -60,7 +69,7 @@
         </div>
         <div
           v-else
-          class="h-full min-h-6 w-full min-w-6 bg-gray-100"
+          class="h-full min-h-6 w-full min-w-6 bg-gray-100/70"
         />
       </slot>
     </div>
@@ -84,12 +93,12 @@
     | 'right-bottom'
   type ImgRound = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
 
-  // true = spinner default, object = ทับเฉพาะ field ที่ระบุ, false = ไม่มี spinner (กล่องเทาเปล่าๆ)
+  // 'pulse' (default) = กล่องเทากะพริบ (animation เดียวกับ MKSkeleton.vue ใน mk-one), true = spinner หมุน, object = spinner หมุนแบบทับเฉพาะ field ที่ระบุ, false = ไม่มี spinner (กล่องเทาเปล่าๆ)
   interface ImgSpinnerOptions {
     color?: string
     size?: string
   }
-  type ImgSpinner = boolean | ImgSpinnerOptions
+  type ImgSpinner = boolean | 'pulse' | ImgSpinnerOptions
 
   interface Props {
     src: string
@@ -110,6 +119,9 @@
     // ปิด native image drag ของ browser (เช่น รูปอยู่ใน carousel ที่ swipe ด้วยนิ้ว)
     draggable?: boolean
     spinner?: ImgSpinner
+    // true (default) = ซ่อนรูปไว้จนกว่าจะโหลดเสร็จค่อยโชว์ทีเดียว (กัน progressive-render ทะลุ loading indicator เช่นตอน spinner="pulse")
+    // false = โชว์รูปตั้งแต่เริ่มโหลด (พฤติกรรมเดิมก่อนแก้) — เห็นรูปค่อยๆ render ทับ/ปนกับ loading indicator ได้
+    reveal?: boolean
     // รูป (มักเป็น base64/low-res) โชว์ทันทีระหว่างรอ src โหลด แทน spinner default — สลับเป็น src จริงอัตโนมัติตอนโหลดเสร็จ
     placeholderSrc?: string | null
     // สลับไปรูปนี้ถ้าโหลด src หลักไม่สำเร็จ
@@ -131,7 +143,8 @@
     round: 'none',
     lazy: true,
     draggable: true,
-    spinner: true,
+    spinner: 'pulse',
+    reveal: true,
     placeholderSrc: null,
     fallbackSrc: null,
     imgClass: undefined,
@@ -216,8 +229,10 @@
     size: '',
   }
 
+  const isPulse = computed(() => props.spinner === 'pulse')
+
   const spinnerConfig = computed<Required<ImgSpinnerOptions> | null>(() => {
-    if (props.spinner === false) return null
+    if (props.spinner === false || props.spinner === 'pulse') return null
     if (props.spinner === true) return DEFAULT_SPINNER_OPTIONS
 
     return { ...DEFAULT_SPINNER_OPTIONS, ...props.spinner }
@@ -264,3 +279,21 @@
 
   watch(() => props.src, resetState)
 </script>
+
+<style scoped lang="scss">
+  // timing เดียวกับ MKSkeleton.vue (mk-one) — ไม่ใช้ Tailwind animate-pulse เพราะ duration/easing ต่างกัน (2s cubic-bezier vs 1.8s ease-in-out)
+  .pulse-fade {
+    animation: pulse-fade 1.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse-fade {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.5;
+    }
+  }
+</style>

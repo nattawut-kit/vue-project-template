@@ -215,10 +215,17 @@
     },
     {
       name: 'spinner',
-      type: 'boolean | { color?: string; size?: string }',
+      type: "boolean | 'pulse' | { color?: string; size?: string }",
+      default: "'pulse'",
+      description:
+        "'pulse' = กล่องเทากะพริบ (default), true = spinner หมุน, object = spinner หมุนทับเฉพาะ field ที่ระบุ (ดูตารางด้านล่าง), false = ไม่มี spinner (กล่องเทาเปล่าๆ)",
+    },
+    {
+      name: 'reveal',
+      type: 'boolean',
       default: 'true',
       description:
-        'true = spinner default, object ทับเฉพาะ field ที่ระบุ (ดูตารางด้านล่าง), false = ไม่มี spinner (กล่องเทาเปล่าๆ)',
+        'true = ซ่อนรูปไว้จนโหลดเสร็จค่อยโชว์ทีเดียว (กัน progressive-render ทะลุ loading indicator), false = โชว์รูปตั้งแต่เริ่มโหลด (เห็นรูปค่อยๆ render ปนกับ loading indicator)',
     },
     {
       name: 'placeholderSrc',
@@ -349,7 +356,7 @@
 <Img src="..." :img-style="{ filter: 'blur(2px)' }" />`,
     },
     {
-      title: 'loading: placeholder slot / placeholderSrc / spinner',
+      title: 'loading: placeholder slot / placeholderSrc / spinner / reveal',
       target: 'demo-loading',
       code: `<Img src="..." />
 
@@ -360,7 +367,10 @@
 <Img src="..." placeholder-src="data:image/png;base64,..." />
 
 <Img src="..." :spinner="{ color: '#0d6efd', size: '28px' }" />
-<Img src="..." :spinner="false" />`,
+<Img src="..." :spinner="false" />
+<Img src="..." spinner="pulse" />
+
+<Img src="..." :reveal="false" />`,
     },
     {
       title: 'srcset / sizes (responsive)',

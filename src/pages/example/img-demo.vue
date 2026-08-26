@@ -60,7 +60,7 @@
               round="md"
               class="w-full"
             />
-            <span class="text-12 text-gray-500">{{ ratioOption.label }}</span>
+            <span class="text-18 text-gray-500">{{ ratioOption.label }}</span>
           </div>
         </div>
       </div>
@@ -80,7 +80,7 @@
               :fit="fitOption"
               class="size-20 bg-gray-100"
             />
-            <span class="text-12 text-gray-500">{{ fitOption }}</span>
+            <span class="text-18 text-gray-500">{{ fitOption }}</span>
           </div>
         </div>
       </div>
@@ -101,7 +101,7 @@
               :position="positionOption"
               class="size-20"
             />
-            <span class="text-12 text-gray-500">{{ positionOption }}</span>
+            <span class="text-18 text-gray-500">{{ positionOption }}</span>
           </div>
         </div>
       </div>
@@ -121,7 +121,7 @@
               :round="roundOption"
               class="size-20"
             />
-            <span class="text-12 text-gray-500">{{ roundOption }}</span>
+            <span class="text-18 text-gray-500">{{ roundOption }}</span>
           </div>
           <div class="flex flex-col items-center gap-1">
             <Img
@@ -129,7 +129,7 @@
               round="10px"
               class="size-20"
             />
-            <span class="text-12 text-gray-500">10px</span>
+            <span class="text-18 text-gray-500">10px</span>
           </div>
         </div>
       </div>
@@ -147,7 +147,7 @@
               round="lg"
               class="ring-main-1 size-20 ring-2"
             />
-            <span class="text-12 text-gray-500">ปกติ (class ที่ส่งเข้ามาลง container)</span>
+            <span class="text-18 text-gray-500">ปกติ (class ที่ส่งเข้ามาลง container)</span>
           </div>
 
           <div class="flex flex-col items-center gap-1">
@@ -157,7 +157,7 @@
               round="lg"
               class="ring-main-1 size-20 ring-2"
             />
-            <span class="text-12 text-gray-500">imgClass="grayscale"</span>
+            <span class="text-18 text-gray-500">imgClass="grayscale"</span>
           </div>
 
           <div class="flex flex-col items-center gap-1">
@@ -167,10 +167,10 @@
               round="lg"
               class="ring-main-1 size-20 ring-2"
             />
-            <span class="text-12 text-gray-500">imgStyle="{ filter: 'blur(2px)' }"</span>
+            <span class="text-18 text-gray-500">imgStyle="{ filter: 'blur(2px)' }"</span>
           </div>
         </div>
-        <span class="text-12 text-gray-500">
+        <span class="text-18 text-gray-500">
           ring (ring-main-1) ยังอยู่ที่ container ปกติ — grayscale/blur โดน "เฉพาะ" ตัว &lt;img&gt;
           เท่านั้น
         </span>
@@ -180,7 +180,7 @@
 
       <div id="demo-loading">
         <div class="mb-2 text-18 font-bold">
-          loading state — spinner default / placeholder slot ที่ปรับเอง / placeholderSrc
+          loading state — pulse default / placeholder slot ที่ปรับเอง / placeholderSrc
         </div>
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex flex-col items-center gap-1">
@@ -189,7 +189,7 @@
               class="size-24"
               round="lg"
             />
-            <span class="text-12 text-gray-500">default (spinner)</span>
+            <span class="text-18 text-gray-500">default (pulse)</span>
           </div>
 
           <div class="flex flex-col items-center gap-1">
@@ -197,16 +197,17 @@
               :src="loadingSrcCustom"
               class="size-24"
               round="lg"
+              :reveal="false"
             >
               <template #placeholder>
                 <div
-                  class="flex h-full w-full items-center justify-center bg-main-1/10 text-12 font-bold text-main-1"
+                  class="flex h-full w-full items-center justify-center bg-main-1/10 text-14 font-bold text-main-1"
                 >
                   กำลังโหลด...
                 </div>
               </template>
             </Img>
-            <span class="text-12 text-gray-500">placeholder slot ที่ปรับเอง</span>
+            <span class="text-18 text-gray-500">placeholder slot ที่ปรับเอง</span>
           </div>
 
           <div class="flex flex-col items-center gap-1">
@@ -216,17 +217,18 @@
               class="size-24"
               round="lg"
             />
-            <span class="text-12 text-gray-500">placeholderSrc (โชว์รูปสำรองต่ำก่อน)</span>
+            <span class="text-18 text-gray-500">placeholderSrc (โชว์รูปสำรองต่ำก่อน)</span>
           </div>
 
           <div class="flex flex-col items-center gap-1">
             <Img
               :src="loadingSrcSpinnerColor"
               :spinner="{ color: '#0d6efd', size: '28px' }"
+              :reveal="false"
               class="size-24"
               round="lg"
             />
-            <span class="text-12 text-gray-500">spinner="{{ '{ color, size }' }}"</span>
+            <span class="text-18 text-gray-500">spinner="{{ '{ color, size }' }}"</span>
           </div>
 
           <div class="flex flex-col items-center gap-1">
@@ -236,7 +238,27 @@
               class="size-24"
               round="lg"
             />
-            <span class="text-12 text-gray-500">spinner: false</span>
+            <span class="text-18 text-gray-500">spinner: false</span>
+          </div>
+
+          <div class="flex flex-col items-center gap-1">
+            <Img
+              :src="loadingSrcSpinnerPulse"
+              spinner="pulse"
+              class="size-24"
+              round="lg"
+            />
+            <span class="text-18 text-gray-500">spinner: 'pulse'</span>
+          </div>
+
+          <div class="flex flex-col items-center gap-1">
+            <Img
+              :src="loadingSrcReveal"
+              :reveal="false"
+              class="size-24"
+              round="lg"
+            />
+            <span class="text-18 text-gray-500">reveal: false (โชว์รูปตั้งแต่เริ่มโหลด)</span>
           </div>
 
           <Button
@@ -245,6 +267,32 @@
             @click="reloadLoadingDemo"
           />
         </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-pulse-real">
+        <div class="mb-2 text-18 font-bold">
+          ตัวอย่างจริง — การ์ดสมาชิก (aspect-ratio 1.32/1, spinner="pulse")
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <Img
+            :key="realCardKey"
+            :src="REAL_CARD_SRC"
+            aspect-ratio="1.32/1"
+            round="16px"
+            class="w-full"
+          />
+          <Button
+            variant="secondary"
+            label="โหลดใหม่"
+            @click="reloadRealCard"
+          />
+        </div>
+        <span class="text-18 text-gray-500">
+          รูปจริงจาก Azure Blob Storage — ปุ่มโหลดใหม่รีเมาท์ Img ด้วย :key เพื่อดู pulse ซ้ำ
+          (หลังครั้งแรก browser cache อาจทำให้โหลดเร็วจนแทบไม่เห็น pulse)
+        </span>
       </div>
 
       <hr />
@@ -259,7 +307,7 @@
           round="lg"
           class="w-full"
         />
-        <span class="text-12 text-gray-500"
+        <span class="text-18 text-gray-500"
           >ลอง resize หน้าจอ — เปิด DevTools ดู request ที่ยิงจริงจะเห็นว่า browser เลือก
           400w/800w/1200w ตาม viewport</span
         >
@@ -292,7 +340,7 @@
           >
             <template #error>
               <div
-                class="flex h-full w-full items-center justify-center bg-gray-100 text-12 text-gray-400"
+                class="flex h-full w-full items-center justify-center bg-gray-100 text-14 text-gray-400"
               >
                 โหลดไม่สำเร็จ
               </div>
@@ -339,7 +387,7 @@
             round="lg"
           />
         </div>
-        <span class="text-12 text-gray-500">
+        <span class="text-18 text-gray-500">
           ลองกดค้างแล้วลากรูปทั้งสอง — รูปที่ 2 (draggable false) จะลากไม่ได้
         </span>
       </div>
@@ -392,8 +440,21 @@
   const loadingSrcSpinnerFalse = computed(
     () => `https://picsum.photos/seed/img-demo-loading-spinner-false-${loadingSeed.value}/500/500`
   )
+  const loadingSrcSpinnerPulse = computed(
+    () => `https://picsum.photos/seed/img-demo-loading-spinner-pulse-${loadingSeed.value}/500/500`
+  )
+  const loadingSrcReveal = computed(
+    () => `https://picsum.photos/seed/img-demo-loading-reveal-${loadingSeed.value}/500/500`
+  )
   const reloadLoadingDemo = (): void => {
     loadingSeed.value += 1
+  }
+
+  const REAL_CARD_SRC =
+    'https://devbcrmdata.blob.core.windows.net/bcrm-245-b3wdpdworwmd/AJAYT7XH1HMV_app-bo-cust/Card/20260526_050036_20260526_170036_Card_Image_540265.png_LYTKFDD.png?sv=2026-04-06&se=2031-04-30T10%3A00%3A37Z&sr=b&sp=r&sig=52XH3MXorzAij8uPbSBBsJXkP7uhZm%2BwmbmGW%2FZvufA%3D'
+  const realCardKey = ref(0)
+  const reloadRealCard = (): void => {
+    realCardKey.value += 1
   }
 
   // ตัวอย่าง placeholderSrc — ปกติจะเป็นรูป base64 ความละเอียดต่ำ/เบลอของรูปจริง ในที่นี้ใช้สี่เหลี่ยมสีเทาแทน
