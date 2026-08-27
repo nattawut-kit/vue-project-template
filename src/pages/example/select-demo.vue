@@ -153,6 +153,54 @@
 
       <hr />
 
+      <div id="demo-use-chips-on">
+        <div class="mb-2 text-18 font-bold">useChips: true (default — โชว์เป็น chip)</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="tagsChipsOn"
+            multiple
+            :use-chips="true"
+            label="แท็ก (useChips เปิด)"
+            placeholder="เลือกแท็ก"
+            :options="tagOptions"
+          />
+          <div class="mt-2 text-16 text-gray-600">
+            ค่าที่เลือก: {{ optionLabelFor(tagsChipsOn, tagOptions) }}
+          </div>
+          <div class="text-16 text-gray-600">
+            v-model: {{ tagsChipsOn.join(', ') || '(ยังไม่ได้เลือก)' }}
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div id="demo-use-chips-off">
+        <div class="mb-2 text-18 font-bold">useChips: false (โชว์ label ต่อด้วย comma แบบเดิม)</div>
+        <div class="max-w-xs">
+          <Select
+            v-model="tagsChipsOff"
+            multiple
+            :use-chips="false"
+            label="แท็ก (useChips ปิด)"
+            placeholder="เลือกแท็ก"
+            :options="tagOptions"
+          />
+          <div class="mt-2 text-16 text-gray-600">
+            ค่าที่เลือก: {{ optionLabelFor(tagsChipsOff, tagOptions) }}
+          </div>
+          <div class="text-16 text-gray-600">
+            v-model: {{ tagsChipsOff.join(', ') || '(ยังไม่ได้เลือก)' }}
+          </div>
+          <div class="mt-2 text-16 text-gray-600">
+            ตัวเลือกที่เลือกไว้ (สองรายการเหมือนตัวอย่างด้านบน) โชว์เป็นข้อความ truncate บรรทัดเดียวแทน — เทียบกัน
+            ได้เลยว่าต่างกันแค่หน้าตา trigger เท่านั้น v-model/ค่าที่เลือกจริงเหมือนกันทุกอย่าง
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
       <div id="demo-searchable">
         <div class="mb-2 text-18 font-bold">searchable</div>
         <div class="max-w-xs">
@@ -250,9 +298,9 @@
             v-model: {{ tagsUseInput.join(', ') || '(ยังไม่ได้เลือก)' }}
           </div>
           <div class="mt-2 text-16 text-gray-600">
-            multiple ไม่โชว์รายการที่เลือกไว้ในตัวช่องพิมพ์ (ไม่ทำ chips) — เลือกแล้วช่องพิมพ์เคลียร์เป็น
-            ว่างพร้อม list กลับมาเป็นชุดเต็มให้ไล่ดูต่อได้ทันที (ไม่ค้างเป็นผลกรองคำก่อนหน้า)
-            ดูรายการที่เลือกจริงได้จากบรรทัด "ค่าที่เลือก"/"v-model" ด้านล่างแทน
+            เลือกแล้วขึ้นเป็น chip ในช่องพิมพ์เอง ลบทีละตัวได้ด้วยปุ่ม × บน chip หรือกด Backspace ตอนช่องพิมพ์ว่างสนิท
+            เพื่อลบตัวสุดท้าย — พิมพ์กรองคำถัดไปได้ทันทีเพราะ list กลับมาเป็นชุดเต็มให้ไล่ดูต่อ
+            (ไม่ค้างเป็นผลกรองคำก่อนหน้า)
           </div>
         </div>
       </div>
@@ -830,6 +878,9 @@
   const provinceWithIcon = ref('')
   const tags = ref<(string | number)[]>([])
   const tagsWithCustomCheckbox = ref<(string | number)[]>([])
+  // มีค่าเริ่มต้นให้เห็นผลต่างทันทีโดยไม่ต้องเลือกเอง — useChips true โชว์เป็น chip, false โชว์ label ต่อด้วย comma
+  const tagsChipsOn = ref<(string | number)[]>(['returning', 'vip'])
+  const tagsChipsOff = ref<(string | number)[]>(['returning', 'vip'])
 
   const tagsWithDisplayValue = ref<(string | number)[]>([])
   const tagsDisplayValue = computed(() =>

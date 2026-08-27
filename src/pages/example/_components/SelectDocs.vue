@@ -258,6 +258,13 @@
       description: 'true = v-model เป็น array, false = v-model เป็นค่าเดี่ยว (string | number)',
     },
     {
+      name: 'useChips',
+      type: 'boolean',
+      default: 'true',
+      description:
+        "แบบ Quasar's use-chips — true (default) = ตัวที่เลือกไว้ (multiple) โชว์เป็น chip ลบทีละตัวได้ (ปุ่ม × หรือ Backspace ตอน useInput), false = กลับไปโชว์ label ต่อกันด้วย comma ธรรมดา — ไม่มีผลตอน multiple=false",
+    },
+    {
       name: 'searchable',
       type: 'boolean',
       default: 'false',
@@ -519,6 +526,32 @@
 />`,
     },
     {
+      title: 'useChips: true (default — โชว์เป็น chip)',
+      target: 'demo-use-chips-on',
+      code: `<Select
+  v-model="tags"
+  multiple
+  :use-chips="true"
+  label="แท็ก"
+  placeholder="เลือกแท็ก"
+  :options="tagOptions"
+/>
+<!-- ค่าเริ่มต้นของ multiple อยู่แล้ว ใส่ :use-chips="true" ตรงๆ ไว้ให้เห็นชัดเฉยๆ -->`,
+    },
+    {
+      title: 'useChips: false (โชว์ label ต่อด้วย comma แบบเดิม)',
+      target: 'demo-use-chips-off',
+      code: `<Select
+  v-model="tags"
+  multiple
+  :use-chips="false"
+  label="แท็ก"
+  placeholder="เลือกแท็ก"
+  :options="tagOptions"
+/>
+<!-- เลือกไว้ยังไงก็ v-model ได้ array เหมือนเดิม แค่ trigger โชว์เป็นข้อความ truncate บรรทัดเดียวแทน chip -->`,
+    },
+    {
       title: 'searchable',
       target: 'demo-searchable',
       code: `<Select
@@ -601,7 +634,7 @@ function onFilterTags(value, update) {
     filteredTagOptions.value = tagOptions.filter(o => o.label.toLowerCase().includes(needle))
   })
 }
-// เลือกแล้วช่องพิมพ์เคลียร์เป็นว่างทันที (ไม่โชว์รายการที่เลือกไว้ในตัว input — ไม่ทำ chips)`,
+// เลือกแล้วขึ้นเป็น chip ในช่องพิมพ์เอง ลบทีละตัวได้ทั้งปุ่ม × หรือกด Backspace ตอนช่องพิมพ์ว่างสนิท`,
     },
     {
       title: 'emitValue: true (default — v-model ได้ value ดิบ)',

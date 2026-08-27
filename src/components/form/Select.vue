@@ -35,8 +35,55 @@
       >
         <slot name="prepend"></slot>
 
+        <div
+          v-if="useInput && multiple && useChips"
+          class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5"
+        >
+          <span
+            v-for="option in selectedOptionObjects"
+            :key="option.value"
+            class="flex max-w-full items-center gap-1 rounded-md bg-main-1/10 py-1 pl-2 text-14 text-main-1"
+            :class="disabled || readonly ? 'pr-2' : 'pr-1'"
+          >
+            <span class="max-w-32 truncate">{{ option.label }}</span>
+            <button
+              v-if="!disabled && !readonly"
+              type="button"
+              tabindex="-1"
+              class="flex shrink-0 items-center cursor-pointer"
+              @mousedown.prevent
+              @click.stop="toggleOption(option)"
+            >
+              <Svg
+                src="common/x-close"
+                class="size-3"
+                color="currentColor"
+              />
+            </button>
+          </span>
+          <input
+            ref="triggerInputRef"
+            v-model="searchQuery"
+            type="text"
+            role="combobox"
+            aria-haspopup="listbox"
+            :aria-expanded="isOpen"
+            :aria-controls="panelId"
+            :disabled="disabled"
+            :readonly="readonly"
+            :placeholder="selectedOptionObjects.length ? '' : placeholder"
+            class="min-w-12 flex-1 bg-transparent text-17 outline-none placeholder:text-gray-500 disabled:cursor-not-allowed"
+            @input="handleInputChange"
+            @focus="handleInputFocus"
+            @blur="handleTriggerBlur"
+            @keydown.down.prevent="moveHighlight(1)"
+            @keydown.up.prevent="moveHighlight(-1)"
+            @keydown.enter.prevent="selectHighlighted"
+            @keydown.delete="handleChipBackspace"
+          />
+        </div>
         <input
-          v-if="useInput"
+          v-else-if="useInput"
           ref="triggerInputRef"
           v-model="searchQuery"
           type="text"
@@ -61,7 +108,35 @@
           :selected-options="selectedOptionObjects"
           :display-text="resolvedDisplayText"
         >
+          <div
+            v-if="multiple && useChips && selectedOptionObjects.length"
+            class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5"
+          >
+            <span
+              v-for="option in selectedOptionObjects"
+              :key="option.value"
+              class="flex max-w-full items-center gap-1 rounded-md bg-main-1/10 py-1 pl-2 text-14 text-main-1"
+              :class="disabled || readonly ? 'pr-2' : 'pr-1'"
+            >
+              <span class="max-w-32 truncate">{{ option.label }}</span>
+              <button
+                v-if="!disabled && !readonly"
+                type="button"
+                tabindex="-1"
+                class="flex shrink-0 items-center cursor-pointer"
+                @mousedown.prevent
+                @click.stop="toggleOption(option)"
+              >
+                <Svg
+                  src="common/x-close"
+                  class="size-3"
+                  color="currentColor"
+                />
+              </button>
+            </span>
+          </div>
           <span
+            v-else
             class="flex-1 truncate text-17"
             :class="!resolvedDisplayText && 'text-gray-500'"
             >{{ resolvedDisplayText || placeholder }}</span
@@ -268,6 +343,9 @@
     required?: boolean
     clearable?: boolean
     multiple?: boolean
+    // แบบ Quasar's use-chips — true (default) = ตัวที่เลือกไว้ (multiple) โชว์เป็น chip ลบทีละตัวได้ (ปุ่ม × หรือ Backspace ตอน useInput),
+    // false = กลับไปโชว์ label ต่อกันด้วย comma ธรรมดาแบบเดิม (ไม่มีปุ่มลบในตัว trigger) — ไม่มีผลตอน multiple=false
+    useChips?: boolean
     searchable?: boolean
     // แบบ Quasar's use-input — trigger กลายเป็น <input> พิมพ์ได้ตรงๆ แทนกล่อง search แยกใน panel (ปิด searchable box อัตโนมัติถ้าเปิดคู่กัน)
     // ไม่ทำ local filter ให้เองเหมือน searchable — ต้องฟัง @filter แล้ว mutate options ที่ผูกไว้เองเสมอ ไม่งั้นพิมพ์แล้วลิสต์ไม่กรอง (ของจริงตาม Quasar)
@@ -308,6 +386,7 @@
     required: false,
     clearable: false,
     multiple: false,
+    useChips: true,
     searchable: false,
     useInput: false,
     inputDebounce: 500,
@@ -334,7 +413,9 @@
     'popup-show': []
     'popup-hide': []
     // แบบ Quasar's @virtual-scroll — ยิงทุกครั้งที่ window ของ virtual scroll เลื่อน ใช้ทำ infinite-scroll (index/to ใกล้ options.length แล้วค่อยโหลดหน้าถัดไปเพิ่ม)
-    'virtual-scroll': [details: { index: number; from: number; to: number; direction: 'increase' | 'decrease' }]
+    'virtual-scroll': [
+      details: { index: number; from: number; to: number; direction: 'increase' | 'decrease' },
+    ]
   }>()
 
   const model = defineModel<SelectValue>({ required: true })
@@ -451,16 +532,19 @@
   }
 
   const resolveOptionValue = (raw: Record<string, unknown>): string | number =>
-    (typeof props.optionValue === 'function'
-      ? props.optionValue(raw)
-      : raw[props.optionValue]) as string | number
+    (typeof props.optionValue === 'function' ? props.optionValue(raw) : raw[props.optionValue]) as
+      string | number
 
   const resolveOptionLabel = (raw: Record<string, unknown>): string =>
-    String(typeof props.optionLabel === 'function' ? props.optionLabel(raw) : raw[props.optionLabel])
+    String(
+      typeof props.optionLabel === 'function' ? props.optionLabel(raw) : raw[props.optionLabel]
+    )
 
   const resolveOptionDisabled = (raw: Record<string, unknown>): boolean =>
     Boolean(
-      typeof props.optionDisabled === 'function' ? props.optionDisabled(raw) : raw[props.optionDisabled]
+      typeof props.optionDisabled === 'function'
+        ? props.optionDisabled(raw)
+        : raw[props.optionDisabled]
     )
 
   // normalize ให้เป็น shape เดียวกันเสมอไม่ว่า options ดิบจะหน้าตาแบบไหน (optionValue/optionLabel/optionDisabled) —
@@ -544,7 +628,9 @@
   const selectedOptionObjects = computed<ISelectOption[]>(() =>
     selectedEntries.value
       .map(entry =>
-        typeof entry === 'object' ? entry : normalizedOptions.value.find(option => option.value === entry)
+        typeof entry === 'object'
+          ? entry
+          : normalizedOptions.value.find(option => option.value === entry)
       )
       .filter((option): option is ISelectOption => !!option)
   )
@@ -588,7 +674,10 @@
   })
 
   const triggerClasses = computed(() => [
-    'box-border flex h-12 w-full min-w-0 items-center justify-between gap-2 border px-4 outline-none transition-colors duration-150',
+    'box-border flex w-full min-w-0 items-center justify-between gap-2 border px-4 outline-none transition-colors duration-150',
+    // multiple+useChips (ทั้ง useInput และไม่ใช่) โชว์ chips ที่ wrap ได้หลายบรรทัด — เลยใช้ min-h แทน h ตายตัว ให้กล่องสูงขึ้นตามจำนวน chip ได้
+    // useChips=false กลับไปเป็น label ต่อด้วย comma บรรทัดเดียว truncate — สูง h-12 คงที่พอ ไม่ต้องขยาย
+    props.multiple && props.useChips ? 'min-h-12 py-1.5' : 'h-12',
     roundedClass.value,
     triggerStateClasses.value,
     isOpen.value &&
@@ -630,7 +719,9 @@
 
   const optionRowClasses = (option: ISelectOption, index: number) => [
     'flex items-center gap-2 px-3 text-16',
-    option.disabled ? 'cursor-not-allowed text-gray-400' : 'select-option-row cursor-pointer text-gray-900',
+    option.disabled
+      ? 'cursor-not-allowed text-gray-400'
+      : 'select-option-row cursor-pointer text-gray-900',
     !option.disabled && isOptionSelected(option) && 'select-option-selected font-bold',
     !option.disabled && index === highlightedIndex.value && 'select-option-highlighted',
   ]
@@ -648,7 +739,7 @@
           ? current.filter(item => extractValue(item) !== option.value)
           : [...current, entry]
       ) as SelectValue
-      // เคลียร์คำค้นให้พิมพ์คำถัดไปต่อได้เลย — multiple ไม่มีที่โชว์รายการที่เลือกไว้ในตัว input (ไม่ทำ chips) เลยไม่ sync กลับเป็น label เหมือน single
+      // เคลียร์คำค้นให้พิมพ์คำถัดไปต่อได้เลย — ตัวที่เลือกไว้โชว์เป็น chip แยกอยู่แล้ว (ดู template) เลยไม่ต้อง sync คำค้นกลับเป็น label เหมือน single
       // ยิง filter('') ด้วย (เหมือน focus/clear) ให้ consumer reset list กลับเป็นชุดเต็ม ไม่งั้นเลือกแล้ว panel ยังค้างโชว์แค่ผลกรองรอบก่อน
       if (props.useInput) {
         searchQuery.value = ''
@@ -700,12 +791,14 @@
   // force=true ข้าม guard ของ props.loading (ไม่ข้าม isOpen) — ใช้ตอนเปิดจาก update() ของ @filter เท่านั้น เพราะตอนนั้น
   // apply() (ที่ mutate options ของ consumer) รันไปแล้วจริงๆ options พร้อมแล้ว แต่ props.loading (ref ฝั่ง consumer เอง
   // เช่น filterLoading) มักยังไม่ทันเป็น false เพราะ finally ของ async function เขายังไม่ถึงรอบ — ถ้าไม่ข้าม panel จะไม่เปิดเลย
-  const openPanel = async (force = false): Promise<void> => {
+  // resetQuery=false เฉพาะตอน force-reopen จาก @filter (ดู emitFilter) — เคสนั้น searchQuery คือคำที่ผู้ใช้พิมพ์ค้างอยู่ตอนนี้
+  // (ไม่ใช่ตอนเพิ่ง focus ใหม่) เคลียร์ทิ้งจะทำให้ input โชว์ค่าง่อยๆ ไม่ตรงกับ options ที่เพิ่งกรองมาตามคำนั้นจริงๆ
+  const openPanel = async (force = false, resetQuery = true): Promise<void> => {
     // loading ไม่ล็อก trigger เหมือน disabled (ยัง focus/tab ได้) แค่กันเปิด panel ที่ options ยังไม่มาก่อน
     if (isOpen.value || (props.loading && !force)) return
     isOpen.value = true
     emit('popup-show')
-    searchQuery.value = ''
+    if (resetQuery) searchQuery.value = ''
 
     await nextTick()
     computePlacement()
@@ -751,7 +844,10 @@
         apply()
         // force: true — ตอนนี้ apply() เพิ่ง mutate options ของ consumer เสร็จจริงๆ ต้องเปิดให้เห็นผลทันที
         // ต่อให้ props.loading (ref ฝั่ง consumer) ยังไม่ทันเป็น false ก็ตาม (ดูคอมเมนต์ที่ openPanel)
-        if (!isOpen.value) openPanel(true)
+        // resetQuery: false — panel นี้ปิดไปตอนเลือก option ครั้งก่อน (แต่ input ยัง focus ค้างอยู่) แล้วผู้ใช้พิมพ์ต่อ/ลบ
+        // จนกว่า debounce จะยิง filter รอบนี้มาถึง ถ้าเคลียร์ searchQuery ทิ้งตอนเปิดใหม่จะลบสิ่งที่พิมพ์ค้างไปทั้งที่ options
+        // ที่กรองมาอิงจากคำนั้นจริงๆ (ไม่งั้น input โชว์ว่างเปล่าแต่ list โชว์แค่ผลกรองบางส่วน)
+        if (!isOpen.value) openPanel(true, false)
       },
       () => {}
     )
@@ -791,6 +887,14 @@
 
     const value = searchQuery.value
     filterDebounceTimer = setTimeout(() => emitFilter(value), props.inputDebounce)
+  }
+
+  // แบบ tag-input ทั่วไป (Gmail To:, ฯลฯ) — กด Backspace ตอนช่องพิมพ์ว่างสนิท (ยังไม่ได้พิมพ์อะไรค้าง) ให้ลบ chip
+  // ตัวสุดท้ายออกเลย โดยไม่ต้องเอาเมาส์ไปกดปุ่ม × ทีละตัว — เช็ค searchQuery ก่อนกันพลาดกรณีลบตัวอักษรปกติอยู่
+  const handleChipBackspace = (): void => {
+    if (searchQuery.value) return
+    const lastOption = selectedOptionObjects.value[selectedOptionObjects.value.length - 1]
+    if (lastOption) toggleOption(lastOption)
   }
 
   // ไอคอน chevron/spinner (และปุ่ม clear ที่ stop propagation ของตัวเองอยู่แล้ว) เป็น sibling ของ <input> ไม่ใช่ ancestor
