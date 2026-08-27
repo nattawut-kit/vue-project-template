@@ -746,6 +746,9 @@
         clearFilterDebounce()
         emitFilter('')
       }
+      // เรียกผ่าน nextTick ไม่ใช่ตรงๆ — model.value ที่เพิ่งเซ็ตด้านบนยังไม่ propagate ให้อ่านเห็นค่าใหม่แบบ sync ในจังหวะเดียวกัน
+      // (defineModel ไม่ได้ sync แบบนั้นเสมอไป) เรียก validate() ทันทีจะยังอ่านเจอค่าเก่า ต้องรอ tick ถัดไปก่อน
+      nextTick(() => validate())
       return
     }
 
@@ -761,7 +764,8 @@
       clearFilterDebounce()
       emitFilter('')
     }
-    validate()
+    // เหตุผลเดียวกับใน toggleOption — รอ tick ถัดไปให้ model.value ที่เพิ่งเคลียร์ propagate ก่อน ไม่งั้น validate() อ่านเจอค่าเก่า (ยังไม่ว่าง)
+    nextTick(() => validate())
   }
 
   const computePlacement = (): void => {
@@ -819,7 +823,10 @@
     // useInput + single: กลับไปโชว์ label/ค่าของสิ่งที่เลือกไว้จริง (เผื่อพิมพ์ค้างแล้วไม่ได้เลือกอะไรก็ revert กลับ) — โหมดอื่นเคลียร์เป็นค่าว่างเหมือนเดิม
     searchQuery.value = props.useInput && !props.multiple ? inputFallbackDisplayText.value : ''
     highlightedIndex.value = -1
-    validate()
+    // nextTick ไม่ใช่เรียกตรงๆ — ปิด panel ทางนี้อาจมาจาก toggleOption() ที่เพิ่งเซ็ต model.value หมาดๆ ในจังหวะเดียวกัน
+    // (blur แข่งกันมาปิดก่อน click ประมวลผลเสร็จ เช่นบาง mobile browser ที่ preventDefault บน mousedown ไม่กันการเสีย focus)
+    // เรียก validate() sync ตรงนี้จะยังอ่าน model.value ค่าเก่าอยู่ (defineModel ไม่การันตี sync read-your-own-write เสมอไป) ต้องรอ tick ถัดไป
+    nextTick(() => validate())
     emit('blur', event)
   }
 
