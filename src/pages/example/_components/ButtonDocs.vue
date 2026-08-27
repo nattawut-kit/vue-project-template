@@ -6,9 +6,9 @@
         <table class="w-full min-w-[560px] border-collapse text-left text-16">
           <thead>
             <tr class="border-b border-gray-300">
-              <th class="py-1 pr-2 font-bold">prop</th>
-              <th class="py-1 pr-2 font-bold">type</th>
-              <th class="py-1 pr-2 font-bold">default</th>
+              <th class="w-24 py-1 pr-2 font-bold">prop</th>
+              <th class="w-28 py-1 pr-2 font-bold">type</th>
+              <th class="w-20 py-1 pr-2 font-bold">default</th>
               <th class="py-1 font-bold">คำอธิบาย</th>
             </tr>
           </thead>
@@ -18,10 +18,12 @@
               :key="row.name"
               class="border-b border-gray-100 align-top"
             >
-              <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
-              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.type }}</td>
-              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.default }}</td>
-              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+              <td class="py-1.5 pr-2 font-bold wrap-break-word text-main-1">{{ row.name }}</td>
+              <td class="py-1.5 pr-2 wrap-break-word text-gray-500">{{ row.type }}</td>
+              <td class="py-1.5 pr-2 wrap-break-word text-gray-500">{{ row.default }}</td>
+              <td class="py-1.5 leading-relaxed font-medium text-gray-900">
+                {{ row.description }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -34,8 +36,8 @@
         <table class="w-full min-w-[560px] border-collapse text-left text-16">
           <thead>
             <tr class="border-b border-gray-300">
-              <th class="py-1 pr-2 font-bold">field</th>
-              <th class="py-1 pr-2 font-bold">type</th>
+              <th class="w-20 py-1 pr-2 font-bold">field</th>
+              <th class="w-28 py-1 pr-2 font-bold">type</th>
               <th class="py-1 font-bold">คำอธิบาย</th>
             </tr>
           </thead>
@@ -45,9 +47,11 @@
               :key="row.name"
               class="border-b border-gray-100 align-top"
             >
-              <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
-              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.type }}</td>
-              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+              <td class="py-1.5 pr-2 font-bold wrap-break-word text-main-1">{{ row.name }}</td>
+              <td class="py-1.5 pr-2 wrap-break-word text-gray-500">{{ row.type }}</td>
+              <td class="py-1.5 leading-relaxed font-medium text-gray-900">
+                {{ row.description }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -60,8 +64,8 @@
         <table class="w-full min-w-[420px] border-collapse text-left text-16">
           <thead>
             <tr class="border-b border-gray-300">
-              <th class="py-1 pr-2 font-bold">field</th>
-              <th class="py-1 pr-2 font-bold">type</th>
+              <th class="w-20 py-1 pr-2 font-bold">field</th>
+              <th class="w-28 py-1 pr-2 font-bold">type</th>
               <th class="py-1 font-bold">คำอธิบาย</th>
             </tr>
           </thead>
@@ -71,9 +75,11 @@
               :key="row.name"
               class="border-b border-gray-100 align-top"
             >
-              <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
-              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.type }}</td>
-              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+              <td class="py-1.5 pr-2 font-bold wrap-break-word text-main-1">{{ row.name }}</td>
+              <td class="py-1.5 pr-2 wrap-break-word text-gray-500">{{ row.type }}</td>
+              <td class="py-1.5 leading-relaxed font-medium text-gray-900">
+                {{ row.description }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -97,7 +103,9 @@
               class="border-b border-gray-100 align-top"
             >
               <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
-              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+              <td class="py-1.5 leading-relaxed font-medium text-gray-900">
+                {{ row.description }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -123,7 +131,9 @@
             >
               <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
               <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.payload }}</td>
-              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+              <td class="py-1.5 leading-relaxed font-medium text-gray-900">
+                {{ row.description }}
+              </td>
             </tr>
           </tbody>
         </table>

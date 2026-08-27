@@ -6,9 +6,9 @@
         <table class="w-full min-w-[560px] border-collapse text-left text-16">
           <thead>
             <tr class="border-b border-gray-300">
-              <th class="py-1 pr-2 font-bold">prop</th>
-              <th class="py-1 pr-2 font-bold">type</th>
-              <th class="py-1 pr-2 font-bold">default</th>
+              <th class="w-24 py-1 pr-2 font-bold">prop</th>
+              <th class="w-28 py-1 pr-2 font-bold">type</th>
+              <th class="w-20 py-1 pr-2 font-bold">default</th>
               <th class="py-1 font-bold">คำอธิบาย</th>
             </tr>
           </thead>
@@ -18,10 +18,12 @@
               :key="row.name"
               class="border-b border-gray-100 align-top"
             >
-              <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
-              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.type }}</td>
-              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.default }}</td>
-              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+              <td class="py-1.5 pr-2 font-bold wrap-break-word text-main-1">{{ row.name }}</td>
+              <td class="py-1.5 pr-2 wrap-break-word text-gray-500">{{ row.type }}</td>
+              <td class="py-1.5 pr-2 wrap-break-word text-gray-500">{{ row.default }}</td>
+              <td class="py-1.5 leading-relaxed font-medium text-gray-900">
+                {{ row.description }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -34,8 +36,8 @@
         <table class="w-full min-w-[560px] border-collapse text-left text-16">
           <thead>
             <tr class="border-b border-gray-300">
-              <th class="py-1 pr-2 font-bold">field</th>
-              <th class="py-1 pr-2 font-bold">type</th>
+              <th class="w-20 py-1 pr-2 font-bold">field</th>
+              <th class="w-28 py-1 pr-2 font-bold">type</th>
               <th class="py-1 font-bold">คำอธิบาย</th>
             </tr>
           </thead>
@@ -45,9 +47,11 @@
               :key="row.name"
               class="border-b border-gray-100 align-top"
             >
-              <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
-              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.type }}</td>
-              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+              <td class="py-1.5 pr-2 font-bold wrap-break-word text-main-1">{{ row.name }}</td>
+              <td class="py-1.5 pr-2 wrap-break-word text-gray-500">{{ row.type }}</td>
+              <td class="py-1.5 leading-relaxed font-medium text-gray-900">
+                {{ row.description }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -57,7 +61,7 @@
     <div>
       <div class="mb-2 font-bold">Slots</div>
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[560px] table-fixed border-collapse text-left text-16">
+        <table class="w-full min-w-[560px] border-collapse text-left text-16">
           <thead>
             <tr class="border-b border-gray-300">
               <th class="w-20 py-1 pr-2 font-bold">slot</th>
@@ -72,8 +76,10 @@
               class="border-b border-gray-100 align-top"
             >
               <td class="py-1.5 pr-2 font-bold text-main-1">{{ row.name }}</td>
-              <td class="py-1.5 pr-2 text-14 break-words text-gray-500">{{ row.type }}</td>
-              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+              <td class="py-1.5 pr-2 wrap-break-word text-14 text-gray-500">{{ row.type }}</td>
+              <td class="py-1.5 leading-relaxed font-medium text-gray-900">
+                {{ row.description }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -83,11 +89,11 @@
     <div>
       <div class="mb-2 font-bold">Events</div>
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[420px] border-collapse text-left text-16">
+        <table class="w-full min-w-[560px] border-collapse text-left text-16">
           <thead>
             <tr class="border-b border-gray-300">
-              <th class="py-1 pr-2 font-bold">event</th>
-              <th class="py-1 pr-2 font-bold">payload</th>
+              <th class="w-28 py-1 pr-2 font-bold">event</th>
+              <th class="w-40 py-1 pr-2 font-bold">payload</th>
               <th class="py-1 font-bold">คำอธิบาย</th>
             </tr>
           </thead>
@@ -97,9 +103,11 @@
               :key="row.name"
               class="border-b border-gray-100 align-top"
             >
-              <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
-              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.payload }}</td>
-              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+              <td class="py-1.5 pr-2 font-bold wrap-break-word text-main-1">{{ row.name }}</td>
+              <td class="py-1.5 pr-2 wrap-break-word text-gray-500">{{ row.payload }}</td>
+              <td class="py-1.5 leading-relaxed font-medium text-gray-900">
+                {{ row.description }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -112,8 +120,8 @@
         <table class="w-full min-w-[420px] border-collapse text-left text-16">
           <thead>
             <tr class="border-b border-gray-300">
-              <th class="py-1 pr-2 font-bold">member</th>
-              <th class="py-1 pr-2 font-bold">type</th>
+              <th class="w-28 py-1 pr-2 font-bold">member</th>
+              <th class="w-28 py-1 pr-2 font-bold">type</th>
               <th class="py-1 font-bold">คำอธิบาย</th>
             </tr>
           </thead>
@@ -123,9 +131,11 @@
               :key="row.name"
               class="border-b border-gray-100 align-top"
             >
-              <td class="py-1.5 pr-2 whitespace-nowrap font-bold text-main-1">{{ row.name }}</td>
-              <td class="py-1.5 pr-2 whitespace-nowrap text-gray-500">{{ row.type }}</td>
-              <td class="py-1.5 leading-relaxed">{{ row.description }}</td>
+              <td class="py-1.5 pr-2 font-bold wrap-break-word text-main-1">{{ row.name }}</td>
+              <td class="py-1.5 pr-2 wrap-break-word text-gray-500">{{ row.type }}</td>
+              <td class="py-1.5 leading-relaxed font-medium text-gray-900">
+                {{ row.description }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -169,7 +179,12 @@
   }
 
   const propsTable: DocRow[] = [
-    { name: 'label', type: 'string', default: "''", description: 'label แบบ stack อยู่เหนือ control' },
+    {
+      name: 'label',
+      type: 'string',
+      default: "''",
+      description: 'label แบบ stack อยู่เหนือ control',
+    },
     {
       name: 'labelSpace',
       type: 'boolean',
@@ -177,7 +192,12 @@
       description: 'เว้นพื้นที่ label แม้ label ว่าง เพื่อเรียงให้ตรงกับ field อื่นที่มี label',
     },
     { name: 'placeholder', type: 'string', default: "''", description: 'ข้อความตอนยังไม่ได้เลือก' },
-    { name: 'helperText', type: 'string', default: "''", description: 'ข้อความช่วยเหลือใต้ control' },
+    {
+      name: 'helperText',
+      type: 'string',
+      default: "''",
+      description: 'ข้อความช่วยเหลือใต้ control',
+    },
     {
       name: 'rules',
       type: 'IValidationRule[]',
@@ -193,16 +213,17 @@
     },
     {
       name: 'optionValue / optionLabel / optionDisabled',
-      type: "string | ((option) => value)",
+      type: 'string | ((option) => value)',
       default: "'value' / 'label' / 'disabled'",
       description:
-        "แบบ Quasar's option-value/option-label/option-disabled — ใส่ชื่อ field (string) หรือฟังก์ชันดึงค่าเอง ใช้ตอน options ไม่ได้เป็น { label, value, disabled } ตรงๆ เช่น API ตอบ { id, name } ก็ใส่ option-value=\"id\" option-label=\"name\" โดยไม่ต้อง map array เองก่อน",
+        'แบบ Quasar\'s option-value/option-label/option-disabled — ใส่ชื่อ field (string) หรือฟังก์ชันดึงค่าเอง ใช้ตอน options ไม่ได้เป็น { label, value, disabled } ตรงๆ เช่น API ตอบ { id, name } ก็ใส่ option-value="id" option-label="name" โดยไม่ต้อง map array เองก่อน',
     },
     {
       name: 'dropdownIcon / clearIcon',
       type: 'string',
       default: "'common/chevron-down' / 'common/x-close'",
-      description: "แบบ Quasar's dropdown-icon/clear-icon — เปลี่ยน path ไอคอนได้ (ใช้ convention Svg src เดียวกับที่ใช้ทั่วโปรเจกต์)",
+      description:
+        "แบบ Quasar's dropdown-icon/clear-icon — เปลี่ยน path ไอคอนได้ (ใช้ convention Svg src เดียวกับที่ใช้ทั่วโปรเจกต์)",
     },
     { name: 'disabled', type: 'boolean', default: 'false', description: 'ปิดการใช้งานทั้งหมด' },
     {
@@ -218,7 +239,12 @@
       description:
         'แสดง spinner แทนไอคอน chevron และกันเปิด panel ไว้ก่อน (เช่น ระหว่างรอ options โหลดจาก API) — ไม่ทำให้ trigger เทาเหมือน disabled',
     },
-    { name: 'required', type: 'boolean', default: 'false', description: 'บังคับต้องมีค่าตอน validate' },
+    {
+      name: 'required',
+      type: 'boolean',
+      default: 'false',
+      description: 'บังคับต้องมีค่าตอน validate',
+    },
     {
       name: 'clearable',
       type: 'boolean',
@@ -315,13 +341,22 @@
     {
       name: 'rounded',
       type: "'none'|'sm'|'md'|'lg'|'full' | string",
-      description: "ใส่ keyword ใช้ Tailwind class, ใส่ค่าอื่น (เช่น '4px') ใช้เป็น border-radius ตรงๆ",
+      description:
+        "ใส่ keyword ใช้ Tailwind class, ใส่ค่าอื่น (เช่น '4px') ใช้เป็น border-radius ตรงๆ",
     },
     { name: 'bgColor', type: 'string', description: 'สีพื้นหลัง control — ไม่มีผลตอน disabled' },
     { name: 'labelColor', type: 'string', description: 'สีตัวอักษร label' },
-    { name: 'textColor', type: 'string', description: 'สีตัวอักษรใน control — ไม่มีผลตอน disabled' },
+    {
+      name: 'textColor',
+      type: 'string',
+      description: 'สีตัวอักษรใน control — ไม่มีผลตอน disabled',
+    },
     { name: 'borderColor', type: 'string', description: 'สีขอบปกติ/hover — ไม่มีผลตอน disabled' },
-    { name: 'focusColor', type: 'string', description: 'สีขอบตอน panel เปิดอยู่ — ไม่มีผลตอน disabled' },
+    {
+      name: 'focusColor',
+      type: 'string',
+      description: 'สีขอบตอน panel เปิดอยู่ — ไม่มีผลตอน disabled',
+    },
     {
       name: 'optionHoverColor',
       type: 'string',
@@ -389,13 +424,14 @@
       payload: '(value: string, update: (apply: () => void) => void, abort: () => void)',
       type: '',
       description:
-        'แบบ Quasar — ยิงตอน useInput=true ทุกครั้งที่พิมพ์ (หน่วงตาม inputDebounce) รวมถึง value = \'\' แบบไม่หน่วงอีก 3 จังหวะ (ให้ consumer reset list กลับเป็นชุดเต็ม): panel เปิดจาก focus/คลิก chevron, กดปุ่ม clear, และเลือก option ใน multiple mode (input เคลียร์พร้อมกัน) ต้องเรียก update(() => { myOptions.value = ... }) เพื่อ mutate options ที่ผูกกับ :options เอง (sync หรือหลัง await fetch ก็ได้) ไม่เรียก update = list ไม่กรองเลย เรียก abort() แทนถ้าไม่อยากอัปเดต (เช่น response เก่ากว่าคำค้นล่าสุด)',
+        "แบบ Quasar — ยิงตอน useInput=true ทุกครั้งที่พิมพ์ (หน่วงตาม inputDebounce) รวมถึง value = '' แบบไม่หน่วงอีก 3 จังหวะ (ให้ consumer reset list กลับเป็นชุดเต็ม): panel เปิดจาก focus/คลิก chevron, กดปุ่ม clear, และเลือก option ใน multiple mode (input เคลียร์พร้อมกัน) ต้องเรียก update(() => { myOptions.value = ... }) เพื่อ mutate options ที่ผูกกับ :options เอง (sync หรือหลัง await fetch ก็ได้) ไม่เรียก update = list ไม่กรองเลย เรียก abort() แทนถ้าไม่อยากอัปเดต (เช่น response เก่ากว่าคำค้นล่าสุด)",
     },
     {
       name: 'popup-show / popup-hide',
       payload: '',
       type: '',
-      description: 'ยิงตอน panel เปิด/ปิดจริง (ทุกทาง ไม่ใช่แค่คลิก trigger) ใช้ทำ analytics, lazy-load ข้อมูลรอบแรกตอนเปิด ฯลฯ',
+      description:
+        'ยิงตอน panel เปิด/ปิดจริง (ทุกทาง ไม่ใช่แค่คลิก trigger) ใช้ทำ analytics, lazy-load ข้อมูลรอบแรกตอนเปิด ฯลฯ',
     },
     {
       name: 'virtual-scroll',
