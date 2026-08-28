@@ -238,7 +238,7 @@
     const vertical = isIndicatorsVertical.value
 
     return [
-      'absolute z-10 flex',
+      'absolute flex',
       vertical ? 'inset-y-0' : 'inset-x-0',
       indicatorsAlignClasses[vertical ? 'vertical' : 'horizontal'][config.align],
     ]
