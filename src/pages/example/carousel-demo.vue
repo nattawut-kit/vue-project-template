@@ -8,7 +8,7 @@
 
     <hr />
 
-    <div class="mt-6 flex flex-col gap-6 px-4">
+    <div class="mt-6 flex flex-col gap-6">
       <div id="demo-basic">
         <div class="mb-2 text-18 font-bold">basic (items + default slot)</div>
         <Carousel
@@ -71,7 +71,7 @@
 
       <div id="demo-infinity">
         <div class="mb-2 text-18 font-bold">
-          infinity = true — ลากเลยใบสุดท้ายแล้ววนไปใบแรกต่อได้เรื่อยๆ
+          infinity = true — เลยใบสุดท้ายแล้วเลื่อนต่อเป็นใบแรกแบบไม่ย้อนกลับ
         </div>
         <Carousel
           :items="banners"
@@ -87,7 +87,8 @@
           </template>
         </Carousel>
         <span class="text-16 text-gray-500">
-          เทียบกับตัวอื่นในหน้านี้ที่เป็น infinity = false (default) — ลากถึงใบสุดท้ายแล้วจะตัน
+          ลากไปข้างหน้าเรื่อยๆ ผ่านใบสุดท้าย — จะเห็นเป็นใบแรกเลื่อนเข้ามาต่อ
+          ไม่ใช่รูดถอยกลับไปใบแรก เทียบกับตัวที่ตั้ง infinity = false ที่ลากถึงใบสุดท้ายแล้วจะตัน
           มีแรงหน่วง ต้องลากย้อนกลับเท่านั้น
         </span>
       </div>
@@ -155,13 +156,17 @@
 
       <hr />
 
-      <div id="demo-no-peek">
+      <div
+        id="demo-no-peek"
+        class="px-4"
+      >
         <div class="mb-2 text-18 font-bold">
           peek = false — สไลด์เต็มความกว้าง ไม่เห็นสไลด์ข้างๆ
         </div>
         <Carousel
           :items="banners"
           aspect-ratio="2/1"
+          infinity
           :peek="false"
         >
           <template #default="{ item }">

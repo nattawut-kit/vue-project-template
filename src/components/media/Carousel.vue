@@ -18,15 +18,17 @@
         @mousedown="handleMouseDown"
         @dragstart.prevent
       >
+        <!-- โหมด infinity จะมี clone ของใบท้าย/ใบแรกขนาบอยู่ ซ่อนจาก screen reader ไว้ไม่ให้อ่านซ้ำ -->
         <div
-          v-for="(item, index) in items"
-          :key="index"
+          v-for="(slide, position) in renderedSlides"
+          :key="position"
           class="box-border flex-shrink-0"
           role="group"
           aria-roledescription="slide"
-          :aria-label="`${index + 1} จาก ${items.length}`"
+          :aria-label="`${slide.realIndex + 1} จาก ${items.length}`"
+          :aria-hidden="isInfinite && (position === 0 || position === renderedSlides.length - 1)"
           :style="slideStyle"
-          @click="handleClick(item, index)"
+          @click="handleClick(slide.item, slide.realIndex)"
         >
           <div
             class="box-border h-full w-full overflow-hidden transition-all duration-300 ease-out"
@@ -35,14 +37,14 @@
               // ระหว่างลากต้องถอย cursor-pointer ออก ไม่งั้นมันทับ cursor-grab ของ track (ลูกชนะพ่อ)
               // ทำให้ลากอยู่แต่เคอร์เซอร์ยังเป็นนิ้วชี้
               clickable && !isDragging && 'cursor-pointer',
-              index === currentSlide ? 'scale-100 opacity-100' : 'scale-100 opacity-60',
+              slide.realIndex === currentSlide ? 'scale-100 opacity-100' : 'scale-100 opacity-60',
             ]"
             :style="customRoundStyle"
           >
             <slot
-              :item="item"
-              :index="index"
-              :active="index === currentSlide"
+              :item="slide.item"
+              :index="slide.realIndex"
+              :active="slide.realIndex === currentSlide"
             />
           </div>
         </div>
@@ -141,7 +143,8 @@
     // true = ขอบล่างกึ่งกลาง, object = ปรับ position/offset/align เองได้
     indicatorsInside?: CarouselIndicatorsInside
     clickable?: boolean
-    // true = ลาก/ปัดเลยใบสุดท้ายแล้ววนไปใบแรกต่อได้เรื่อยๆ (ใบแรกลากย้อนก็ไปใบสุดท้าย)
+    // true = วนไม่สุด เลยใบสุดท้ายไปต่อเป็นใบแรกได้เรื่อยๆ โดย animation เลื่อนไปข้างหน้าต่อเนื่อง
+    // ไม่ใช่รูดย้อนกลับ (ใช้ clone ขนาบ + เทเลพอร์ตกลับใบจริงตอน transition จบ)
     // false = ไปตามลำดับ สุดที่ใบแรก/ใบสุดท้าย ต้องลากย้อนกลับเท่านั้น (มีแรงหน่วงตอนสุดทาง)
     infinity?: boolean
     // true = track ขยับตามเมาส์/นิ้วแบบ real-time ระหว่างลาก, false = อยู่นิ่งจนกว่าจะปล่อยแล้วค่อยเลื่อน
@@ -262,13 +265,48 @@
   const sliderRef = ref<HTMLDivElement | null>(null)
   const slidesCount = computed(() => props.items.length)
 
-  // มีสไลด์เดียวก็ไม่มีอะไรให้โผล่ ปิด peek ให้เต็มความกว้างไปเลย
+  // มีสไลด์เดียวก็วนไม่ได้/ไม่มีอะไรให้โผล่
+  const isInfinite = computed(() => props.infinity && slidesCount.value > 1)
   const hasPeek = computed(() => props.peek && slidesCount.value > 1)
 
-  // พื้นที่แนวนอนที่ไม่ใช่ตัวสไลด์ active = peekAmount ฝั่งละข้าง + gap "ช่องเดียว" (ไม่ใช่สองช่อง)
-  // เพราะตอนอยู่สไลด์แรก/สุดท้ายมันชิดขอบไปข้างนึงแล้ว ใช้ gap จริงแค่ช่องเดียว — ถ้าเผื่อไว้สองช่อง
-  // ที่ว่างส่วนเกินจะไปโผล่ฝั่งในเป็น peekAmount + gap และสไลด์ก็แคบกว่าที่ควรเป็น
-  const inset = computed(() => (hasPeek.value ? props.peekAmount * 2 + props.gap : 0))
+  // โหมด infinity โคลนใบสุดท้ายไว้หน้าสุด และใบแรกไว้ท้ายสุด เพื่อให้เลื่อนข้ามขอบไปเจอ "ใบถัดไป"
+  // ที่หน้าตาถูกต้องอยู่แล้ว แล้วค่อยเทเลพอร์ตกลับใบจริงตอน transition จบ — ผู้ใช้เลยเห็นเป็นสไลด์
+  // ต่อเนื่องไปข้างหน้า ไม่ใช่รูดย้อนกลับมาใบแรก
+  const renderedSlides = computed(() => {
+    const slides = props.items.map((item, realIndex) => ({ item, realIndex }))
+    if (!isInfinite.value) return slides
+
+    const last = slidesCount.value - 1
+    return [
+      { item: props.items[last], realIndex: last },
+      ...slides,
+      { item: props.items[0], realIndex: 0 },
+    ]
+  })
+
+  // ตำแหน่งบน track ที่นับรวม clone — 0 = clone ใบสุดท้าย, 1..n = ใบจริง, n+1 = clone ใบแรก
+  const trackIndex = ref(1)
+  // true ระหว่างเทเลพอร์ต ปิด transition ไว้ ผู้ใช้จะได้ไม่เห็นการกระโดด
+  const isJumping = ref(false)
+
+  const trackRealIndex = computed(() => {
+    const n = slidesCount.value
+    if (!isInfinite.value) return currentSlide.value
+    if (trackIndex.value === 0) return n - 1
+    if (trackIndex.value === n + 1) return 0
+
+    return trackIndex.value - 1
+  })
+
+  // พื้นที่แนวนอนที่ไม่ใช่ตัวสไลด์ active
+  // - infinity: อยู่กึ่งกลางตลอด (มี clone ขนาบ) เผื่อ gap สองช่อง เพื่อนบ้านเลยโผล่ = peekAmount เป๊ะทุกใบ
+  // - อื่นๆ: ใบหัว/ท้ายชิดขอบ ใช้ gap ช่องเดียว ระยะเว้นขอบเลย = peekAmount เป๊ะ (ถ้าเผื่อสองช่อง
+  //   ที่ว่างส่วนเกินจะไปโผล่ฝั่งในเป็น peekAmount + gap และสไลด์ก็แคบกว่าที่ควร)
+  const inset = computed(() => {
+    if (!hasPeek.value) return 0
+
+    return isInfinite.value ? (props.peekAmount + props.gap) * 2 : props.peekAmount * 2 + props.gap
+  })
 
   // ระยะเว้นขอบของสไลด์หัว/ท้าย ซึ่งไม่มีสไลด์ข้างๆ มาเติมที่ว่าง
   const edgeMargin = computed(() => (hasPeek.value ? props.peekAmount : 0))
@@ -285,14 +323,19 @@
     if (slidesCount.value === 0) return { gap: `${props.gap}px` }
 
     const step = `(100% - ${inset.value}px + ${props.gap}px)`
-    const ideal = `${inset.value / 2}px - ${currentSlide.value} * ${step}`
+    const ideal = `${inset.value / 2}px - ${(isInfinite.value ? trackIndex : currentSlide).value} * ${step}`
+
+    // infinity มี clone ขนาบอยู่แล้ว ทุกใบเลยมีเพื่อนบ้านครบ ไม่ต้อง clamp ขอบ (และห้าม clamp
+    // ไม่งั้นเลื่อนไปตำแหน่ง clone ไม่ได้)
     const minOffset = `${inset.value - edgeMargin.value}px - ${slidesCount.value - 1} * ${step}`
-    const base = `max(${minOffset}, min(${ideal}, ${edgeMargin.value}px))`
+    const base = isInfinite.value
+      ? ideal
+      : `max(${minOffset}, min(${ideal}, ${edgeMargin.value}px))`
 
     return {
       transform: `translateX(calc(${base} + ${dragDelta.value}px))`,
       // ปิด transition ระหว่างลาก ให้ track ตามเมาส์/นิ้วทันทีแบบไม่หน่วง แล้วเปิดคืนตอนปล่อยเพื่อ snap
-      transitionDuration: isInteracting.value ? '0s' : '',
+      transitionDuration: isInteracting.value || isJumping.value ? '0s' : '',
       gap: `${props.gap}px`,
     }
   })
@@ -302,7 +345,31 @@
     emit('click', item, index)
   }
 
-  const goToSlide = (index: number) => {
+  // ถ้า track ค้างอยู่บน clone ให้เด้งกลับใบจริงที่หน้าตาเหมือนกันเป๊ะแบบไม่มี transition ก่อน
+  // เรียกทั้งตอน transition จบ และตอนจะเลื่อนครั้งถัดไป (กันเคสกดรัวจน transitionend ยังไม่ทันมา)
+  const normalizeTrackPosition = async () => {
+    if (!isInfinite.value) return
+
+    const n = slidesCount.value
+    const atStartClone = trackIndex.value === 0
+    if (!atStartClone && trackIndex.value !== n + 1) return
+
+    isJumping.value = true
+    trackIndex.value = atStartClone ? n : 1
+
+    // รอ DOM แล้วบังคับ reflow ให้ transform ใหม่ลงจริงตอน transition ยังปิดอยู่ ก่อนเปิดคืน
+    await nextTick()
+    void sliderRef.value?.offsetWidth
+    isJumping.value = false
+    await nextTick()
+  }
+
+  const goToSlide = async (index: number) => {
+    if (isInfinite.value) {
+      await normalizeTrackPosition()
+      trackIndex.value = index + 1
+    }
+
     currentSlide.value = index
     resetAutoplay()
   }
@@ -333,30 +400,58 @@
     ;(buttons?.[target] as HTMLElement | undefined)?.focus()
   }
 
-  // การลาก/ปัดส่ง wrap = props.infinity เข้ามา — โหมด infinity = false จะสุดที่สไลด์หัว/ท้าย
-  // ให้ตรงกับที่ track ถูก clamp ไว้และแรงหน่วงตอนลาก ส่วน autoplay เรียกแบบ default (wrap = true)
-  // เพราะ banner ที่เปิด autoplay ควรวนต่อเรื่อยๆ ไม่ใช่ค้างตายที่ใบสุดท้าย
-  const nextSlide = (wrap = true) => {
+  // โหมด infinity เลื่อน track ไปข้างหน้า/ถอยหลังทีละก้าวเสมอ (ก้าวเข้าไปบน clone ได้) แล้วค่อย
+  // เทเลพอร์ตกลับใบจริงทีหลัง — ทิศทางของ animation เลยต่อเนื่องไม่มีวันย้อน ไม่ใช่การวนด้วย index
+  // เฉยๆ ที่กระโดดจากใบสุดท้ายกลับใบแรกแล้วรูดถอยหลังให้เห็น
+  const stepTrack = async (delta: 1 | -1) => {
+    await normalizeTrackPosition()
+    trackIndex.value += delta
+  }
+
+  const nextSlide = async (wrap = true) => {
     if (!slidesCount.value) return
     const last = slidesCount.value - 1
     if (currentSlide.value === last && !wrap) return
 
+    if (isInfinite.value) await stepTrack(1)
     currentSlide.value = currentSlide.value === last ? 0 : currentSlide.value + 1
     resetAutoplay()
   }
 
-  const prevSlide = (wrap = true) => {
+  const prevSlide = async (wrap = true) => {
     if (!slidesCount.value) return
     if (currentSlide.value === 0 && !wrap) return
 
+    if (isInfinite.value) await stepTrack(-1)
     currentSlide.value = currentSlide.value === 0 ? slidesCount.value - 1 : currentSlide.value - 1
     resetAutoplay()
   }
 
-  // ตัวที่ผูก wrap ไว้กับ props.infinity แล้ว — ใช้ทั้งกับการลาก/ปัด และปุ่มที่ส่งออกไปให้ slot
-  // indicators เพื่อให้ปุ่ม custom เดินเรื่อง/ตันสุดทางเหมือนกับการลากเป๊ะๆ
-  const goNext = () => nextSlide(props.infinity)
-  const goPrev = () => prevSlide(props.infinity)
+  // ตัวที่ผูก wrap ไว้กับ infinity แล้ว — ใช้ทั้งกับการลาก/ปัด และปุ่มที่ส่งออกไปให้ slot indicators
+  // เพื่อให้ปุ่ม custom เดินเรื่อง/ตันสุดทางเหมือนกับการลากเป๊ะๆ (autoplay เรียก next/prevSlide
+  // แบบ default = วนเสมอ เพราะ banner ที่เปิด autoplay ไม่ควรค้างตายที่ใบสุดท้าย)
+  const goNext = () => nextSlide(isInfinite.value)
+  const goPrev = () => prevSlide(isInfinite.value)
+
+  // จังหวะปกติที่เทเลพอร์ตกลับใบจริง: พอสไลด์ที่วิ่งเข้าไปหา clone เล่นจบ
+  const handleTransitionEnd = (event: Event) => {
+    const { target, propertyName } = event as TransitionEvent
+    if (target !== sliderRef.value || propertyName !== 'transform') return
+
+    normalizeTrackPosition()
+  }
+
+  // v-model ถูกสั่งมาจากข้างนอก (ไม่ได้มาจาก next/prev/goToSlide ที่ตั้ง trackIndex ให้แล้ว)
+  watch(currentSlide, value => {
+    if (!isInfinite.value || trackRealIndex.value === value) return
+
+    trackIndex.value = value + 1
+  })
+
+  // เข้า/ออกโหมด infinity หรือจำนวนสไลด์เปลี่ยน ต้องรีเซ็ต track ให้ตรงกับใบที่อยู่
+  watch([isInfinite, slidesCount], () => {
+    trackIndex.value = currentSlide.value + 1
+  })
 
   const resetAutoplay = () => {
     if (props.autoplay && slidesCount.value > 1) {
@@ -406,7 +501,7 @@
   // หน่วงการลากเมื่อสุดทางแล้ว (สไลด์แรกลากไปขวา / สไลด์สุดท้ายลากไปซ้าย) ให้รู้สึกว่าไปต่อไม่ได้
   // โหมด infinity ไม่หน่วง เพราะลากต่อได้จริง ไม่มีจุดสุดทาง
   const withResistance = (delta: number) => {
-    if (props.infinity) return delta
+    if (isInfinite.value) return delta
 
     const atStart = currentSlide.value === 0 && delta > 0
     const atEnd = currentSlide.value === slidesCount.value - 1 && delta < 0
@@ -525,6 +620,7 @@
       sliderRef.value.addEventListener('touchstart', handleTouchStart, { passive: true })
       sliderRef.value.addEventListener('touchmove', handleTouchMove, { passive: false })
       sliderRef.value.addEventListener('touchend', handleTouchEnd)
+      sliderRef.value.addEventListener('transitionend', handleTransitionEnd)
     }
 
     window.addEventListener('mousemove', handleMouseMove)
@@ -538,6 +634,7 @@
       sliderRef.value.removeEventListener('touchstart', handleTouchStart)
       sliderRef.value.removeEventListener('touchmove', handleTouchMove)
       sliderRef.value.removeEventListener('touchend', handleTouchEnd)
+      sliderRef.value.removeEventListener('transitionend', handleTransitionEnd)
     }
 
     window.removeEventListener('mousemove', handleMouseMove)
