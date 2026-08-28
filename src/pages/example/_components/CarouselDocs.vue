@@ -203,6 +203,13 @@
         'ระยะ (px) ที่โผล่ให้เห็นสไลด์ถัดไป/ก่อนหน้า — ตอนอยู่สไลด์แรก/สุดท้าย ทั้งระยะเว้นขอบและระยะที่สไลด์ข้างๆ โผล่จะเท่ากับค่านี้พอดี ส่วนสไลด์กลางๆ โผล่เท่ากันสองข้างที่ peekAmount - gap/2',
     },
     {
+      name: 'peekScale',
+      type: 'number',
+      default: '1',
+      description:
+        'ย่อสไลด์ที่ยังไม่ active ให้เล็กกว่าใบที่ focus (เช่น 0.85) แล้วค่อยๆ ขยายเต็มตอนเลื่อนมาถึง, 1 = ทุกใบขนาดเท่ากัน. ระยะ peek ที่โผล่ยังเท่า peekAmount เหมือนเดิมเป๊ะ เพราะตรึงขอบด้านที่หันเข้าหาใบที่ focus ไว้ (ใบซ้ายตรึงขอบขวา ใบขวาตรึงขอบซ้าย) เปลี่ยนแค่ขนาดใบ',
+    },
+    {
       name: 'gap',
       type: 'number',
       default: '8',
@@ -348,6 +355,15 @@
       title: 'infinity (ลากวนไม่สุด)',
       target: 'demo-infinity',
       code: `<Carousel :items="banners" infinity>
+  <template #default="{ item }">
+    <Img :src="item.image" />
+  </template>
+</Carousel>`,
+    },
+    {
+      title: 'peekScale (ใบข้างๆ เล็กกว่า แล้วขยายตอนเลื่อนมา)',
+      target: 'demo-peek-scale',
+      code: `<Carousel :items="banners" :peek-scale="0.85">
   <template #default="{ item }">
     <Img :src="item.image" />
   </template>

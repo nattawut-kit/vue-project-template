@@ -69,6 +69,51 @@
 
       <hr />
 
+      <div id="demo-peek-scale">
+        <div class="mb-2 text-18 font-bold">
+          peekScale = 0.85 — ใบข้างๆ เล็กกว่า แล้วค่อยๆ ขยายเต็มตอนเลื่อนมาถึง
+        </div>
+        <div class="flex flex-col gap-4">
+          <Carousel
+            :items="banners"
+            aspect-ratio="2/1"
+            :peek-scale="0.85"
+          >
+            <template #default="{ item }">
+              <Img
+                :src="item.image"
+                :alt="item.title"
+                class="h-full w-full"
+              />
+            </template>
+          </Carousel>
+          <span class="text-16 text-gray-500">
+            ระยะ peek ที่โผล่ยังเท่า peekAmount เหมือนเดิม (16px) เปลี่ยนแค่ขนาดใบ — เลื่อนดู ใบที่
+            peek อยู่จะย่อไว้ พอกลายเป็นใบที่ focus ก็ขยายเต็มพร้อมกับที่ track เลื่อน
+          </span>
+
+          <Carousel
+            :items="banners"
+            aspect-ratio="2/1"
+            :peek-scale="0.7"
+            :peek-amount="32"
+          >
+            <template #default="{ item }">
+              <Img
+                :src="item.image"
+                :alt="item.title"
+                class="h-full w-full"
+              />
+            </template>
+          </Carousel>
+          <span class="text-16 text-gray-500">
+            peekScale = 0.7 คู่กับ peekAmount = 32 — ย่อเยอะขึ้นและโผล่มากขึ้น เห็นผลชัดกว่า
+          </span>
+        </div>
+      </div>
+
+      <hr />
+
       <div id="demo-infinity">
         <div class="mb-2 text-18 font-bold">
           infinity = true — เลยใบสุดท้ายแล้วเลื่อนต่อเป็นใบแรกแบบไม่ย้อนกลับ

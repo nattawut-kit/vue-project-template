@@ -26,25 +26,25 @@
           role="group"
           aria-roledescription="slide"
           :aria-label="`${slide.realIndex + 1} จาก ${items.length}`"
-          :aria-hidden="isInfinite && (position === 0 || position === renderedSlides.length - 1)"
+          :aria-hidden="isInfinite && !isRealSlidePosition(position)"
           :style="slideStyle"
           @click="handleClick(slide.item, slide.realIndex)"
         >
           <div
-            class="box-border h-full w-full overflow-hidden transition-all duration-300 ease-out"
+            class="box-border h-full w-full overflow-hidden transition-all duration-500 ease-out"
             :class="[
               roundClass,
               // ระหว่างลากต้องถอย cursor-pointer ออก ไม่งั้นมันทับ cursor-grab ของ track (ลูกชนะพ่อ)
               // ทำให้ลากอยู่แต่เคอร์เซอร์ยังเป็นนิ้วชี้
               clickable && !isDragging && 'cursor-pointer',
-              slide.realIndex === currentSlide ? 'scale-100 opacity-100' : 'scale-100 opacity-60',
+              position === activePosition ? 'opacity-100' : 'opacity-60',
             ]"
-            :style="customRoundStyle"
+            :style="[customRoundStyle, slideBoxStyle(position)]"
           >
             <slot
               :item="slide.item"
               :index="slide.realIndex"
-              :active="slide.realIndex === currentSlide"
+              :active="position === activePosition"
             />
           </div>
         </div>
@@ -135,6 +135,9 @@
     peek?: boolean
     // ระยะ (px) ที่โผล่ให้เห็นสไลด์ถัดไป/ก่อนหน้า และเป็นระยะเว้นขอบซ้ายของสไลด์แรก/ขอบขวาของสไลด์สุดท้าย
     peekAmount?: number
+    // ย่อสไลด์ที่ยังไม่ active ให้เล็กกว่าใบที่ focus (0-1) แล้วค่อยๆ ขยายเต็มตอนเลื่อนมาถึง
+    // 1 = ทุกใบขนาดเท่ากัน (ค่าเดิม)
+    peekScale?: number
     gap?: number
     // keyword ใช้ Tailwind class, ค่าอื่นใช้เป็น border-radius ตรงๆ (เหมือน Img/Button)
     round?: CarouselRound | string
@@ -161,6 +164,7 @@
     aspectRatio: '16/9',
     peek: true,
     peekAmount: 16,
+    peekScale: 1,
     gap: 8,
     round: '16px',
     showIndicators: true,
@@ -272,30 +276,35 @@
   // โหมด infinity โคลนใบสุดท้ายไว้หน้าสุด และใบแรกไว้ท้ายสุด เพื่อให้เลื่อนข้ามขอบไปเจอ "ใบถัดไป"
   // ที่หน้าตาถูกต้องอยู่แล้ว แล้วค่อยเทเลพอร์ตกลับใบจริงตอน transition จบ — ผู้ใช้เลยเห็นเป็นสไลด์
   // ต่อเนื่องไปข้างหน้า ไม่ใช่รูดย้อนกลับมาใบแรก
+  // ต้องโคลนข้างละ 2 ใบ ไม่ใช่ใบเดียว — เพราะตอนไปยืนบน clone ตัวนอกสุด ใบที่ควรโผล่เป็น peek
+  // ถัดจากมันต้องมีอยู่จริงด้วย ไม่งั้นช่อง peek ฝั่งนั้นจะว่างให้เห็นตลอดช่วงที่เลื่อนเข้าไป
+  const CLONE_COUNT = 2
+
   const renderedSlides = computed(() => {
     const slides = props.items.map((item, realIndex) => ({ item, realIndex }))
     if (!isInfinite.value) return slides
 
-    const last = slidesCount.value - 1
-    return [
-      { item: props.items[last], realIndex: last },
-      ...slides,
-      { item: props.items[0], realIndex: 0 },
-    ]
+    const n = slidesCount.value
+    const head = []
+    const tail = []
+    for (let i = 0; i < CLONE_COUNT; i++) {
+      tail.push(slides[(n - CLONE_COUNT + i + n) % n])
+      head.push(slides[i % n])
+    }
+
+    return [...tail, ...slides, ...head]
   })
 
-  // ตำแหน่งบน track ที่นับรวม clone — 0 = clone ใบสุดท้าย, 1..n = ใบจริง, n+1 = clone ใบแรก
-  const trackIndex = ref(1)
+  // ตำแหน่งบน track ที่นับรวม clone — ใบจริง index i อยู่ที่ตำแหน่ง i + CLONE_COUNT
+  const trackIndex = ref(CLONE_COUNT)
   // true ระหว่างเทเลพอร์ต ปิด transition ไว้ ผู้ใช้จะได้ไม่เห็นการกระโดด
   const isJumping = ref(false)
 
   const trackRealIndex = computed(() => {
     const n = slidesCount.value
     if (!isInfinite.value) return currentSlide.value
-    if (trackIndex.value === 0) return n - 1
-    if (trackIndex.value === n + 1) return 0
 
-    return trackIndex.value - 1
+    return (((trackIndex.value - CLONE_COUNT) % n) + n) % n
   })
 
   // พื้นที่แนวนอนที่ไม่ใช่ตัวสไลด์ active
@@ -314,6 +323,34 @@
   const slideStyle = computed(() => ({
     width: `calc(100% - ${inset.value}px)`,
   }))
+
+  // ตำแหน่งของใบที่ focus บน track (โหมด infinity นับรวม clone)
+  const activePosition = computed(() => (isInfinite.value ? trackIndex.value : currentSlide.value))
+
+  // ตำแหน่งนี้เป็นใบจริง ไม่ใช่ clone
+  const isRealSlidePosition = (position: number) =>
+    position >= CLONE_COUNT && position < CLONE_COUNT + slidesCount.value
+
+  // ใช้ CSS property `scale` ไม่ใช่ transform เพราะ track ข้างนอกใช้ transform อยู่แล้ว
+  // แยกกันคนละ property เลยไม่ทับกัน และ transition-all ของกล่องสไลด์ครอบคลุมให้อยู่แล้ว
+  //
+  // ตรึงขอบด้านที่หันเข้าหาใบที่ focus ไว้ด้วย transform-origin (ใบซ้ายตรึงขอบขวา ใบขวาตรึงขอบซ้าย)
+  // ระยะ peek ที่โผล่เลยเท่าเดิมเป๊ะ เปลี่ยนแค่ขนาดใบ — ถ้าย่อจากกึ่งกลางขอบจะหดหนีเข้าไป
+  // ทำให้ peek ที่เห็นแคบลง (หรือหายไปเลยถ้าย่อเยอะกว่า peekAmount)
+  const slideBoxStyle = (position: number) => {
+    const style: Record<string, string> = {}
+
+    // ตอนเทเลพอร์ต ตัว active ย้ายไป element ใหม่ ถ้าไม่ปิด transition ตรงนี้ด้วย element นั้น
+    // จะไล่ opacity/scale จากสถานะ "ใบข้างๆ" ขึ้นมาเต็มใช้เวลา 500ms — เห็นเป็นรูปกระพริบตอนวนครบรอบ
+    if (isJumping.value) style.transitionDuration = '0s'
+
+    if (props.peekScale !== 1 && position !== activePosition.value) {
+      style.scale = String(props.peekScale)
+      style.transformOrigin = position < activePosition.value ? 'right center' : 'left center'
+    }
+
+    return style
+  }
 
   // จัดสไลด์ active ไว้กลาง (ideal) เพื่อให้สไลด์ก่อนหน้าโผล่ทางซ้ายด้วย ไม่ใช่โผล่แค่สไลด์ถัดไป
   // แล้ว clamp หัวท้ายไว้ที่ edgeMargin — สไลด์แรกเว้นซ้าย = peekAmount, สไลด์สุดท้ายเว้นขวา = peekAmount
@@ -351,11 +388,16 @@
     if (!isInfinite.value) return
 
     const n = slidesCount.value
-    const atStartClone = trackIndex.value === 0
-    if (!atStartClone && trackIndex.value !== n + 1) return
+    // ช่วงของ "ใบจริง" คือ CLONE_COUNT .. CLONE_COUNT + n - 1 นอกจากนี้คือยืนอยู่บน clone
+    // ซึ่งมีใบจริงที่หน้าตาเหมือนกันเป๊ะอยู่ห่างไป n ตำแหน่งเสมอ
+    let target = trackIndex.value
+    if (target > CLONE_COUNT + n - 1) target -= n
+    else if (target < CLONE_COUNT) target += n
+
+    if (target === trackIndex.value) return
 
     isJumping.value = true
-    trackIndex.value = atStartClone ? n : 1
+    trackIndex.value = target
 
     // รอ DOM แล้วบังคับ reflow ให้ transform ใหม่ลงจริงตอน transition ยังปิดอยู่ ก่อนเปิดคืน
     await nextTick()
@@ -367,7 +409,7 @@
   const goToSlide = async (index: number) => {
     if (isInfinite.value) {
       await normalizeTrackPosition()
-      trackIndex.value = index + 1
+      trackIndex.value = index + CLONE_COUNT
     }
 
     currentSlide.value = index
@@ -445,12 +487,12 @@
   watch(currentSlide, value => {
     if (!isInfinite.value || trackRealIndex.value === value) return
 
-    trackIndex.value = value + 1
+    trackIndex.value = value + CLONE_COUNT
   })
 
   // เข้า/ออกโหมด infinity หรือจำนวนสไลด์เปลี่ยน ต้องรีเซ็ต track ให้ตรงกับใบที่อยู่
   watch([isInfinite, slidesCount], () => {
-    trackIndex.value = currentSlide.value + 1
+    trackIndex.value = currentSlide.value + CLONE_COUNT
   })
 
   const resetAutoplay = () => {
