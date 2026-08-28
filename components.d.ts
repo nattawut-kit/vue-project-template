@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     BaseModal: typeof import('./src/components/modal/BaseModal.vue')['default']
     Button: typeof import('./src/components/common/Button.vue')['default']
+    Carousel: typeof import('./src/components/media/Carousel.vue')['default']
     DefaultModal: typeof import('./src/components/modal/DefaultModal.vue')['default']
     DialogHost: typeof import('./src/components/modal/DialogHost.vue')['default']
     Img: typeof import('./src/components/media/Img.vue')['default']

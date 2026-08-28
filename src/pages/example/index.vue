@@ -31,6 +31,11 @@
             label="Img Demo"
             @click="router.push('/example/img-demo')"
           />
+          <Button
+            variant="secondary"
+            label="Carousel Demo"
+            @click="router.push('/example/carousel-demo')"
+          />
         </div>
       </div>
 
