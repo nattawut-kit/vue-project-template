@@ -90,7 +90,8 @@
           <div class="mt-2 text-16 text-gray-600">
             แถวสูงขึ้นเพราะมี 2 บรรทัด เลยต้องเพิ่ม
             <code>:option-height="56"</code>
-            (ปกติ default 44) ด้วย ไม่งั้น virtual-scroll คำนวณตำแหน่งพลาดเพราะความสูงจริงไม่ตรงกับที่บอกไว้
+            (ปกติ default 44) ด้วย ไม่งั้น virtual-scroll
+            คำนวณตำแหน่งพลาดเพราะความสูงจริงไม่ตรงกับที่บอกไว้
           </div>
         </div>
       </div>
@@ -193,8 +194,9 @@
             v-model: {{ tagsChipsOff.join(', ') || '(ยังไม่ได้เลือก)' }}
           </div>
           <div class="mt-2 text-16 text-gray-600">
-            ตัวเลือกที่เลือกไว้ (สองรายการเหมือนตัวอย่างด้านบน) โชว์เป็นข้อความ truncate บรรทัดเดียวแทน — เทียบกัน
-            ได้เลยว่าต่างกันแค่หน้าตา trigger เท่านั้น v-model/ค่าที่เลือกจริงเหมือนกันทุกอย่าง
+            ตัวเลือกที่เลือกไว้ (สองรายการเหมือนตัวอย่างด้านบน) โชว์เป็นข้อความ truncate
+            บรรทัดเดียวแทน — เทียบกัน ได้เลยว่าต่างกันแค่หน้าตา trigger เท่านั้น
+            v-model/ค่าที่เลือกจริงเหมือนกันทุกอย่าง
           </div>
         </div>
       </div>
@@ -270,9 +272,9 @@
           </div>
           <div class="mt-2 text-16 text-gray-600">
             หยุดพิมพ์ 500ms (default ของ inputDebounce) แล้วค่อยยิง API จริงไปที่
-            jsonplaceholder.typicode.com/users แล้วกรองฝั่งเราเอง (จำลอง remote search) — ไม่ใช่ยิงทุก
-            keystroke แล้ว มี token guard กันเคสตอบช้าสลับคิวกัน (คำค้นใหม่มาก่อน response เก่าจะกลับมา
-            ก็ทิ้ง response เก่าผ่าน abort())
+            jsonplaceholder.typicode.com/users แล้วกรองฝั่งเราเอง (จำลอง remote search) —
+            ไม่ใช่ยิงทุก keystroke แล้ว มี token guard กันเคสตอบช้าสลับคิวกัน (คำค้นใหม่มาก่อน
+            response เก่าจะกลับมา ก็ทิ้ง response เก่าผ่าน abort())
           </div>
         </div>
       </div>
@@ -298,9 +300,9 @@
             v-model: {{ tagsUseInput.join(', ') || '(ยังไม่ได้เลือก)' }}
           </div>
           <div class="mt-2 text-16 text-gray-600">
-            เลือกแล้วขึ้นเป็น chip ในช่องพิมพ์เอง ลบทีละตัวได้ด้วยปุ่ม × บน chip หรือกด Backspace ตอนช่องพิมพ์ว่างสนิท
-            เพื่อลบตัวสุดท้าย — พิมพ์กรองคำถัดไปได้ทันทีเพราะ list กลับมาเป็นชุดเต็มให้ไล่ดูต่อ
-            (ไม่ค้างเป็นผลกรองคำก่อนหน้า)
+            เลือกแล้วขึ้นเป็น chip ในช่องพิมพ์เอง ลบทีละตัวได้ด้วยปุ่ม × บน chip หรือกด Backspace
+            ตอนช่องพิมพ์ว่างสนิท เพื่อลบตัวสุดท้าย — พิมพ์กรองคำถัดไปได้ทันทีเพราะ list
+            กลับมาเป็นชุดเต็มให้ไล่ดูต่อ (ไม่ค้างเป็นผลกรองคำก่อนหน้า)
           </div>
         </div>
       </div>
@@ -396,8 +398,8 @@
             v-model: {{ tagsWithDisplayValue.join(', ') || '(ยังไม่ได้เลือก)' }}
           </div>
           <div class="mt-2 text-16 text-gray-600">
-            ลองเลือกเกิน 2 รายการ — trigger จะโชว์ "เลือกไว้ N รายการ" แทนการต่อ label ยาวๆ
-            (เลือก ≤ 2 ยังโชว์ label ปกติ เพราะ displayValue เป็น '' ตอนนั้น)
+            ลองเลือกเกิน 2 รายการ — trigger จะโชว์ "เลือกไว้ N รายการ" แทนการต่อ label ยาวๆ (เลือก ≤
+            2 ยังโชว์ label ปกติ เพราะ displayValue เป็น '' ตอนนั้น)
           </div>
         </div>
       </div>
@@ -456,10 +458,10 @@
             v-model: {{ monthValue || '(ยังไม่ได้เลือก)' }}
           </div>
           <div class="mt-2 text-16 text-gray-600">
-            default คือ <code>optionHeight</code> 44px / <code>maxPanelHeight</code> 280px —
-            เปิด dropdown แล้วสังเกตว่าแถวสูงขึ้นชัดเจน (60px) และ panel เตี้ยลง (สูงสุด 180px)
-            เห็นแค่ ~3 แถวก่อนต้อง scroll จาก 12 เดือนทั้งหมด — สองค่านี้ต้องปรับคู่กันเสมอเวลาทำแถว
-            custom ที่สูงไม่เท่า default (ดู demo slot: option ด้านบนที่แถวสูงขึ้นเพราะมี 2 บรรทัด)
+            default คือ <code>optionHeight</code> 44px / <code>maxPanelHeight</code> 280px — เปิด
+            dropdown แล้วสังเกตว่าแถวสูงขึ้นชัดเจน (60px) และ panel เตี้ยลง (สูงสุด 180px) เห็นแค่
+            ~3 แถวก่อนต้อง scroll จาก 12 เดือนทั้งหมด — สองค่านี้ต้องปรับคู่กันเสมอเวลาทำแถว custom
+            ที่สูงไม่เท่า default (ดู demo slot: option ด้านบนที่แถวสูงขึ้นเพราะมี 2 บรรทัด)
           </div>
         </div>
       </div>
@@ -479,7 +481,9 @@
             placeholder="เลือกเมือง"
             :options="cityOptionsRaw"
           />
-          <div class="mt-2 text-16 text-gray-600">v-model: {{ cityValue || '(ยังไม่ได้เลือก)' }}</div>
+          <div class="mt-2 text-16 text-gray-600">
+            v-model: {{ cityValue || '(ยังไม่ได้เลือก)' }}
+          </div>
           <div class="mt-2 text-16 text-gray-600">
             options ดิบเป็น <code>{ id: number, name: string }</code> ไม่ใช่
             <code>{ value, label }</code> — ไม่ต้อง <code>.map()</code> แปลงเองก่อนส่งเข้า
@@ -575,8 +579,9 @@
             v-model: {{ provinceCustomIcons || '(ยังไม่ได้เลือก)' }}
           </div>
           <div class="mt-2 text-16 text-gray-600">
-            ลูกศร chevron เปลี่ยนเป็น <code>common/arrow-right</code> (หมุนได้ตามปกติตอนเปิด) ปุ่ม clear
-            เปลี่ยนเป็น <code>common/eye-off</code> — จงใจใช้ icon แปลกๆ ให้เห็นชัดว่าเปลี่ยนได้จริง
+            ลูกศร chevron เปลี่ยนเป็น <code>common/arrow-right</code> (หมุนได้ตามปกติตอนเปิด) ปุ่ม
+            clear เปลี่ยนเป็น <code>common/eye-off</code> — จงใจใช้ icon แปลกๆ
+            ให้เห็นชัดว่าเปลี่ยนได้จริง
           </div>
         </div>
       </div>
@@ -884,7 +889,9 @@
 
   const tagsWithDisplayValue = ref<(string | number)[]>([])
   const tagsDisplayValue = computed(() =>
-    tagsWithDisplayValue.value.length > 2 ? `เลือกไว้ ${tagsWithDisplayValue.value.length} รายการ` : ''
+    tagsWithDisplayValue.value.length > 2
+      ? `เลือกไว้ ${tagsWithDisplayValue.value.length} รายการ`
+      : ''
   )
   const searchableProvince = ref('')
   const monthValue = ref<number | ''>('')
