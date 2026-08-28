@@ -237,6 +237,20 @@
         'false = ระหว่างลาก track อยู่นิ่ง รอปล่อยแล้วค่อยเลื่อนทีเดียว, true = ขยับตามเมาส์/นิ้วแบบ real-time (มีแรงหน่วงตอนสุดทางถ้า infinity = false) — ทั้งสองแบบยังลากเปลี่ยนสไลด์ได้เหมือนกัน',
     },
     {
+      name: 'slideClass',
+      type: 'string | array | object (เหมือน class ปกติ)',
+      default: 'undefined',
+      description:
+        'class เพิ่มเติมของกล่องสไลด์ เช่น border-2 border-main-1 shadow-lg — ต่อท้าย class เดิม ไม่ได้ทับ ถ้าจะทับ utility ที่ชนกัน (เช่น rounded-* จาก round) ต้องเติม ! เช่น rounded-none!',
+    },
+    {
+      name: 'slideStyle',
+      type: 'string | object (เหมือน style ปกติ)',
+      default: 'undefined',
+      description:
+        'style เพิ่มเติมของกล่องสไลด์ ใช้แทน slideClass ตอนที่ต้องทับค่าที่ชนกัน เพราะ inline style ชนะ class อยู่แล้วไม่ต้องเติม ! (ใส่ borderRadius มาเองก็ทับ round ได้). ข้อควรรู้เรื่องเงา: root ของ carousel ต้อง overflow hidden ไว้บังสไลด์ที่อยู่นอกจอ เงาที่ล้นออกนอกกรอบเลยโดนตัด — ด้านบนไม่มีที่ว่างเลย (โดนตัดหมด) ด้านล่างเหลือเท่าความสูงแถว indicator ถ้าอยากได้เงาเต็มๆ ให้ใส่ที่ container ข้างนอกแทน',
+    },
+    {
       name: 'showIndicators',
       type: 'boolean',
       default: 'true',
@@ -395,6 +409,21 @@
     <Img :src="item.image" />
   </template>
 </Carousel>`,
+    },
+    {
+      title: 'slideClass / slideStyle (border / shadow / อะไรก็ได้)',
+      target: 'demo-slide-style',
+      code: `<!-- class ปกติ -->
+<Carousel :items="banners" slide-class="border-2 border-main-1 shadow-lg" />
+
+<!-- style ตอนต้องทับค่าที่ชนกัน (ไม่ต้องเติม !) -->
+<Carousel
+  :items="banners"
+  :slide-style="{
+    border: '2px solid var(--color-main-1)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+  }"
+/>`,
     },
     {
       title: 'round',

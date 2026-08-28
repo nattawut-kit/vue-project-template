@@ -246,6 +246,71 @@
 
       <hr />
 
+      <div id="demo-slide-style">
+        <div class="mb-2 text-18 font-bold">
+          slideClass / slideStyle — border / shadow / อะไรก็ได้
+        </div>
+        <div class="flex flex-col gap-4">
+          <Carousel
+            :items="banners"
+            aspect-ratio="2/1"
+            slide-class="border-2 border-main-1 shadow-lg"
+          >
+            <template #default="{ item }">
+              <Img
+                :src="item.image"
+                :alt="item.title"
+                class="h-full w-full"
+              />
+            </template>
+          </Carousel>
+          <span class="text-16 text-gray-500">
+            slideClass — ใช้ utility ปกติ (border-2 border-main-1 shadow-lg)
+          </span>
+
+          <Carousel
+            :items="banners"
+            aspect-ratio="2/1"
+            :slide-style="{
+              border: '2px solid var(--color-main-1)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+            }"
+          >
+            <template #default="{ item }">
+              <Img
+                :src="item.image"
+                :alt="item.title"
+                class="h-full w-full"
+              />
+            </template>
+          </Carousel>
+          <span class="text-16 text-gray-500">
+            border + boxShadow — ไม่ต้องใส่ ! เพราะเป็น inline style ชนะ class เดิมอยู่แล้ว
+          </span>
+
+          <Carousel
+            :items="banners"
+            aspect-ratio="2/1"
+            round="none"
+            :slide-style="{ borderRadius: '4px 24px', outline: '3px dashed var(--color-main-4)' }"
+          >
+            <template #default="{ item }">
+              <Img
+                :src="item.image"
+                :alt="item.title"
+                class="h-full w-full"
+              />
+            </template>
+          </Carousel>
+          <span class="text-16 text-gray-500">
+            ใส่ borderRadius เองก็ทับ prop round ได้ (อันนี้ round="none" แต่ style
+            สั่งมุมไม่เท่ากัน)
+          </span>
+        </div>
+      </div>
+
+      <hr />
+
       <div id="demo-round">
         <div class="mb-2 text-18 font-bold">round</div>
         <div class="flex flex-col gap-4">

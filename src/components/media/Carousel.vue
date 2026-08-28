@@ -27,7 +27,7 @@
           aria-roledescription="slide"
           :aria-label="`${slide.realIndex + 1} จาก ${items.length}`"
           :aria-hidden="isInfinite && !isRealSlidePosition(position)"
-          :style="slideStyle"
+          :style="slideWidthStyle"
           @click="handleClick(slide.item, slide.realIndex)"
         >
           <div
@@ -38,8 +38,9 @@
               // ทำให้ลากอยู่แต่เคอร์เซอร์ยังเป็นนิ้วชี้
               clickable && !isDragging && 'cursor-pointer',
               position === activePosition ? 'opacity-100' : 'opacity-60',
+              slideClass,
             ]"
-            :style="[customRoundStyle, slideBoxStyle(position)]"
+            :style="[customRoundStyle, slideBoxStyle(position), slideStyle]"
           >
             <slot
               :item="slide.item"
@@ -109,6 +110,8 @@
 </template>
 
 <script setup lang="ts" generic="T">
+  import type { HTMLAttributes } from 'vue'
+
   type CarouselRound = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
 
   // เกาะขอบไหนของรูป — left/right เรียงจุดแนวตั้ง (เหมือน navigation-position ของ Quasar)
@@ -141,6 +144,11 @@
     gap?: number
     // keyword ใช้ Tailwind class, ค่าอื่นใช้เป็น border-radius ตรงๆ (เหมือน Img/Button)
     round?: CarouselRound | string
+    // แต่งกล่องสไลด์เพิ่มสำหรับอะไรที่ไม่มี prop ให้ เช่น border, shadow, background
+    // - slideClass: ต่อท้าย class เดิม ไม่ได้ทับ ถ้าจะทับ utility ที่ชนกัน (เช่น rounded-*) ต้องเติม !
+    // - slideStyle: inline style ชนะ class เดิมอยู่แล้ว ไม่ต้องเติม ! (ใส่ borderRadius เองก็ทับ round)
+    slideClass?: HTMLAttributes['class']
+    slideStyle?: HTMLAttributes['style']
     showIndicators?: boolean
     // ย้าย indicator ไปลอยทับบนรูปแทนที่จะอยู่ใต้รูป — มีผลกับ slot indicators ด้วย
     // true = ขอบล่างกึ่งกลาง, object = ปรับ position/offset/align เองได้
@@ -167,6 +175,8 @@
     peekScale: 1,
     gap: 8,
     round: '16px',
+    slideClass: undefined,
+    slideStyle: undefined,
     showIndicators: true,
     indicatorsInside: false,
     clickable: true,
@@ -320,7 +330,7 @@
   // ระยะเว้นขอบของสไลด์หัว/ท้าย ซึ่งไม่มีสไลด์ข้างๆ มาเติมที่ว่าง
   const edgeMargin = computed(() => (hasPeek.value ? props.peekAmount : 0))
 
-  const slideStyle = computed(() => ({
+  const slideWidthStyle = computed(() => ({
     width: `calc(100% - ${inset.value}px)`,
   }))
 
