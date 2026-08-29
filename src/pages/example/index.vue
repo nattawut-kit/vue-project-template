@@ -36,6 +36,11 @@
             label="Carousel Demo"
             @click="router.push('/example/carousel-demo')"
           />
+          <Button
+            variant="secondary"
+            label="DragScroll Demo"
+            @click="router.push('/example/drag-scroll-demo')"
+          />
         </div>
       </div>
 
