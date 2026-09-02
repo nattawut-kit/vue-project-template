@@ -3,6 +3,15 @@
     <div>This is Home Page</div>
     <br />
     <Button @click="handleClick">Go to Example Page</Button>
+
+    <OtpInput
+      v-model="validatedOtp"
+      :invalid="isInvalid"
+      invalid-message="รหัส OTP ไม่ถูกต้อง"
+      :expired="isExpired"
+      expired-message="รหัส OTP หมดอายุแล้ว"
+      @clear-invalid="isInvalid = false"
+    />
   </div>
 </template>
 
@@ -12,6 +21,14 @@
   const handleClick = () => {
     router.push('/example')
   }
+
+  const validatedOtp = ref('')
+  const isInvalid = ref(false)
+  const isExpired = ref(false)
+  // function handleValidate(): void {
+  //   isInvalid.value = validatedOtp.value !== '123456'
+  //   isExpired.value = false
+  // }
 </script>
 
 <style scoped lang="scss">

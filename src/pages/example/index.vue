@@ -18,6 +18,11 @@
           />
           <Button
             variant="secondary"
+            label="OtpInput Demo"
+            @click="router.push('/example/otp-input-demo')"
+          />
+          <Button
+            variant="secondary"
             label="Select Demo"
             @click="router.push('/example/select-demo')"
           />

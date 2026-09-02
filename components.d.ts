@@ -18,6 +18,7 @@ declare module 'vue' {
     DialogHost: typeof import('./src/components/modal/DialogHost.vue')['default']
     DragScroll: typeof import('./src/components/media/DragScroll.vue')['default']
     Img: typeof import('./src/components/media/Img.vue')['default']
+    OtpInput: typeof import('./src/components/form/OtpInput.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('./src/components/form/Select.vue')['default']
