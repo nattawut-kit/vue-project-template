@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm:*)",
+      "Bash(pnpm exec vitest:*)",
+      "Bash(pnpx:*)",
+      "Bash(git:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(agent-browser:*)",
+      "WebFetch(domain:vuejs.org)",
+      "WebFetch(domain:*.vuejs.org)",
+      "WebFetch(domain:esm.dev)",
+      "WebFetch(domain:*.esm.dev)",
+      "WebFetch(domain:vite.dev)",
+      "WebFetch(domain:tailwindcss.com)",
+      "WebFetch(domain:oxc.rs)",
+      "WebSearch"
+    ],
+    "deny": ["Read(./.env)", "Read(./.env.*)"]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -Eiq '\\.(ts|mts|tsx|js|mjs|jsx|json|css|html|md|vue)$'; then pnpm exec oxfmt \"$file_path\"; fi; }"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -28,9 +28,7 @@ describe('safeDecode', () => {
 describe('normalizeRedirectPath', () => {
   it('keeps an in-app path', () => {
     expect(normalizeRedirectPath('/profile')).toBe('/profile')
-    expect(normalizeRedirectPath('/rewards/RW_1?categoryRef=C1')).toBe(
-      '/rewards/RW_1?categoryRef=C1',
-    )
+    expect(normalizeRedirectPath('/orders/OD_1?tab=C1')).toBe('/orders/OD_1?tab=C1')
   })
 
   it('adds the leading slash', () => {

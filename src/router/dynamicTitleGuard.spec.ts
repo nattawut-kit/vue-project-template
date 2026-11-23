@@ -28,7 +28,7 @@ describe('installDynamicTitleGuard', () => {
   it('survives landing straight on the route, as a hard reload would', async () => {
     const router = createTestRouter()
 
-    await router.push({ path: '/game', query: { title: 'บทความ/ข่าวสาร' } })
+    await router.push({ path: '/home', query: { title: 'บทความ/ข่าวสาร' } })
 
     expect(router.currentRoute.value.meta.title).toBe('บทความ/ข่าวสาร')
   })

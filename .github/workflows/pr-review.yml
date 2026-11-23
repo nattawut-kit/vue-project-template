@@ -1,0 +1,59 @@
+# Version: 5.0.0
+# Updated: 2026-11-12 13:30 +07:00
+name: PR Review
+
+# Everything runs in chococrm/ei-portal: .github/workflows/pr-review-reusable.yml
+# decides what to do and fetches the tooling (ci/, 5.x) through ci/bootstrap.
+# Triggers: PR open/reopen/ready for review, /review, synchronize (verify-only),
+# merged/closed Discord thread. Draft PRs are reviewed only on /review.
+# Required: CLAUDE_CODE_OAUTH_TOKEN
+# Optional: REVIEW_ASSIGNEE, REVIEWER_NAME, CLAUDE_CODE_MODEL (vars; falls back to the
+#   action default when unset or rejected), PR_DISCORD_WEBHOOK (secret)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, closed]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  workflow_dispatch:
+    inputs:
+      check_run_id:
+        description: Stuck AI PR Review check run id to complete
+        required: false
+        type: string
+      head_sha:
+        description: Commit SHA — closes all in_progress AI PR Review checks on it
+        required: false
+        type: string
+      conclusion:
+        description: Conclusion for closed checks
+        required: false
+        type: choice
+        options:
+          - cancelled
+          - success
+          - neutral
+        default: cancelled
+
+permissions: {}
+
+jobs:
+  review:
+    name: PR Review
+    uses: chococrm/ei-portal/.github/workflows/pr-review-reusable.yml@main
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      checks: write
+      id-token: write
+      actions: read
+    with:
+      check_run_id: ${{ inputs.check_run_id }}
+      head_sha: ${{ inputs.head_sha }}
+      conclusion: ${{ inputs.conclusion || 'cancelled' }}
+    secrets: inherit

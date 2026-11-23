@@ -1,0 +1,28 @@
+Copyright (c) 2026 POSVA SOLUTIONS
+
+All rights reserved.
+
+RULEKIT LICENSE TERMS
+
+This repository and its contents are proprietary and confidential.
+
+1. GRANT OF LICENSE
+   Upon purchase of a valid license at https://rulekit.dev/ and activation,
+   you are granted a personal, non-exclusive, non-transferable license to
+   use the contents of this repository in unlimited projects for your own use.
+
+2. RESTRICTIONS
+   You may NOT:
+   - Share, redistribute, or resell these files
+   - Transfer your license to another person
+   - Use these files without an active, valid license
+   - Remove or alter any copyright notices
+
+3. ONE LICENSE PER PERSON
+   Each license is valid for a single individual. Teams require one license
+   per team member.
+
+4. NO WARRANTY
+   This software is provided "as is" without warranty of any kind.
+
+For licensing, support, or inquiries: https://rulekit.dev/
