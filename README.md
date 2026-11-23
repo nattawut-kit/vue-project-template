@@ -24,7 +24,7 @@ The ChocoCRM starter for a new mobile web project. The structure, conventions an
 - `Button`, `Svg`, `Spinner`, `Loading` (`src/components/ui/`)
 - The mobile shell: a top bar driven by route meta and a bottom tab bar
 - The api client for the ChocoCRM `{ status, data, error }` envelope, a token store, a `requiresAuth` route guard and an opt-in LINE LIFF login
-- UI example pages at `/examples` (development mode only)
+- A guide with code examples at `/guide` (a button on the home page) and UI example pages at `/examples` (development mode only)
 
 ## Getting Started
 
@@ -40,7 +40,7 @@ pnpm run dev
 2. Fill in `.env.development`, leave `VITE_LIFF_ID` empty if the project has no LINE login
 3. Set the palette and the `--app-*` jobs in `src/assets/main.css`, add the font (see `.claude/skills/design-tokens`)
 4. Replace the logo placeholder in `LayoutMobileTopBar.vue` and the tabs in `mobileTabs.ts`
-5. Replace `pages/home.vue` (the template's guide, with `components/features/home/`) and `pages/profile.vue` with the real pages
+5. Replace `pages/home.vue` and `pages/profile.vue` with the real pages, delete the guide (`pages/guide.vue`, `components/features/guide/`)
 6. Rewrite the intro and Project Structure of `CLAUDE.md`, and `docs/folder-structure.md`, for the project
 
 ## Commands

@@ -84,6 +84,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/guide': RouteRecordInfo<
+      '/guide',
+      '/guide',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/home': RouteRecordInfo<
       '/home',
       '/home',
@@ -181,6 +188,14 @@ declare module 'vue-router/auto-routes' {
     'src/pages/examples/select.vue': {
       routes:
         | '/examples/select'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/guide.vue': {
+      routes:
+        | '/guide'
       views:
         | never
       pathParamNames:

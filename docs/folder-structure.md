@@ -24,7 +24,7 @@ vue-project-template/
 │   │   ├── input/           # ช่องกรอกที่มีข้อความของตัวเอง: TextField, Select
 │   │   ├── modal/           # BaseModal, BaseBottomSheet, DefaultModal, PopupHeader และ engine ของ Dialog.create()
 │   │   ├── layout/          # LayoutMobile + top bar + tab bar, mobileTabs.ts คือรายการแท็บ
-│   │   └── features/        # component ที่รู้จัก domain แยกโฟลเดอร์ตาม feature (examples/ คือเนื้อหาหน้าตัวอย่าง UI, home/ คือคู่มือในหน้าแรก)
+│   │   └── features/        # component ที่รู้จัก domain แยกโฟลเดอร์ตาม feature (examples/ คือเนื้อหาหน้าตัวอย่าง UI, guide/ คือเนื้อหาของหน้าคู่มือ)
 │   ├── composables/         # useLineLogin (flow login LINE) และ helper ทั่วไป (useCountdown, useDebouncedRef, ...)
 │   ├── mutations/           # defineMutation ของ Pinia Colada (auth.ts: useLogin)
 │   ├── queries/             # key factory + defineQueryOptions (ยังว่างใน template)
@@ -43,7 +43,8 @@ vue-project-template/
 
 - ไฟล์ใน `src/pages/` จะกลายเป็น route อัตโนมัติ
   - `pages/(landing).vue` → `/` (ชื่อ route `'/(landing)'`) หน้าแรกที่เปิดแอป ถ้าตั้ง `VITE_LIFF_ID` จะ login ด้วย LINE แล้วไปต่อเอง ถ้าไม่ตั้งจะไป `/home` (หรือหน้าที่ฝากไว้ใน `?redirect=`)
-  - `pages/home.vue` → `/home` แท็บแรก คู่มือการต่อยอดจาก template พร้อมตัวอย่างโค้ด (เนื้อหาอยู่ใน `components/features/home/implementationGuide.ts`) เริ่มโปรเจคจริงให้แทนด้วยหน้าแรกของโปรเจค และลบ `components/features/home/` ทิ้ง
+  - `pages/home.vue` → `/home` แท็บแรก หน้าตัวอย่าง มีปุ่มไปคู่มือ (และปุ่มไป `/examples` เฉพาะ mode development)
+  - `pages/guide.vue` → `/guide` คู่มือการต่อยอดจาก template พร้อมตัวอย่างโค้ด เปิดจากปุ่มในหน้าแรก (เนื้อหาอยู่ใน `components/features/guide/implementationGuide.ts`) เริ่มโปรเจคจริงให้ลบหน้านี้พร้อม `components/features/guide/`
   - `pages/profile.vue` → `/profile` แท็บที่สอง หน้าตัวอย่าง
   - `pages/unauthorized.vue` → `/unauthorized` ปลายทางของลิงก์ที่ไม่ตรงหน้าไหน ปุ่มล้าง session
   - `pages/version.vue` → `/version` เปิดได้ทุกคนโดยไม่ต้องมี token แสดงเวอร์ชัน (`VITE_APP_VERSION`) environment (`VITE_BUILD_MODE`) และเวลาที่ build (`__APP_BUILD_TIME__`) ให้ support อ่านจากมือถือลูกค้าได้

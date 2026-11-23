@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { GuideSection } from './implementationGuide'
+import type { GuideTopic } from './implementationGuide'
 
-const { section } = defineProps<{ section: GuideSection }>()
+const { section } = defineProps<{ section: GuideTopic }>()
 </script>
 
 <template>

@@ -1,7 +1,7 @@
-// The content of the guide on the home page: how to build on the template, one section per task.
+// The content of the guide page (/guide): how to build on the template, one section per task.
 // Plain data so the page stays a loop and a new section is one more entry here.
 
-export interface GuideSection {
+export interface GuideTopic {
   id: string
   title: string
   /** One or two sentences on when this applies. */
@@ -12,7 +12,7 @@ export interface GuideSection {
   code?: string
 }
 
-export const GUIDE_SECTIONS: GuideSection[] = [
+export const GUIDE_SECTIONS: GuideTopic[] = [
   {
     id: 'start',
     title: '1. เริ่มโปรเจคใหม่',
@@ -23,6 +23,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       'ตั้งสีใน src/assets/main.css (ชั้น --palette-* แล้วชี้ --app-* ไปหา) และใส่ฟอนต์ของโปรเจค',
       'เปลี่ยน LOGO ใน LayoutMobileTopBar.vue และแท็บใน mobileTabs.ts',
       'แก้ intro กับ Project Structure ใน CLAUDE.md และ docs/folder-structure.md ให้เป็นของโปรเจค',
+      'ลบหน้าคู่มือนี้ (pages/guide.vue กับ components/features/guide/) และแทน pages/home.vue ด้วยหน้าแรกจริง',
     ],
   },
   {

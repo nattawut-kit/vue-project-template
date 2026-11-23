@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
-import HomeGuideSection from './HomeGuideSection.vue'
-import { GUIDE_SECTIONS, type GuideSection } from './implementationGuide'
+import GuideSection from './GuideSection.vue'
+import { GUIDE_SECTIONS, type GuideTopic } from './implementationGuide'
 
-const SECTION: GuideSection = {
+const SECTION: GuideTopic = {
   id: 'page',
   title: 'เพิ่มหน้าใหม่',
   summary: 'สร้างไฟล์ใน src/pages/',
@@ -12,9 +12,9 @@ const SECTION: GuideSection = {
   code: '<template>{{ value }}</template>',
 }
 
-describe('HomeGuideSection', () => {
+describe('GuideSection', () => {
   it('shows the title, summary and every step', () => {
-    const wrapper = mount(HomeGuideSection, { props: { section: SECTION } })
+    const wrapper = mount(GuideSection, { props: { section: SECTION } })
 
     expect(wrapper.get('h2').text()).toBe('เพิ่มหน้าใหม่')
     expect(wrapper.text()).toContain('สร้างไฟล์ใน src/pages/')
@@ -22,7 +22,7 @@ describe('HomeGuideSection', () => {
   })
 
   it('shows the code as plain text, never as markup', () => {
-    const wrapper = mount(HomeGuideSection, { props: { section: SECTION } })
+    const wrapper = mount(GuideSection, { props: { section: SECTION } })
 
     expect(wrapper.get('code').text()).toBe('<template>{{ value }}</template>')
     expect(wrapper.text()).toContain('src/pages/orders.vue')
@@ -31,7 +31,7 @@ describe('HomeGuideSection', () => {
   it('leaves out the code block when a section has no code', () => {
     const { code: _code, file: _file, ...withoutCode } = SECTION
 
-    const wrapper = mount(HomeGuideSection, { props: { section: withoutCode } })
+    const wrapper = mount(GuideSection, { props: { section: withoutCode } })
 
     expect(wrapper.find('pre').exists()).toBe(false)
   })
