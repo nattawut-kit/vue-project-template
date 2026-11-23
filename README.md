@@ -40,7 +40,7 @@ pnpm run dev
 2. Fill in `.env.development`, leave `VITE_LIFF_ID` empty if the project has no LINE login
 3. Set the palette and the `--app-*` jobs in `src/assets/main.css`, add the font (see `.claude/skills/design-tokens`)
 4. Replace the logo placeholder in `LayoutMobileTopBar.vue` and the tabs in `mobileTabs.ts`
-5. Replace `pages/home.vue` and `pages/profile.vue` with the real pages
+5. Replace `pages/home.vue` (the template's guide, with `components/features/home/`) and `pages/profile.vue` with the real pages
 6. Rewrite the intro and Project Structure of `CLAUDE.md`, and `docs/folder-structure.md`, for the project
 
 ## Commands

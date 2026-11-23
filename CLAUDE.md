@@ -31,7 +31,7 @@ MUST FOLLOW THESE RULES, NO EXCEPTIONS
 2. Copy `.env.example` to `.env.development` and fill it in. Leave `VITE_LIFF_ID` empty if the project has no LINE login
 3. Theme it: the palette and the `--app-*` jobs in `src/assets/main.css`, the font, see the `design-tokens` skill
 4. Replace the logo placeholder in `LayoutMobileTopBar.vue` and the tabs in `mobileTabs.ts`
-5. Replace `pages/home.vue` and `pages/profile.vue` with the real pages, add `requiresAuth: true` where a login is needed
+5. Replace `pages/home.vue` (the guide, delete `components/features/home/` with it) and `pages/profile.vue` with the real pages, add `requiresAuth: true` where a login is needed
 6. Rewrite this file's intro and Project Structure, and `docs/folder-structure.md`, for the project
 
 ## Project Structure
@@ -47,14 +47,14 @@ src/
 │   ├── modal/ # BaseModal, BaseBottomSheet, DefaultModal, PopupHeader (the type icon) + the Dialog.create() engine (dialog.ts, DialogHost, useDialogComponent) and showErrorDialog (errorDialog.ts)
 │   ├── input/ # Composed form controls that own their own copy (TextField, Select)
 │   ├── layout/ # The app shell (LayoutMobile + its top and tab bars, mobileTabs.ts lists the tabs)
-│   └── features/ # Feature-specific components, one folder per feature (examples/ holds the UI example pages' content and ExampleSheetDialog, a custom dialog opened through Dialog.create)
+│   └── features/ # Feature-specific components, one folder per feature (examples/ holds the UI example pages' content and ExampleSheetDialog, a custom dialog opened through Dialog.create; home/ holds the guide on the home page, HomeGuideSection and its content in implementationGuide.ts)
 ├── composables/ # Composition functions, see composables/CLAUDE.md (useLineLogin is the LINE login flow, the rest are generic helpers)
 ├── stores/ # Pinia stores for global state (NOT data fetching): auth (the token), liff (LIFF init, opt-in through VITE_LIFF_ID), loading (the app-wide overlay)
 ├── queries/ # Pinia Colada key factories + defineQueryOptions (empty in the template, see the pinia-colada skill)
 ├── mutations/ # Pinia Colada defineMutation (auth.ts: useLogin)
 ├── pages/ # Page components (Vue Router file-based routing)
 │   ├── (landing).vue # renders at /, the entry: runs the LINE login when VITE_LIFF_ID is set, otherwise goes to /home (or the parked ?redirect=)
-│   ├── home.vue # renders at /home, the first bottom tab, a placeholder
+│   ├── home.vue # renders at /home, the first bottom tab: the template's own guide, how to build on it with code examples (components/features/home/implementationGuide.ts holds the content), replace it with the project's home page
 │   ├── profile.vue # renders at /profile, the second bottom tab, a placeholder
 │   ├── unauthorized.vue # renders at /unauthorized, the catch-all for a link that matches no page, its button clears the session
 │   ├── version.vue # renders at /version, open to anyone: the app version (`VITE_APP_VERSION`), the environment (`VITE_BUILD_MODE`) and the build time (`__APP_BUILD_TIME__`, set in `vite.config.ts`), for support to read off a phone

@@ -8,6 +8,7 @@ const LANDING_ROUTE_NAME = '/(landing)'
 const UNAUTHORIZED_ROUTE_NAME = '/unauthorized'
 const VERSION_ROUTE_NAME = '/version'
 const EXAMPLES_ROUTE_PREFIX = '/examples'
+const TOP_BAR_CLEARANCE_PX = 72
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,8 +19,12 @@ export const router = createRouter({
     { path: '/:pathMatch(.*)*', redirect: { name: UNAUTHORIZED_ROUTE_NAME } },
   ],
 
-  scrollBehavior(_to, _from, savedPosition) {
-    return savedPosition ?? { top: 0 }
+  scrollBehavior(to, _from, savedPosition) {
+    if (savedPosition) return savedPosition
+    // An in-page link (#section) scrolls to its target instead of the top, clear of the sticky
+    // top bar (56px tall) with a little room above it.
+    if (to.hash) return { el: to.hash, top: TOP_BAR_CLEARANCE_PX }
+    return { top: 0 }
   },
 })
 
