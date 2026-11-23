@@ -52,7 +52,7 @@ vue-project-template/
 - ชื่อ route เก็บวงเล็บของ group ไว้ด้วย เช่น `'/(landing)'` ดูชื่อทั้งหมดได้ใน `typed-router.d.ts`
 - เปลี่ยนหน้าด้วย `router.replace({ name: '...' })` เสมอ ห้ามใช้ `router.push()`
 - ตั้งค่าหน้าใน `definePage({ meta: { ... } })` field ของ `meta` ประกาศไว้ใน `src/router/meta.d.ts`
-  - `title` ชื่อบน top bar, `backTo` route ของปุ่มย้อนกลับ (มีค่า = top bar แบบปุ่มย้อนกลับ + ชื่อ, ไม่มี = แบบ logo), `hideBack` ซ่อนแค่ปุ่ม
+  - `title` ชื่อบน top bar, `backTo` route ของปุ่มย้อนกลับ (มีค่า = top bar แบบปุ่มย้อนกลับ + ชื่อ, ไม่มี = แบบ logo ทั้งชื่อและ logo อยู่ตรงกลาง), `hideBack` ซ่อนแค่ปุ่ม
   - `current` แท็บที่หน้านี้อยู่ (`home` | `profile`), `hideTopBar`, `hideTabBar`, `hideLogo`, `overlapTopBar`
   - `requiresAuth` ต้องมี token ถ้าไม่มี guard ส่งไปหน้า landing พร้อม `?redirect=` กลับมาหน้านี้ ตั้งที่ layout route แล้วหน้าลูกได้ไปด้วย
 - `LayoutMobile.vue` คือ shell เดียวของแอป คอลัมน์กว้างไม่เกิน 640px อยู่กลางจอ พื้นหลังของคอลัมน์คือ `bg-canvas` ส่วนพื้นที่ด้านข้างบนจอกว้างคือ `bg-page` (ตั้งที่ `<html>`) แยกสีกันได้

@@ -77,7 +77,7 @@ src/
 `LayoutMobile.vue` is the only shell, `App.vue` wraps every page in it.
 
 - Mobile first column capped at `max-w-160` (640px) and centered on every screen, no desktop variant. The column is `bg-canvas`, the area beside it on a wide screen is `bg-page` (set on `<html>`), two tokens so a project can tell them apart
-- Sticky top bar (`LayoutMobileTopBar.vue`): two looks. A page with `meta.backTo` shows the back button (`meta.hideBack` hides just the button) and `meta.title`, every other page shows the logo placeholder. `meta.hideTopBar` hides the bar
+- Sticky top bar (`LayoutMobileTopBar.vue`): two looks. A page with `meta.backTo` shows the back button (`meta.hideBack` hides just the button) and `meta.title`, every other page shows the logo placeholder. Both the title and the logo sit in the middle. `meta.hideTopBar` hides the bar
 - Sticky bottom tab bar (`LayoutMobileTabBar.vue`), entries live in `src/components/layout/mobileTabs.ts`, the active tab follows `meta.current`. `meta.hideTabBar` hides the bar
 - Adding a top level destination means adding a tab there
 

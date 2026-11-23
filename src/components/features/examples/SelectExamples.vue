@@ -37,9 +37,8 @@ const selectLoading = ref<string | number>('')
       <Select
         v-model="selectSearch"
         label="ค้นหาได้"
-        placeholder="พิมพ์เพื่อค้นหา"
+        placeholder="พิมพ์ชื่อจังหวัดเพื่อค้นหา"
         searchable
-        search-placeholder="ค้นหาจังหวัด"
         no-options-text="ไม่พบข้อมูล"
         :options="SELECT_OPTIONS"
       />

@@ -120,14 +120,63 @@ describe('Select', () => {
     ])
   })
 
-  it('filters options by label when searchable', async () => {
-    const wrapper = mountSelect({ options: OPTIONS, modelValue: '', searchable: true })
-    await wrapper.get('[role="combobox"]').trigger('click')
-    await wrapper.get('input').setValue('chiang')
+  describe('searchable', () => {
+    it('types into the field itself and filters the options by label', async () => {
+      const wrapper = mountSelect({ options: OPTIONS, modelValue: '', searchable: true })
+      const input = wrapper.get('input[role="combobox"]')
 
-    const rows = wrapper.findAll('[role="option"]')
-    expect(rows).toHaveLength(1)
-    expect(rows[0]!.text()).toContain('Chiang Mai')
+      await input.trigger('focus')
+      await input.setValue('chiang')
+
+      const rows = wrapper.findAll('[role="option"]')
+      expect(rows).toHaveLength(1)
+      expect(rows[0]!.text()).toContain('Chiang Mai')
+    })
+
+    it('has no separate search box in the panel', async () => {
+      const wrapper = mountSelect({ options: OPTIONS, modelValue: '', searchable: true })
+
+      await wrapper.get('input').trigger('focus')
+
+      expect(wrapper.findAll('input')).toHaveLength(1)
+    })
+
+    it('shows the picked label in the field, and as the placeholder while typing over it', async () => {
+      const wrapper = mountSelect({ options: OPTIONS, modelValue: 'phuket', searchable: true })
+      const input = wrapper.get<HTMLInputElement>('input')
+
+      expect(input.element.value).toBe('Phuket')
+
+      await input.trigger('focus')
+
+      expect(input.element.value).toBe('')
+      expect(input.attributes('placeholder')).toBe('Phuket')
+    })
+
+    it('picks an option, closes, and opens again when typing goes on', async () => {
+      const wrapper = mountSelect({ options: OPTIONS, modelValue: '', searchable: true })
+      const input = wrapper.get<HTMLInputElement>('input')
+      await input.trigger('focus')
+      await input.setValue('phu')
+
+      await wrapper.get('[role="option"]').trigger('click')
+
+      expect(lastCall(wrapper.emitted('update:modelValue'))).toEqual(['phuket'])
+      expect(wrapper.find('[role="option"]').exists()).toBe(false)
+
+      await input.setValue('ban')
+
+      expect(wrapper.findAll('[role="option"]').map((row) => row.text())).toEqual(['Bangkok'])
+    })
+
+    it('never fires filter, the list is narrowed here', async () => {
+      const wrapper = mountSelect({ options: OPTIONS, modelValue: '', searchable: true })
+
+      await wrapper.get('input').trigger('focus')
+      await wrapper.get('input').setValue('chiang')
+
+      expect(wrapper.emitted('filter')).toBeUndefined()
+    })
   })
 
   it('shows a removable chip per selection when multiple and useChips are set', async () => {

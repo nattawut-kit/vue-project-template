@@ -55,14 +55,24 @@ describe('LayoutMobileTopBar', () => {
     expect(wrapper.find('button[aria-label="ย้อนกลับ"]').exists()).toBe(false)
   })
 
-  it('keeps the logo beside the title, with no back button, on a page with hideBack', () => {
+  it('shows the title with no back button and no logo on a page with hideBack', () => {
     routeState.meta = { backTo: { name: '/home' }, title: 'ยืนยัน', hideBack: true }
 
     const wrapper = mount(LayoutMobileTopBar)
 
-    expect(wrapper.text()).toContain('LOGO')
     expect(wrapper.text()).toContain('ยืนยัน')
+    expect(wrapper.text()).not.toContain('LOGO')
     expect(wrapper.find('button[aria-label="ย้อนกลับ"]').exists()).toBe(false)
+  })
+
+  it('puts the logo in the middle column, between the two equal sides', () => {
+    routeState.meta = {}
+
+    const wrapper = mount(LayoutMobileTopBar)
+
+    const columns = wrapper.findAll('header > div')
+    expect(columns).toHaveLength(3)
+    expect(columns[1]!.find('[data-test="logo"]').exists()).toBe(true)
   })
 
   it('hides the logo on a page with hideLogo', () => {

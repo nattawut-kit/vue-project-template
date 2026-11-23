@@ -78,7 +78,6 @@ const {
   optionHeight = 44,
   maxPanelHeight = 280,
   noOptionsText = 'ไม่พบข้อมูล',
-  searchPlaceholder = 'ค้นหา',
   dropdownIcon = 'common/arrow-down-01',
   clearIcon = 'common/x-close',
   customStyle = {},
@@ -111,11 +110,12 @@ const {
   // chip (× button, or Backspace while useInput and the input is empty). false falls back to the
   // plain comma-joined label text, with no in-trigger removal. No effect when multiple is false.
   useChips?: boolean
+  // The trigger becomes a typeable <input> and the list narrows to the options whose label contains
+  // what is typed, filtered right here. For a list that comes from the API per search, use useInput.
   searchable?: boolean
-  // Quasar-style use-input — the trigger becomes a typeable <input> instead of a separate search box
-  // in the panel (auto-disables the searchable box if both are set). Does not filter locally like
-  // searchable does — the caller must listen for @filter and mutate its own options, or the list
-  // never narrows while typing.
+  // Quasar-style use-input — the trigger becomes a typeable <input> like searchable, but does not
+  // filter locally: the caller must listen for @filter and mutate its own options, or the list never
+  // narrows while typing. Wins over searchable when both are set.
   useInput?: boolean
   // Quasar-style input-debounce — delay (ms) before firing @filter while typing, to avoid firing an
   // API call on every keystroke. 0 = fire immediately. No effect when useInput is false.
@@ -137,7 +137,6 @@ const {
   optionHeight?: number
   maxPanelHeight?: number
   noOptionsText?: string
-  searchPlaceholder?: string
   // Quasar-style dropdown-icon/clear-icon — override the icon path (same Svg src="folder/name"
   // convention used across the project).
   dropdownIcon?: string
@@ -172,7 +171,6 @@ const triggerRef = ref<HTMLElement>()
 const triggerInputRef = ref<HTMLInputElement>()
 const panelRef = ref<HTMLElement>()
 const panelScrollRef = ref<HTMLElement>()
-const searchInputRef = ref<HTMLInputElement>()
 
 const panelId = `select-panel-${useId()}`
 // role="combobox" here sits on a <div> (or an <input> whose role is overridden), neither of which
@@ -180,7 +178,9 @@ const panelId = `select-panel-${useId()}`
 const labelId = `select-label-${useId()}`
 
 const isOpen = ref(false)
-const searchQuery = ref('')
+const searchQuery = ref<string>('')
+// Both modes type into the trigger itself, they differ only in who filters (see filteredOptions).
+const isInputMode = computed<boolean>(() => useInput || searchable)
 const highlightedIndex = ref(-1)
 const openUpward = ref(false)
 const resolvedPanelMaxHeight = ref(maxPanelHeight)
@@ -523,8 +523,8 @@ function toggleOption(option: ISelectOption): void {
     // as its own chip (see template), so there's nothing to sync the search text back to like single.
     // Also fires filter('') (like focus/clear) so the consumer resets its list back to the full set,
     // instead of the panel staying stuck on the previous filtered result after a selection.
+    if (isInputMode.value) searchQuery.value = ''
     if (useInput) {
-      searchQuery.value = ''
       clearFilterDebounce()
       emitFilter('')
     }
@@ -537,8 +537,8 @@ function toggleOption(option: ISelectOption): void {
 
 function clearValue(): void {
   model.value = multiple ? [] : ''
+  if (isInputMode.value) searchQuery.value = ''
   if (useInput) {
-    searchQuery.value = ''
     // Clear any pending debounce first, so a stale search term can't land on top of the list this
     // button just reset.
     clearFilterDebounce()
@@ -587,8 +587,6 @@ async function openPanel(force = false, resetQuery = true): Promise<void> {
   await nextTick()
   computePlacement()
 
-  if (searchable && !useInput) searchInputRef.value?.focus()
-
   const selectedIndex = filteredOptions.value.findIndex((option) => isOptionSelected(option))
   highlightedIndex.value = selectedIndex
   if (selectedIndex >= 0) scrollToIndex(selectedIndex, true)
@@ -601,9 +599,9 @@ function closePanel(event?: FocusEvent): void {
   if (!isOpen.value) return
   isOpen.value = false
   emit('popup-hide')
-  // useInput + single: revert back to the label/value of whatever is actually selected (in case
-  // typing was left mid-way without picking anything) — every other mode clears back to empty as before.
-  searchQuery.value = useInput && !multiple ? inputFallbackDisplayText.value : ''
+  // Input mode + single: revert back to the label/value of whatever is actually selected (in case
+  // typing was left mid-way without picking anything), every other mode clears back to empty.
+  searchQuery.value = isInputMode.value && !multiple ? inputFallbackDisplayText.value : ''
   highlightedIndex.value = -1
   nextTick(() => validate())
   emit('blur', event)
@@ -672,7 +670,11 @@ function handleInputFocus(): void {
 // Quasar-style input-debounce — delays the real fire to avoid an @filter (usually API-bound) on
 // every keystroke; inputDebounce=0 fires immediately with no delay.
 function handleInputChange(): void {
-  if (!useInput) return
+  // searchable filters locally, typing only has to bring the list back if a pick closed it.
+  if (!useInput) {
+    if (!isOpen.value) void openPanel(false, false)
+    return
+  }
   clearFilterDebounce()
 
   if (inputDebounce <= 0) {
@@ -698,15 +700,31 @@ function handleChipBackspace(): void {
 // that's currently focused (e.g. panel open from the input, then clicking the chevron), without
 // affecting clicks on the input itself.
 function handleIconAreaMousedown(event: MouseEvent): void {
-  if (useInput) event.preventDefault()
+  if (isInputMode.value) event.preventDefault()
 }
 
 // Quasar-style: clicking the arrow opens/closes the panel without typing first — if closed, it just
 // focuses the input, which naturally flows into handleInputFocus via the native focus event.
-function handleChevronClick(): void {
-  if (!useInput) return
+function handleChevronClick(event: MouseEvent): void {
+  if (!isInputMode.value) return
+  // The trigger's own click would open the panel again right after this closes it.
+  event.stopPropagation()
   if (isOpen.value) closePanel()
-  else triggerInputRef.value?.focus()
+  else openFromInput()
+}
+
+// Input mode: a click anywhere on the trigger goes to the input. Focusing it opens the panel through
+// handleInputFocus, but an input still focused after a pick fires no focus event, so open it here.
+function openFromInput(): void {
+  const input = triggerInputRef.value
+  if (!input || isOpen.value) return
+  if (document.activeElement === input) handleInputFocus()
+  else input.focus()
+}
+
+function handleTriggerClick(): void {
+  if (isInputMode.value) openFromInput()
+  else toggleOpen()
 }
 
 function moveHighlight(delta: number): void {
@@ -772,13 +790,13 @@ watch(filteredOptions, () => {
   lastVirtualScrollTo = -1
 })
 
-// useInput + single: sync the initial/externally changed value (v-model set directly) into the input
+// Input mode + single: sync the initial/externally changed value (v-model set directly) into the input
 // while the panel is closed — never touched while open, to avoid overwriting text the user is
 // currently typing.
 watch(
   inputFallbackDisplayText,
   (text) => {
-    if (useInput && !multiple && !isOpen.value) searchQuery.value = text
+    if (isInputMode.value && !multiple && !isOpen.value) searchQuery.value = text
   },
   { immediate: true },
 )
@@ -870,20 +888,20 @@ watch(
     <div ref="wrapperRef" class="relative w-full">
       <div
         ref="triggerRef"
-        :tabindex="useInput || disabled ? -1 : 0"
-        :role="useInput ? undefined : 'combobox'"
-        :aria-haspopup="useInput ? undefined : 'listbox'"
-        :aria-expanded="useInput ? undefined : isOpen"
-        :aria-controls="useInput ? undefined : panelId"
-        :aria-labelledby="useInput || !label ? undefined : labelId"
+        :tabindex="isInputMode || disabled ? -1 : 0"
+        :role="isInputMode ? undefined : 'combobox'"
+        :aria-haspopup="isInputMode ? undefined : 'listbox'"
+        :aria-expanded="isInputMode ? undefined : isOpen"
+        :aria-controls="isInputMode ? undefined : panelId"
+        :aria-labelledby="isInputMode || !label ? undefined : labelId"
         :class="triggerClasses"
         :style="triggerCustomStyle"
-        @click="!useInput && toggleOpen()"
-        @blur="!useInput && handleTriggerBlur($event)"
-        @keydown.down.prevent="!useInput && moveHighlight(1)"
-        @keydown.up.prevent="!useInput && moveHighlight(-1)"
-        @keydown.enter.prevent="!useInput && selectHighlighted()"
-        @keydown.space.prevent="!useInput && toggleOpen()"
+        @click="handleTriggerClick"
+        @blur="!isInputMode && handleTriggerBlur($event)"
+        @keydown.down.prevent="!isInputMode && moveHighlight(1)"
+        @keydown.up.prevent="!isInputMode && moveHighlight(-1)"
+        @keydown.enter.prevent="!isInputMode && selectHighlighted()"
+        @keydown.space.prevent="!isInputMode && toggleOpen()"
       >
         <!-- An icon file paints itself with its own colors, so a disabled select recolors the strokes and
              fills through .select-icon-disabled -->
@@ -892,7 +910,7 @@ watch(
         </span>
 
         <div
-          v-if="useInput && multiple && useChips"
+          v-if="isInputMode && multiple && useChips"
           class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5"
         >
           <span
@@ -936,7 +954,7 @@ watch(
           />
         </div>
         <input
-          v-else-if="useInput"
+          v-else-if="isInputMode"
           ref="triggerInputRef"
           v-model="searchQuery"
           type="text"
@@ -947,7 +965,7 @@ watch(
           :aria-labelledby="label ? labelId : undefined"
           :disabled="disabled"
           :readonly="readonly"
-          :placeholder="placeholder"
+          :placeholder="resolvedDisplayText || placeholder"
           class="w-full min-w-0 flex-1 bg-transparent text-16 font-medium outline-none placeholder:text-content-subtle disabled:placeholder:text-content-subtle disabled:cursor-not-allowed"
           @input="handleInputChange"
           @focus="handleInputFocus"
@@ -1036,19 +1054,6 @@ watch(
           :style="panelCustomStyle"
           @mousedown.prevent
         >
-          <div v-if="searchable && !useInput" class="border-b border-border p-2" @mousedown.stop>
-            <input
-              ref="searchInputRef"
-              v-model="searchQuery"
-              type="text"
-              :placeholder="searchPlaceholder"
-              class="h-9 w-full rounded-md border border-border-strong px-3 text-sm outline-none focus:border-focus"
-              @keydown.down.prevent="moveHighlight(1)"
-              @keydown.up.prevent="moveHighlight(-1)"
-              @keydown.enter.prevent="selectHighlighted"
-            />
-          </div>
-
           <div
             v-if="filteredOptions.length === 0"
             class="p-3 text-center text-sm text-content-subtle"
