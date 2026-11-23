@@ -26,7 +26,7 @@ const mainStyle = computed(() => {
 </script>
 
 <template>
-  <div class="mx-auto flex min-h-dvh w-full max-w-160 flex-col">
+  <div class="mx-auto flex min-h-dvh w-full max-w-160 flex-col bg-canvas">
     <LayoutMobileTopBar v-if="showTopBar" />
 
     <!-- No z-index on purpose: the top bar (z-20) stays on top of a page that sits up under it -->

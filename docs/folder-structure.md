@@ -54,7 +54,7 @@ vue-project-template/
   - `title` ชื่อบน top bar, `backTo` route ของปุ่มย้อนกลับ (มีค่า = top bar แบบปุ่มย้อนกลับ + ชื่อ, ไม่มี = แบบ logo), `hideBack` ซ่อนแค่ปุ่ม
   - `current` แท็บที่หน้านี้อยู่ (`home` | `profile`), `hideTopBar`, `hideTabBar`, `hideLogo`, `overlapTopBar`
   - `requiresAuth` ต้องมี token ถ้าไม่มี guard ส่งไปหน้า landing พร้อม `?redirect=` กลับมาหน้านี้ ตั้งที่ layout route แล้วหน้าลูกได้ไปด้วย
-- `LayoutMobile.vue` คือ shell เดียวของแอป คอลัมน์กว้างไม่เกิน 640px อยู่กลางจอ
+- `LayoutMobile.vue` คือ shell เดียวของแอป คอลัมน์กว้างไม่เกิน 640px อยู่กลางจอ พื้นหลังของคอลัมน์คือ `bg-canvas` ส่วนพื้นที่ด้านข้างบนจอกว้างคือ `bg-page` (ตั้งที่ `<html>`) แยกสีกันได้
 - เพิ่มแท็บใหม่ที่ `src/components/layout/mobileTabs.ts` แล้วตั้ง `meta.current` ของหน้านั้น
 
 ## Dialog

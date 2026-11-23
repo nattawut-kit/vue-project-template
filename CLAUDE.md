@@ -75,7 +75,7 @@ src/
 
 `LayoutMobile.vue` is the only shell, `App.vue` wraps every page in it.
 
-- Mobile first column capped at `max-w-160` (640px) and centered on every screen, no desktop variant
+- Mobile first column capped at `max-w-160` (640px) and centered on every screen, no desktop variant. The column is `bg-canvas`, the area beside it on a wide screen is `bg-page` (set on `<html>`), two tokens so a project can tell them apart
 - Sticky top bar (`LayoutMobileTopBar.vue`): two looks. A page with `meta.backTo` shows the back button (`meta.hideBack` hides just the button) and `meta.title`, every other page shows the logo placeholder. `meta.hideTopBar` hides the bar
 - Sticky bottom tab bar (`LayoutMobileTabBar.vue`), entries live in `src/components/layout/mobileTabs.ts`, the active tab follows `meta.current`. `meta.hideTabBar` hides the bar
 - Adding a top level destination means adding a tab there
@@ -131,7 +131,7 @@ Dialog.create({
 
 Colors are semantic tokens defined once in `src/assets/main.css`, never palette shades in components.
 
-- Components use the token utilities: `bg-canvas`, `bg-surface`, `text-content`, `text-content-subtle`, `ring-border`, `bg-brand`, `text-danger`, `bg-danger-surface`
+- Components use the token utilities: `bg-page`, `bg-canvas`, `bg-surface`, `text-content`, `text-content-subtle`, `ring-border`, `bg-brand`, `text-danger`, `bg-danger-surface`
 - A color with no token is a MISSING token, add it to `main.css` (palette, job and utility layers)
 - Palette shades (`slate-50`, `indigo-600`) and hex values may appear ONLY inside `main.css`
 - Light mode only. A project that needs dark mode adds a `prefers-color-scheme` block that redefines the `--app-*` jobs

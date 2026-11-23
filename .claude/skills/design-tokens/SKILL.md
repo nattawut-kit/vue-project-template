@@ -26,19 +26,19 @@ only changes when a token is added or removed.
 
 ## Token Table
 
-| Job                       | Utilities                                                                                                                                                                     |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Page and card backgrounds | `bg-canvas`, `bg-surface`, `bg-surface-active` (hover, pressed)                                                                                                               |
-| Lines                     | `border-border`, `border-border-strong`, `ring-border`                                                                                                                        |
-| Text                      | `text-content`, `text-content-strong`, `text-content-subtle`, `text-content-disabled`, `text-content-inverted`                                                                |
-| Brand                     | `bg-brand`, `bg-brand-hover`, `bg-brand-subtle`, `text-brand`, `border-brand`                                                                                                 |
-| Focus ring                | `ring-focus`                                                                                                                                                                  |
-| Status                    | `text-danger`, `bg-danger-surface`, `text-success`, `text-warning`                                                                                                            |
-| Form controls             | `border-border-input`, `border-border-focus-input`, `bg-input-disabled`, `text-content-input`, `text-content-placeholder`, `text-content-disabled-input`, `text-danger-input` |
-| Select options            | `bg-select-option-hover`, `bg-select-option-selected`                                                                                                                         |
-| Disabled button           | `bg-btn-disabled`, `text-btn-disabled-text`                                                                                                                                   |
-| Overlays                  | `bg-overlay`, `bg-popup-backdrop`                                                                                                                                             |
-| Shadows                   | `shadow-popup`, `shadow-top-bar-scrolled`                                                                                                                                     |
+| Job             | Utilities                                                                                                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backgrounds     | `bg-page` (outside the app column), `bg-canvas` (the app column), `bg-surface` (cards, bars), `bg-surface-active` (hover, pressed)                                            |
+| Lines           | `border-border`, `border-border-strong`, `ring-border`                                                                                                                        |
+| Text            | `text-content`, `text-content-strong`, `text-content-subtle`, `text-content-disabled`, `text-content-inverted`                                                                |
+| Brand           | `bg-brand`, `bg-brand-hover`, `bg-brand-subtle`, `text-brand`, `border-brand`                                                                                                 |
+| Focus ring      | `ring-focus`                                                                                                                                                                  |
+| Status          | `text-danger`, `bg-danger-surface`, `text-success`, `text-warning`                                                                                                            |
+| Form controls   | `border-border-input`, `border-border-focus-input`, `bg-input-disabled`, `text-content-input`, `text-content-placeholder`, `text-content-disabled-input`, `text-danger-input` |
+| Select options  | `bg-select-option-hover`, `bg-select-option-selected`                                                                                                                         |
+| Disabled button | `bg-btn-disabled`, `text-btn-disabled-text`                                                                                                                                   |
+| Overlays        | `bg-overlay`, `bg-popup-backdrop`                                                                                                                                             |
+| Shadows         | `shadow-popup`, `shadow-top-bar-scrolled`                                                                                                                                     |
 
 A `<style>` block reads the same values as CSS variables: `var(--color-border-input)`.
 

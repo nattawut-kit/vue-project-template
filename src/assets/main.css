@@ -42,6 +42,7 @@
  * job needs another colour, layer 2. See the design-tokens skill.
  */
 @theme inline {
+  --color-page: var(--app-page);
   --color-canvas: var(--app-canvas);
   --color-surface: var(--app-surface);
   --color-surface-active: var(--app-surface-active);
@@ -108,6 +109,9 @@
   --palette-green-600: #16a34a;
   --palette-amber-500: #f59e0b;
 
+  /* Outside the 640px app column (the sides on a tablet or desktop), kept apart from the app itself. */
+  --app-page: var(--palette-gray-100);
+  /* The app column, every page sits on it. */
   --app-canvas: var(--palette-white);
   --app-surface: var(--palette-white);
   --app-surface-active: var(--palette-gray-100);
@@ -153,7 +157,7 @@
 
 @layer base {
   html {
-    @apply bg-canvas text-content antialiased;
+    @apply bg-page text-content antialiased;
     overflow-y: auto;
     scrollbar-gutter: stable;
     font-family: var(--font-sans);
