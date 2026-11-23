@@ -1,0 +1,257 @@
+@import 'tailwindcss';
+
+/*
+ * Font: drop the project font files into src/assets/fonts/ and declare them here, then put the
+ * family first in --font-sans below. Until then the app renders in the system font.
+ *
+ * @font-face {
+ *   font-family: 'ProjectFont';
+ *   src: url('./fonts/ProjectFont-Regular.woff2') format('woff2');
+ *   font-weight: 400;
+ *   font-style: normal;
+ *   font-display: swap;
+ * }
+ */
+
+@theme {
+  --font-sans: system-ui, sans-serif;
+
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Project's own scale, font-size only, line-height is the 22px default set on <html> below */
+  --text-12: 12px;
+  --text-14: 14px;
+  --text-16: 16px;
+  --text-18: 18px;
+  --text-20: 20px;
+  --text-22: 22px;
+  --text-24: 24px;
+  --text-26: 26px;
+  --text-28: 28px;
+}
+
+/*
+ * Design tokens. Components MUST use these semantic utilities (bg-surface, text-content-subtle,
+ * border-border) and never a raw palette shade, so a new project re-themes here and nowhere else.
+ *
+ * Layer 1 (--palette-*) is the brand palette, layer 2 (--app-*) gives each colour a job, layer 3
+ * (@theme inline) exposes the jobs as Tailwind utilities. A new project edits layer 1 and, when a
+ * job needs another colour, layer 2. See the design-tokens skill.
+ */
+@theme inline {
+  --color-canvas: var(--app-canvas);
+  --color-surface: var(--app-surface);
+  --color-surface-active: var(--app-surface-active);
+
+  --color-border: var(--app-border);
+  --color-border-strong: var(--app-border-strong);
+  --color-border-input: var(--app-border-input);
+  --color-border-focus-input: var(--app-border-focus-input);
+  --color-input-disabled: var(--app-input-disabled);
+  --color-select-option-selected: var(--app-select-option-selected);
+  --color-select-option-hover: var(--app-select-option-hover);
+
+  --color-content: var(--app-content);
+  --color-content-strong: var(--app-content-strong);
+  --color-content-subtle: var(--app-content-subtle);
+  --color-content-disabled: var(--app-content-disabled);
+  --color-content-inverted: var(--app-content-inverted);
+  --color-content-input: var(--app-content-input);
+  --color-content-placeholder: var(--app-content-placeholder);
+  --color-content-disabled-input: var(--app-content-disabled-input);
+
+  --color-brand: var(--app-brand);
+  --color-brand-hover: var(--app-brand-hover);
+  --color-brand-subtle: var(--app-brand-subtle);
+  --color-focus: var(--app-focus);
+
+  --color-btn-disabled: var(--app-btn-disabled);
+  --color-btn-disabled-text: var(--app-btn-disabled-text);
+
+  --color-danger: var(--app-danger);
+  --color-danger-input: var(--app-danger-input);
+  --color-danger-surface: var(--app-danger-surface);
+  --color-success: var(--app-success);
+  --color-warning: var(--app-warning);
+
+  --color-overlay: var(--app-overlay);
+  --color-popup-backdrop: var(--app-popup-backdrop);
+
+  --shadow-top-bar-scrolled: var(--app-top-bar-scrolled-shadow);
+  --shadow-popup: var(--app-popup-shadow);
+}
+
+/* Light mode only, there is no prefers-color-scheme block. Add one here (both layers) if a project needs it. */
+:root {
+  /* Brand palette: the only place raw colours live, replace it per project */
+  --palette-white: #ffffff;
+  --palette-black: #0a0a0a;
+  --palette-gray-50: #fafafa;
+  --palette-gray-100: #f4f4f5;
+  --palette-gray-200: #e4e4e7;
+  --palette-gray-300: #d4d4d8;
+  --palette-gray-400: #a1a1aa;
+  --palette-gray-500: #71717a;
+  --palette-gray-700: #3f3f46;
+  --palette-gray-800: #27272a;
+  --palette-blue-50: #eff6ff;
+  --palette-blue-100: #dbeafe;
+  --palette-blue-400: #60a5fa;
+  --palette-blue-600: #2563eb;
+  --palette-blue-700: #1d4ed8;
+  --palette-red-50: #fef2f2;
+  --palette-red-500: #ef4444;
+  --palette-red-600: #dc2626;
+  --palette-green-600: #16a34a;
+  --palette-amber-500: #f59e0b;
+
+  --app-canvas: var(--palette-white);
+  --app-surface: var(--palette-white);
+  --app-surface-active: var(--palette-gray-100);
+
+  --app-border: var(--palette-gray-200);
+  --app-border-strong: var(--palette-gray-300);
+  --app-border-input: var(--palette-gray-300);
+  --app-border-focus-input: var(--palette-blue-600);
+  --app-input-disabled: var(--palette-gray-100);
+  --app-select-option-selected: var(--palette-blue-50);
+  --app-select-option-hover: var(--palette-gray-100);
+
+  --app-content: var(--palette-black);
+  --app-content-strong: var(--palette-gray-800);
+  --app-content-subtle: var(--palette-gray-500);
+  --app-content-disabled: var(--palette-gray-400);
+  --app-content-inverted: var(--palette-white);
+  --app-content-input: var(--palette-gray-800);
+  --app-content-placeholder: var(--palette-gray-400);
+  --app-content-disabled-input: var(--palette-gray-400);
+
+  --app-brand: var(--palette-blue-600);
+  --app-brand-hover: var(--palette-blue-700);
+  --app-brand-subtle: var(--palette-blue-100);
+  --app-focus: var(--palette-blue-400);
+  --app-link: var(--palette-blue-600);
+
+  --app-btn-disabled: var(--palette-gray-200);
+  --app-btn-disabled-text: var(--palette-gray-400);
+
+  --app-danger: var(--palette-red-600);
+  --app-danger-input: var(--palette-red-500);
+  --app-danger-surface: var(--palette-red-50);
+  --app-success: var(--palette-green-600);
+  --app-warning: var(--palette-amber-500);
+
+  --app-overlay: var(--palette-black);
+  --app-popup-backdrop: rgb(0 0 0 / 0.5);
+
+  --app-top-bar-scrolled-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  --app-popup-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+}
+
+@layer base {
+  html {
+    @apply bg-canvas text-content antialiased;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    font-family: var(--font-sans);
+    line-height: 22px;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    font-size: var(--text-16);
+  }
+}
+
+/* Styling for HTML rendered via v-dompurify-html. Apply on the binding's container, scoped so
+   a plain <p>/<a> elsewhere isn't affected. Matches Quill v2's real markup. */
+.html-content p {
+  font-size: var(--text-16);
+  line-height: 1.5;
+}
+
+.html-content h3 {
+  font-size: var(--text-20);
+  font-weight: 700;
+}
+
+.html-content h2 {
+  font-size: var(--text-22);
+  font-weight: 700;
+}
+
+.html-content a {
+  color: var(--app-link);
+  text-decoration: underline;
+}
+
+/* Native <ol> numbering counts bullet items too, since both types share one <ol>, count only
+   ordered items with a scoped CSS counter instead. */
+.html-content ol {
+  counter-reset: ql-ordered;
+  padding-left: 18px;
+}
+
+/* Hanging indent: text-indent pulls only the marker's line back, so a wrapped line still aligns
+   under the text. ql-indent-N (Tab-to-indent, no toolbar button) just adds more padding. */
+.html-content li[data-list] {
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+  list-style: none;
+}
+
+.html-content li[data-list='bullet']::before {
+  content: '• ';
+}
+
+.html-content li[data-list='ordered'] {
+  counter-increment: ql-ordered;
+}
+
+.html-content li[data-list='ordered']::before {
+  content: counter(ql-ordered) '. ';
+}
+
+/* `li` matches li[data-list]'s specificity so source order decides the winner, a bare class
+   alone would lose and never override its padding-left. */
+.html-content li.ql-indent-1 {
+  padding-left: calc(1.2em + 1.5em);
+}
+
+.html-content li.ql-indent-2 {
+  padding-left: calc(1.2em + 3em);
+}
+
+.html-content li.ql-indent-3 {
+  padding-left: calc(1.2em + 4.5em);
+}
+
+.html-content .ql-ui {
+  display: none;
+}
+
+.html-content .ql-align-center {
+  text-align: center;
+}
+.html-content .ql-align-right {
+  text-align: right;
+}
+.html-content .ql-align-justify {
+  text-align: justify;
+}
+
+.html-content .ql-video {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 16 / 9;
+  min-height: 320px;
+  margin: 8px 0;
+  border: 0;
+  border-radius: 8px;
+}
